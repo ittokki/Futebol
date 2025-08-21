@@ -38,7 +38,7 @@
       justify-content: center;
       gap: 35px;
       margin: 35px auto 0 auto;
-      max-width: 1200px;
+      max-width: 1400px;
     }
     .ranking-table {
       background: #fff8;
@@ -46,7 +46,7 @@
       box-shadow: 0 4px 24px #0c2e5928;
       padding: 22px 18px;
       min-width: 240px;
-      max-width: 280px;
+      max-width: 320px;
       margin-bottom: 15px;
       transition: 0.2s;
     }
@@ -139,29 +139,72 @@
       assistencias: "🅰️",
       vitorias: "🏅",
       jogos: "🎽",
-      golsTomados: "🛡️"
+      golsTomados: "🛡️",
+      aproveitamento: "📈",
+      nota: "⭐"
     };
+
+    // Corrige linhas faltando colunas
+    function fixRow(row) {
+      const fixed = [];
+      for (let i = 0; i < 7; i++) {
+        fixed[i] = row[i] !== undefined && row[i] !== null ? row[i] : "";
+      }
+      return fixed;
+    }
+
+    function calcularAproveitamento(jogos, vitorias) {
+      if (jogos === 0) return 0;
+      return Math.round((vitorias / jogos) * 100);
+    }
+
+    // Fórmula da nota: vitórias*1 + gols*2 + assistências*1.5 + aproveitamento*0.5
+    function calcularNota(jogador) {
+      let nota = 0;
+      nota += jogador.vitorias * 1;
+      nota += jogador.gols * 2;
+      nota += jogador.assistencias * 1.5;
+      nota += calcularAproveitamento(jogador.jogos, jogador.vitorias) * 0.5;
+      return Math.round(nota * 100) / 100;
+    }
 
     async function fetchJogadores() {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
       const resp = await fetch(url);
       const data = await resp.json();
-      return (data.values || []).map(row => ({
-        id: row[0],
-        nome: row[1],
-        jogos: Number(row[2] || 0),
-        vitorias: Number(row[3] || 0),
-        gols: Number(row[4] || 0),
-        assistencias: Number(row[5] || 0),
-        golsTomados: Number(row[6] || 0),
-      }));
+      return (data.values || []).map(row => {
+        const [id, nome, jogos, vitorias, gols, assistencias, golsTomados] = fixRow(row);
+        const jogosNum = Number(jogos || 0);
+        const vitoriasNum = Number(vitorias || 0);
+        const golsNum = Number(gols || 0);
+        const assistenciasNum = Number(assistencias || 0);
+        const golsTomadosNum = Number(golsTomados || 0);
+        return {
+          id: id,
+          nome: nome,
+          jogos: jogosNum,
+          vitorias: vitoriasNum,
+          gols: golsNum,
+          assistencias: assistenciasNum,
+          golsTomados: golsTomadosNum,
+          aproveitamento: calcularAproveitamento(jogosNum, vitoriasNum),
+          nota: calcularNota({
+            jogos: jogosNum,
+            vitorias: vitoriasNum,
+            gols: golsNum,
+            assistencias: assistenciasNum
+          })
+        };
+      });
     }
 
-    function makeRankingTable(jogadores, tipo, titulo, filterFn = null) {
+    function makeRankingTable(jogadores, tipo, titulo, filterFn = null, sufixo = "") {
       let arr = jogadores;
       if (filterFn) arr = arr.filter(filterFn);
       arr = [...arr].sort((a, b) => (
-        tipo === "golsTomados" ? a[tipo] - b[tipo] : b[tipo] - a[tipo]
+        tipo === "golsTomados"
+          ? a[tipo] - b[tipo]
+          : b[tipo] - a[tipo]
       ));
 
       let table = `<div class="ranking-table">
@@ -171,7 +214,7 @@
             <tr>
               <th>#</th>
               <th>Nome</th>
-              <th>${titulo}</th>
+              <th>${titulo}${sufixo}</th>
             </tr>
           </thead>
           <tbody>
@@ -179,7 +222,7 @@
               <tr${i === 0 ? ' class="top-player"' : ''}>
                 <td>${i+1}</td>
                 <td>${jogador.nome}</td>
-                <td>${jogador[tipo]}</td>
+                <td>${tipo === "aproveitamento" ? jogador[tipo] + "%" : jogador[tipo]}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -199,6 +242,8 @@
             ${makeRankingTable(jogadores, "assistencias", "Assistências")}
             ${makeRankingTable(jogadores, "vitorias", "Vitórias")}
             ${makeRankingTable(jogadores, "jogos", "Jogos Jogados")}
+            ${makeRankingTable(jogadores, "aproveitamento", "Aproveitamento", j => j.jogos > 0, " (%)")}
+            ${makeRankingTable(jogadores, "nota", "Nota Geral")}
             ${makeRankingTable(jogadores, "golsTomados", "Menos Gols Tomados (Goleiros)", j => j.nome.toLowerCase().includes("goleiro"))}
           </div>
         `;
