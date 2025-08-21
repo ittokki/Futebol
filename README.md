@@ -257,7 +257,7 @@
             position: relative;
             font-size: 1.07em;
             animation: modal-in 0.2s;
-            overflow: auto;
+            overflow-y: auto;
             max-height: 90vh;
         }
         @keyframes modal-in {
@@ -459,8 +459,8 @@
 </head>
 <body>
     <div class="navbar">
-        <button class="nav-btn active" id="navRankings">Rankings</button>
-        <button class="nav-btn" id="navCharts">Gráficos</button>
+        <button class="nav-btn active" id="navRankings" aria-label="Exibir Rankings">Rankings</button>
+        <button class="nav-btn" id="navCharts" aria-label="Exibir Gráficos">Gráficos</button>
     </div>
     <div class="header">
         <img src="https://drive.google.com/uc?export=view&id=1x-iONhJrjibDu4QqkdJw0Y5SxyYLMJXT" class="logo" alt="logo"/>
@@ -476,7 +476,7 @@
     </div>
     <div class="modal-bg" id="modalBg">
         <div class="modal" id="modal">
-            <button class="close-btn" id="modalClose">&times;</button>
+            <button class="close-btn" id="modalClose" aria-label="Fechar modal">&times;</button>
             <div id="modalContent"></div>
         </div>
     </div>
@@ -506,7 +506,12 @@
         }
 
         function calcularNotaPartida(dados) {
-            let nota = PESOS.notaBase + (Number(dados.gols) || 0) * PESOS.gols + (Number(dados.assistencias) || 0) * PESOS.assistencias + (Number(dados.golsTomados) || 0) * PESOS.golsTomados + (Number(dados.golsContra) || 0) * PESOS.golsContra + (dados.vitoria ? PESOS.vitoria : 0);
+            let nota = PESOS.notaBase + 
+                (Number(dados.gols) || 0) * PESOS.gols + 
+                (Number(dados.assistencias) || 0) * PESOS.assistencias + 
+                (Number(dados.golsTomados) || 0) * PESOS.golsTomados + 
+                (Number(dados.golsContra) || 0) * PESOS.golsContra + 
+                (dados.vitoria ? PESOS.vitoria : 0);
             const notaADM = Number(dados.notaADM) || PESOS.notaBase;
             nota = (nota * 2 + notaADM * PESOS.pesoNotaADM) / (2 + PESOS.pesoNotaADM);
             return Math.max(0, Math.min(10, Math.round(nota * 100) / 100));
@@ -543,7 +548,7 @@
                 if (!nome || !dataJogo) return null;
                 const vitoria = (typeof vitoriaRaw === "string" && vitoriaRaw.trim().toLowerCase() === "sim") ? 1 : 0;
                 const notaPartida = calcularNotaPartida({ gols, assistencias, golsTomados, golsContra, vitoria, notaADM });
-                return { nome, gols: Number(gols || 0), assistencias: Number(assistencias || 0), golsTomados: Number(golsTomados || 0), golsContra: Number(golsContra || 0), notaADM, dataJogo, vitoria, notaPartida };
+                return { nome, gols: Number(gols || 0), assistencias: Number(assistencias || 0), golsTomados: Number(golsTomados || 0), golsContra: Number(golsContra || 0), dataJogo, vitoria, notaPartida };
             }).filter(x => x);
         }
 
@@ -559,7 +564,6 @@
             });
         }
 
-        // Maior destaque do grupo (melhor média de nota geral)
         function getMaiorDestaque(jogadores) {
             let maior = { nome: "", nota: 0 };
             jogadores.forEach(j => {
@@ -705,7 +709,6 @@
         window.showJogoModal = function(dataJogo) {
             const partidas = window.__PARTIDAS__.filter(p => p.dataJogo === dataJogo);
             if (!partidas.length) return;
-            // Destaque da partida: maior nota
             let destaque = { nome: "", nota: -1 };
             partidas.forEach(p => {
                 if (p.notaPartida > destaque.nota) destaque = { nome: p.nome, nota: p.notaPartida };
@@ -717,7 +720,6 @@
                     <td>${p.assistencias || ""}</td>
                     <td>${p.golsTomados || ""}</td>
                     <td>${p.golsContra || ""}</td>
-                    <td>${p.notaADM || ""}</td>
                     <td>${p.vitoria ? "Sim" : "Não"}</td>
                     <td>${p.notaPartida}</td>
                 </tr>
@@ -729,25 +731,22 @@
                     <span class="star-icon">⭐</span> Destaque da partida: <span class="highlight-player">${destaque.nome}</span>
                     <span class="highlight-note">${destaque.nota}</span>
                 </div>
-                <div style="overflow: auto; max-height: 60vh;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Gols</th>
-                                <th>Assistências</th>
-                                <th>Gols Tomados</th>
-                                <th>Gols Contra</th>
-                                <th>Nota ADM'S</th>
-                                <th>Vitória</th>
-                                <th>Nota</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${jogadoresHtml}
-                        </tbody>
-                    </table>
-                </div>
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Gols</th>
+                            <th>Assistências</th>
+                            <th>Gols Tomados</th>
+                            <th>Gols Contra</th>
+                            <th>Vitória</th>
+                            <th>Nota</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${jogadoresHtml}
+                    </tbody>
+                </table>
             `;
             document.getElementById('modalBg').classList.add('active');
         }
@@ -787,7 +786,6 @@
             let nomesAproveitamento = topAproveitamento.map(j => j.nome);
             let aproveitamentoVals = topAproveitamento.map(j => j.aproveitamento);
             let totalGols = jogadores.reduce((a,b) => a + b.gols, 0);
-
             const playerNames = jogadores.map(j => j.nome).sort();
 
             return `
@@ -810,11 +808,11 @@
                     </div>
                     <div class="comparison-section">
                         <h2>Comparar Jogadores</h2>
-                        <select id="player1">
+                        <select id="player1" aria-label="Selecionar primeiro jogador">
                             <option value="">Selecione Jogador 1</option>
                             ${playerNames.map(name => `<option value="${name}">${name}</option>`).join('')}
                         </select>
-                        <select id="player2">
+                        <select id="player2" aria-label="Selecionar segundo jogador">
                             <option value="">Selecione Jogador 2</option>
                             ${playerNames.map(name => `<option value="${name}">${name}</option>`).join('')}
                         </select>
@@ -899,7 +897,6 @@
             const player2 = window.__JOGADORES__.find(j => j.nome === player2Name);
             if (!player1 || !player2) return;
 
-            // Calcular percentuais adicionais
             const totalGolsGrupo = window.__JOGADORES__.reduce((sum, j) => sum + j.gols, 0);
             const percGols1 = totalGolsGrupo > 0 ? Math.round((player1.gols / totalGolsGrupo) * 100) : 0;
             const percGols2 = totalGolsGrupo > 0 ? Math.round((player2.gols / totalGolsGrupo) * 100) : 0;
@@ -994,14 +991,15 @@
             const main = document.getElementById("mainContent");
             main.innerHTML = `<div class="loading">Carregando dados...</div>`;
             try {
-                const [jogadores, partidas] = await Promise.all([ fetchJogadores(), fetchPartidas() ]);
+                const [jogadores, partidas] = await Promise.all([fetchJogadores(), fetchPartidas()]);
                 calcularNotasGerais(jogadores, partidas);
                 window.__JOGADORES__ = jogadores;
                 window.__PARTIDAS__ = partidas;
                 showMaiorDestaque(jogadores);
                 renderDashboard(jogadores, partidas);
-            } catch(e) {
-                main.innerHTML = `<div class="loading">Erro ao buscar dados. Verifique a planilha ou a internet.</div>`;
+            } catch (e) {
+                console.error("Erro ao carregar dados:", e);
+                main.innerHTML = `<div class="loading">Erro: ${e.message || "Falha ao carregar dados. Verifique sua conexão ou a planilha."}</div>`;
             }
         }
 
