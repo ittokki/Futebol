@@ -491,6 +491,7 @@
         const rankingIcons = { gols: "⚽️", assistencias: "🅰️", vitorias: "🏅", jogos: "🎽", golsTomados: "🛡️", aproveitamento: "📈", notaGeral: "⭐" };
         const medalhas = ['🥇','🥈','🥉'];
         const PESOS = { notaBase: 6.0, gols: 0.7, assistencias: 0.5, golsTomados: 0.2, golsContra: -0.5, vitoria: 0.3, pesoNotaADM: 1.2 };
+        const goleiros = ['BRUNO GUIMARAES', 'DAVI', 'EDERSON', 'FILIPE BABS (GOLEIRO)', 'THALES', 'VITOR (GOLEIRO)'];
 
         function fixRow(row, len) {
             const fixed = [];
@@ -517,25 +518,78 @@
             return Math.max(0, Math.min(10, Math.round(nota * 100) / 100));
         }
 
-        async function fetchJogadores() {
+        async function fetchJogadores(partidas) {
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${rangePagina1}?key=${apiKey}`;
             const resp = await fetch(url);
             const data = await resp.json();
+            
+            // Aggregate match data from Página2
+            const playerStats = {};
+            partidas.forEach(p => {
+                if (!playerStats[p.nome]) {
+                    playerStats[p.nome] = {
+                        jogos: 0,
+                        vitorias: 0,
+                        gols: 0,
+                        assistencias: 0,
+                        golsTomados: 0,
+                        golsContra: 0
+                    };
+                }
+                playerStats[p.nome].jogos += 1;
+                playerStats[p.nome].vitorias += p.vitoria;
+                playerStats[p.nome].gols += Number(p.gols || 0);
+                playerStats[p.nome].assistencias += Number(p.assistencias || 0);
+                playerStats[p.nome].golsTomados += Number(p.golsTomados || 0);
+                playerStats[p.nome].golsContra += Number(p.golsContra || 0);
+            });
+
             const arr = (data.values || []).map(row => {
                 const [id, nome, jogos, vitorias, gols, assistencias, golsTomados, golsContra] = fixRow(row, 8);
+                const stats = playerStats[nome] || {
+                    jogos: 0,
+                    vitorias: 0,
+                    gols: 0,
+                    assistencias: 0,
+                    golsTomados: 0,
+                    golsContra: 0
+                };
                 return {
                     id: id,
                     nome: nome,
-                    jogos: Number(jogos || 0),
-                    vitorias: Number(vitorias || 0),
-                    gols: Number(gols || 0),
-                    assistencias: Number(assistencias || 0),
-                    golsTomados: Number(golsTomados || 0),
-                    golsContra: Number(golsContra || 0),
-                    aproveitamento: calcularAproveitamento(Number(jogos || 0), Number(vitorias || 0)),
+                    jogos: Math.max(Number(jogos || 0), stats.jogos),
+                    vitorias: Math.max(Number(vitorias || 0), stats.vitorias),
+                    gols: Math.max(Number(gols || 0), stats.gols),
+                    assistencias: Math.max(Number(assistencias || 0), stats.assistencias),
+                    golsTomados: Math.max(Number(golsTomados || 0), stats.golsTomados),
+                    golsContra: Math.max(Number(golsContra || 0), stats.golsContra),
+                    aproveitamento: calcularAproveitamento(
+                        Math.max(Number(jogos || 0), stats.jogos),
+                        Math.max(Number(vitorias || 0), stats.vitorias)
+                    ),
                     notaGeral: 0
                 };
             });
+
+            // Include players from Página2 who might not be in Página1
+            Object.keys(playerStats).forEach(nome => {
+                if (!arr.find(j => j.nome === nome)) {
+                    const stats = playerStats[nome];
+                    arr.push({
+                        id: "",
+                        nome: nome,
+                        jogos: stats.jogos,
+                        vitorias: stats.vitorias,
+                        gols: stats.gols,
+                        assistencias: stats.assistencias,
+                        golsTomados: stats.golsTomados,
+                        golsContra: stats.golsContra,
+                        aproveitamento: calcularAproveitamento(stats.jogos, stats.vitorias),
+                        notaGeral: 0
+                    });
+                }
+            });
+
             return arr;
         }
 
@@ -991,7 +1045,8 @@
             const main = document.getElementById("mainContent");
             main.innerHTML = `<div class="loading">Carregando dados...</div>`;
             try {
-                const [jogadores, partidas] = await Promise.all([fetchJogadores(), fetchPartidas()]);
+                const partidas = await fetchPartidas();
+                const jogadores = await fetchJogadores(partidas);
                 calcularNotasGerais(jogadores, partidas);
                 window.__JOGADORES__ = jogadores;
                 window.__PARTIDAS__ = partidas;
@@ -1012,7 +1067,7 @@
                 jogos: [...jogadores].filter(j => Number(j.jogos) > 0).sort((a,b) => b.jogos - a.jogos),
                 aproveitamento: [...jogadores].filter(j => j.jogos > 0).sort((a,b) => b.aproveitamento - a.aproveitamento),
                 notaGeral: [...jogadores].sort((a,b) => b.notaGeral - a.notaGeral),
-                golsTomados: [...jogadores].filter(j => j.nome.toLowerCase().includes("goleiro")).sort((a,b) => a.golsTomados - b.golsTomados)
+                golsTomados: [...jogadores].filter(j => goleiros.includes(j.nome)).sort((a,b) => a.golsTomados - b.golsTomados)
             };
             main.innerHTML = `
                 <div class="rankings">
@@ -1022,7 +1077,7 @@
                     ${makeRankingCard(jogadores, "jogos", "Participação")}
                     ${makeRankingCard(jogadores, "aproveitamento", "Aproveitamento", j => j.jogos > 0, " (%)")}
                     ${makeRankingCard(jogadores, "notaGeral", "Nota Geral")}
-                    ${makeRankingCard(jogadores, "golsTomados", "Menos Gols Tomados (Goleiros)", j => j.nome.toLowerCase().includes("goleiro"))}
+                    ${makeRankingCard(jogadores, "golsTomados", "Menos Gols Tomados (Goleiros)", j => goleiros.includes(j.nome))}
                 </div>
                 ${renderJogosLista(partidas)}
                 <div style="text-align:center;font-size:1em;color:#b71c1c;margin-top:20px;">
