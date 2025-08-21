@@ -90,6 +90,8 @@
       font-weight: 500;
       background: transparent;
       border-bottom: 1px solid #d32f2f22;
+      cursor: pointer;
+      position: relative;
     }
     .ranking-table tr.top-player td {
       background: linear-gradient(90deg, #f4433633 0%, #fff 100%);
@@ -102,6 +104,11 @@
     }
     .ranking-table tr:hover td {
       background: #f4433633;
+    }
+    .medal {
+      font-size: 1.25em;
+      vertical-align: middle;
+      margin-right: 4px;
     }
     .loading {
       text-align: center;
@@ -131,6 +138,63 @@
     @media (max-width: 900px) {
       .rankings { flex-direction: column; align-items: center;}
     }
+    /* Modal styles */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      z-index: 9000;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(183,28,28,0.70);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-bg.active { display: flex; }
+    .modal {
+      background: #fff;
+      color: #b71c1c;
+      border-radius: 16px;
+      padding: 26px 32px;
+      box-shadow: 0 8px 32px #b71c1c55;
+      max-width: 350px;
+      min-width: 270px;
+      text-align: center;
+      position: relative;
+      font-size: 1.07em;
+      animation: modal-in 0.2s;
+    }
+    @keyframes modal-in {
+      0% { transform: scale(0.95); opacity: 0;}
+      100% { transform: scale(1); opacity: 1;}
+    }
+    .modal .close-btn {
+      position: absolute;
+      top: 10px; right: 18px;
+      font-size: 1.5em;
+      color: #b71c1c;
+      background: #fff;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      outline: none;
+    }
+    .modal .big {
+      font-size: 1.35em;
+      margin-bottom: 2px;
+      font-weight: bold;
+      color: #d32f2f;
+    }
+    .modal table {
+      margin: 18px auto 0 auto;
+      width: 90%;
+      font-size: 1em;
+      border-collapse: collapse;
+    }
+    .modal th, .modal td {
+      padding: 7px 3px;
+      color: #b71c1c;
+      border-bottom: 1px solid #d32f2f22;
+    }
+    .modal tr:last-child td { border-bottom: none;}
   </style>
 </head>
 <body>
@@ -142,6 +206,15 @@
   <div id="mainContent">
     <div class="loading">Carregando dados...</div>
   </div>
+
+  <!-- Modal para dados individuais -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal" id="modal">
+      <button class="close-btn" id="modalClose">&times;</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
   <footer>
     <small>
       Dashboard esportivo feito para o grupo!<br/>
@@ -162,8 +235,8 @@
       aproveitamento: "📈",
       nota: "⭐"
     };
+    const medalhas = ['🥇','🥈','🥉'];
 
-    // Corrige linhas faltando colunas
     function fixRow(row) {
       const fixed = [];
       for (let i = 0; i < 7; i++) {
@@ -171,19 +244,28 @@
       }
       return fixed;
     }
-
     function calcularAproveitamento(jogos, vitorias) {
       if (jogos === 0) return 0;
       return Math.round((vitorias / jogos) * 100);
     }
 
-    // Fórmula da nota: vitórias*1 + gols*2 + assistências*1.5 + aproveitamento*0.5
-    function calcularNota(jogador) {
-      let nota = 0;
-      nota += jogador.vitorias * 1;
-      nota += jogador.gols * 2;
-      nota += jogador.assistencias * 1.5;
-      nota += calcularAproveitamento(jogador.jogos, jogador.vitorias) * 0.5;
+    // Nota de 0 a 10, normalizada pelos maiores valores
+    function calcularNota(jogador, jogadores) {
+      const maxGols = Math.max(...jogadores.map(j => j.gols));
+      const maxAssist = Math.max(...jogadores.map(j => j.assistencias));
+      const maxVitorias = Math.max(...jogadores.map(j => j.vitorias));
+      const maxAproveitamento = Math.max(...jogadores.map(j => j.aproveitamento));
+      // Pesos personalizáveis
+      const pesoGols = 2;
+      const pesoAssist = 1.5;
+      const pesoVitorias = 1;
+      const pesoAproveitamento = 0.5;
+      const notaGols = maxGols ? (jogador.gols / maxGols) * pesoGols : 0;
+      const notaAssist = maxAssist ? (jogador.assistencias / maxAssist) * pesoAssist : 0;
+      const notaVitorias = maxVitorias ? (jogador.vitorias / maxVitorias) * pesoVitorias : 0;
+      const notaAproveitamento = maxAproveitamento ? (jogador.aproveitamento / maxAproveitamento) * pesoAproveitamento : 0;
+      const somaPesos = pesoGols + pesoAssist + pesoVitorias + pesoAproveitamento;
+      let nota = ((notaGols + notaAssist + notaVitorias + notaAproveitamento) / somaPesos) * 10;
       return Math.round(nota * 100) / 100;
     }
 
@@ -191,7 +273,7 @@
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
       const resp = await fetch(url);
       const data = await resp.json();
-      return (data.values || []).map(row => {
+      const arr = (data.values || []).map(row => {
         const [id, nome, jogos, vitorias, gols, assistencias, golsTomados] = fixRow(row);
         const jogosNum = Number(jogos || 0);
         const vitoriasNum = Number(vitorias || 0);
@@ -206,17 +288,17 @@
           gols: golsNum,
           assistencias: assistenciasNum,
           golsTomados: golsTomadosNum,
-          aproveitamento: calcularAproveitamento(jogosNum, vitoriasNum),
-          nota: calcularNota({
-            jogos: jogosNum,
-            vitorias: vitoriasNum,
-            gols: golsNum,
-            assistencias: assistenciasNum
-          })
+          aproveitamento: calcularAproveitamento(jogosNum, vitoriasNum)
         };
       });
+      arr.forEach(jogador => {
+        jogador.nota = calcularNota(jogador, arr);
+      });
+      return arr;
     }
-
+    function medalhaHTML(index) {
+      return index < 3 ? `<span class="medal">${medalhas[index]}</span>` : '';
+    }
     function makeRankingTable(jogadores, tipo, titulo, filterFn = null, sufixo = "") {
       let arr = jogadores;
       if (filterFn) arr = arr.filter(filterFn);
@@ -240,7 +322,9 @@
             ${arr.map((jogador, i) => `
               <tr${i === 0 ? ' class="top-player"' : ''}>
                 <td>${i+1}</td>
-                <td>${jogador.nome}</td>
+                <td onclick="showModal('${encodeURIComponent(jogador.nome)}')">
+                  ${medalhaHTML(i)}${jogador.nome}
+                </td>
                 <td>${tipo === "aproveitamento" ? jogador[tipo] + "%" : jogador[tipo]}</td>
               </tr>
             `).join('')}
@@ -249,28 +333,55 @@
       </div>`;
       return table;
     }
-
+    window.showModal = function(playerName) {
+      const nome = decodeURIComponent(playerName);
+      const jogador = window.__JOGADORES__.find(j => j.nome === nome);
+      if (!jogador) return;
+      const modalContent = document.getElementById('modalContent');
+      modalContent.innerHTML = `
+        <div class="big">${jogador.nome}</div>
+        <table>
+          <tr><th>Jogos</th><td>${jogador.jogos}</td></tr>
+          <tr><th>Vitórias</th><td>${jogador.vitorias}</td></tr>
+          <tr><th>Gols</th><td>${jogador.gols}</td></tr>
+          <tr><th>Assistências</th><td>${jogador.assistencias}</td></tr>
+          <tr><th>Gols Tomados</th><td>${jogador.golsTomados}</td></tr>
+          <tr><th>Aproveitamento</th><td>${jogador.aproveitamento}%</td></tr>
+          <tr><th>Nota Geral</th><td>${jogador.nota}</td></tr>
+        </table>
+      `;
+      document.getElementById('modalBg').classList.add('active');
+    }
+    document.getElementById('modalClose').onclick = function() {
+      document.getElementById('modalBg').classList.remove('active');
+    }
+    document.getElementById('modalBg').onclick = function(e) {
+      if (e.target === this) this.classList.remove('active');
+    }
     async function renderDashboard() {
       const main = document.getElementById("mainContent");
       main.innerHTML = `<div class="loading">Carregando dados...</div>`;
       try {
         const jogadores = await fetchJogadores();
+        window.__JOGADORES__ = jogadores;
         main.innerHTML = `
           <div class="rankings">
             ${makeRankingTable(jogadores, "gols", "Goleadores")}
             ${makeRankingTable(jogadores, "assistencias", "Assistências")}
             ${makeRankingTable(jogadores, "vitorias", "Vitórias")}
-            ${makeRankingTable(jogadores, "jogos", "Jogos Jogados")}
+            ${makeRankingTable(jogadores, "jogos", "Participação")}
             ${makeRankingTable(jogadores, "aproveitamento", "Aproveitamento", j => j.jogos > 0, " (%)")}
             ${makeRankingTable(jogadores, "nota", "Nota Geral")}
             ${makeRankingTable(jogadores, "golsTomados", "Menos Gols Tomados (Goleiros)", j => j.nome.toLowerCase().includes("goleiro"))}
+          </div>
+          <div style="text-align:center;font-size:1em;color:#b71c1c;margin-top:20px;">
+            <b>Clique no nome do jogador para ver detalhes!</b>
           </div>
         `;
       } catch(e) {
         main.innerHTML = `<div class="loading">Erro ao buscar dados. Verifique a planilha ou a internet.</div>`;
       }
     }
-
     renderDashboard();
   </script>
 </body>
