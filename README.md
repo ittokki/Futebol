@@ -138,7 +138,6 @@
     @media (max-width: 900px) {
       .rankings { flex-direction: column; align-items: center;}
     }
-    /* Modal styles */
     .modal-bg {
       display: none;
       position: fixed;
@@ -195,7 +194,6 @@
       border-bottom: 1px solid #d32f2f22;
     }
     .modal tr:last-child td { border-bottom: none;}
-    /* Jogos modal */
     .modal .date-title {
       font-size: 1.15em;
       margin-bottom: 10px;
@@ -250,15 +248,12 @@
   <div id="mainContent">
     <div class="loading">Carregando dados...</div>
   </div>
-
-  <!-- Modal para dados individuais -->
   <div class="modal-bg" id="modalBg">
     <div class="modal" id="modal">
       <button class="close-btn" id="modalClose">&times;</button>
       <div id="modalContent"></div>
     </div>
   </div>
-
   <footer>
     <small>
       Dashboard esportivo feito para o grupo!<br/>
@@ -266,7 +261,6 @@
     </small>
   </footer>
   <script>
-    // Configuração da planilha
     const apiKey = "AIzaSyCL19ds6YqVOv5v-zygBjeC-byy-rDPfM";
     const spreadsheetId = "1TvrVT8ksYYMlpw8gkKIFvpnnCf02J8uYTkhHc5c0vdo";
     const rangePagina1 = "Página1!A2:H100";
@@ -281,8 +275,6 @@
       notaGeral: "⭐"
     };
     const medalhas = ['🥇','🥈','🥉'];
-
-    // Pesos da nota
     const PESOS = {
       notaBase: 6.0,
       gols: 0.7,
@@ -292,8 +284,6 @@
       vitoria: 0.3,
       pesoNotaADM: 1.2
     };
-
-    // Utilitário para garantir sempre N colunas preenchidas
     function fixRow(row, len) {
       const fixed = [];
       for (let i = 0; i < len; i++) {
@@ -301,28 +291,21 @@
       }
       return fixed;
     }
-
     function calcularAproveitamento(jogos, vitorias) {
       if (jogos === 0) return 0;
       return Math.round((vitorias / jogos) * 100);
     }
-
-    // Nota da partida
     function calcularNotaPartida(dados) {
-      // dados: {gols, assistencias, golsTomados, golsContra, vitoria, notaADM}
       let nota = PESOS.notaBase
         + (Number(dados.gols) || 0) * PESOS.gols
         + (Number(dados.assistencias) || 0) * PESOS.assistencias
         + (Number(dados.golsTomados) || 0) * PESOS.golsTomados
         + (Number(dados.golsContra) || 0) * PESOS.golsContra
         + (dados.vitoria ? PESOS.vitoria : 0);
-      // Mistura com notaADM
       const notaADM = Number(dados.notaADM) || PESOS.notaBase;
       nota = (nota * 2 + notaADM * PESOS.pesoNotaADM) / (2 + PESOS.pesoNotaADM);
-      return Math.max(0, Math.min(10, Math.round(nota * 100) / 100)); // Limita entre 0 e 10
+      return Math.max(0, Math.min(10, Math.round(nota * 100) / 100));
     }
-
-    // Busca dados gerais dos jogadores (Página1)
     async function fetchJogadores() {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${rangePagina1}?key=${apiKey}`;
       const resp = await fetch(url);
@@ -339,20 +322,18 @@
           golsTomados: Number(golsTomados || 0),
           golsContra: Number(golsContra || 0),
           aproveitamento: calcularAproveitamento(Number(jogos || 0), Number(vitorias || 0)),
-          notaGeral: 0 // será calculada depois
+          notaGeral: 0
         };
       });
       return arr;
     }
-
-    // Busca dados das partidas (Página2)
     async function fetchPartidas() {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${rangePagina2}?key=${apiKey}`;
       const resp = await fetch(url);
       const data = await resp.json();
-      // [Nome, Gols, Assistências, Gols Tomados, Gols Contra, Nota ADM'S, Data, Vitória]
       return (data.values || []).map(row => {
         const [nome, gols, assistencias, golsTomados, golsContra, notaADM, dataJogo, vitoriaRaw] = fixRow(row, 8);
+        if (!nome || !dataJogo) return null;
         const vitoria = (typeof vitoriaRaw === "string" && vitoriaRaw.trim().toLowerCase() === "sim") ? 1 : 0;
         const notaPartida = calcularNotaPartida({
           gols, assistencias, golsTomados, golsContra, vitoria, notaADM
@@ -363,15 +344,13 @@
           assistencias: Number(assistencias || 0),
           golsTomados: Number(golsTomados || 0),
           golsContra: Number(golsContra || 0),
-          notaADM, // não será mostrada publicamente
+          notaADM,
           dataJogo,
           vitoria,
           notaPartida
         };
-      });
+      }).filter(x => x);
     }
-
-    // Calcula nota geral para cada jogador
     function calcularNotasGerais(jogadores, partidas) {
       const notasPorJogador = {};
       partidas.forEach(p => {
@@ -385,14 +364,13 @@
           : PESOS.notaBase;
       });
     }
-
     function medalhaHTML(index) {
       return index < 3 ? `<span class="medal">${medalhas[index]}</span>` : '';
     }
-
     function makeRankingTable(jogadores, tipo, titulo, filterFn = null, sufixo = "") {
       let arr = jogadores;
       if (filterFn) arr = arr.filter(filterFn);
+      if (tipo === "jogos") arr = arr.filter(j => Number(j.jogos) > 0);
       arr = [...arr].sort((a, b) => (
         tipo === "golsTomados"
           ? a[tipo] - b[tipo]
@@ -423,13 +401,10 @@
       </div>`;
       return table;
     }
-
-    // Modal de jogador individual
     window.showModal = function(playerName) {
       const nome = decodeURIComponent(playerName);
       const jogador = window.__JOGADORES__.find(j => j.nome === nome);
       if (!jogador) return;
-      // Busca as partidas desse jogador
       const partidas = window.__PARTIDAS__.filter(p => p.nome === nome);
       let partidasHtml = "";
       if (partidas.length) {
@@ -458,18 +433,16 @@
       `;
       document.getElementById('modalBg').classList.add('active');
     }
-
-    // Modal de jogo por data
     window.showJogoModal = function(dataJogo) {
       const partidas = window.__PARTIDAS__.filter(p => p.dataJogo === dataJogo);
       if (!partidas.length) return;
       let jogadoresHtml = partidas.map(p => `
         <tr>
           <td>${p.nome}</td>
-          <td>${p.gols}</td>
-          <td>${p.assistencias}</td>
-          <td>${p.golsContra}</td>
-          <td>${p.golsTomados}</td>
+          <td>${p.gols || ""}</td>
+          <td>${p.assistencias || ""}</td>
+          <td>${p.golsContra || ""}</td>
+          <td>${p.golsTomados || ""}</td>
           <td>${p.vitoria ? "Sim" : "Não"}</td>
           <td>${p.notaPartida}</td>
         </tr>
@@ -496,18 +469,14 @@
       `;
       document.getElementById('modalBg').classList.add('active');
     }
-
     document.getElementById('modalClose').onclick = function() {
       document.getElementById('modalBg').classList.remove('active');
     }
     document.getElementById('modalBg').onclick = function(e) {
       if (e.target === this) this.classList.remove('active');
     }
-
-    // Renderiza lista de jogos (datas únicas)
     function renderJogosLista(partidas) {
       const datas = [...new Set(partidas.map(p => p.dataJogo))].sort((a, b) => {
-        // Ordena por data, mais recente primeiro
         const dA = a.split('/').reverse().join('-');
         const dB = b.split('/').reverse().join('-');
         return dA > dB ? -1 : dA < dB ? 1 : 0;
@@ -523,17 +492,14 @@
         </div>
       `;
     }
-
     async function renderDashboard() {
       const main = document.getElementById("mainContent");
       main.innerHTML = `<div class="loading">Carregando dados...</div>`;
       try {
-        // Baixa dados das duas páginas
         const [jogadores, partidas] = await Promise.all([
           fetchJogadores(),
           fetchPartidas()
         ]);
-        // Calcula a nota geral dos jogadores
         calcularNotasGerais(jogadores, partidas);
         window.__JOGADORES__ = jogadores;
         window.__PARTIDAS__ = partidas;
