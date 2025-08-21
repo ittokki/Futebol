@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard Futebol - Ranking de Jogadores</title>
+  <title>Ranking dos Inimigos da Bola</title>
   <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
-  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/861/861512.png"/>
+  <link rel="icon" href="https://drive.google.com/uc?export=view&id=1x-iONhJrjibDu4QqkdJw0Y5SxyYLMJXT"/>
   <style>
     body {
-      background: radial-gradient(circle, #37d8ff 0%, #0c2e59 100%);
-      color: #fff;
+      background: linear-gradient(135deg, #fff 0%, #b71c1c 100%);
+      color: #b71c1c;
       font-family: 'Montserrat', Arial, sans-serif;
       margin: 0;
       padding-bottom: 80px;
@@ -19,18 +19,25 @@
       padding: 40px 10px 20px 10px;
     }
     .logo {
-      width: 80px;
+      width: 110px;
       margin-bottom: 10px;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px #b71c1c44;
+      background: #fff;
     }
     h1 {
       font-size: 2.1em;
       margin: 0;
       letter-spacing: 1px;
+      color: #b71c1c;
+      text-shadow: 1px 1px 0 #fff3;
     }
     .desc {
       margin-top: 8px;
-      color: #ffe000;
+      color: #b71c1c;
       font-size: 1.08em;
+      font-weight: bold;
+      text-shadow: 1px 1px 0 #fff7;
     }
     .rankings {
       display: flex;
@@ -41,24 +48,26 @@
       max-width: 1400px;
     }
     .ranking-table {
-      background: #fff8;
+      background: #fff;
       border-radius: 16px;
-      box-shadow: 0 4px 24px #0c2e5928;
+      box-shadow: 0 4px 24px #b71c1c22;
       padding: 22px 18px;
       min-width: 240px;
       max-width: 320px;
       margin-bottom: 15px;
       transition: 0.2s;
+      border: 3px solid #b71c1c;
     }
     .ranking-table:hover {
-      box-shadow: 0 8px 32px #37d8ff80;
-      background: #eafcff;
+      box-shadow: 0 8px 32px #b71c1c88;
+      background: #fff5f5;
     }
     .ranking-table h2 {
       margin: 0 0 15px 0;
       font-size: 1.15em;
-      color: #0c2e59;
+      color: #b71c1c;
       text-shadow: 1px 1px 0 #fff7;
+      font-weight: bold;
     }
     .ranking-table table {
       width: 100%;
@@ -69,26 +78,36 @@
       padding: 7px 3px;
     }
     .ranking-table th {
-      background: #0c2e59;
-      color: #fff;
+      background: #b71c1c;
+      color: #fff !important;
       border-radius: 5px;
       font-weight: bold;
+      letter-spacing: 0.5px;
+      border: none;
     }
-    .ranking-table tr.top-player {
-      background: linear-gradient(90deg, #ffe00088 0%, #37d8ff33 100%);
+    .ranking-table td {
+      color: #b71c1c !important;
+      font-weight: 500;
+      background: transparent;
+      border-bottom: 1px solid #d32f2f22;
+    }
+    .ranking-table tr.top-player td {
+      background: linear-gradient(90deg, #f4433633 0%, #fff 100%);
+      color: #d32f2f !important;
       font-weight: bold;
-      border-left: 5px solid #ffe000;
+      border-left: 5px solid #f44336;
     }
     .ranking-table tr {
       transition: 0.1s;
     }
-    .ranking-table tr:hover {
-      background: #37d8ff22;
+    .ranking-table tr:hover td {
+      background: #f4433633;
     }
     .loading {
       text-align: center;
       font-size: 1.5em;
       margin: 60px 0;
+      color: #b71c1c;
       animation: blink 1.2s infinite;
     }
     @keyframes blink {
@@ -97,16 +116,16 @@
     footer {
       position: fixed;
       left: 0; right: 0; bottom: 0;
-      background: #0c2e59;
-      color: #37d8ff;
+      background: #b71c1c;
+      color: #fff;
       text-align: center;
       padding: 14px 0 10px 0;
       font-size: 1em;
-      box-shadow: 0 -3px 20px #2227;
+      box-shadow: 0 -3px 20px #b71c1c44;
       letter-spacing: 0.5px;
     }
     a {
-      color: #ffd700;
+      color: #fff;
       text-decoration: underline;
     }
     @media (max-width: 900px) {
@@ -116,8 +135,8 @@
 </head>
 <body>
   <div class="header">
-    <img src="https://cdn-icons-png.flaticon.com/512/861/861512.png" class="logo" alt="logo"/>
-    <h1>🏆 Dashboard Futebol - Ranking de Jogadores</h1>
+    <img src="https://drive.google.com/uc?export=view&id=1x-iONhJrjibDu4QqkdJw0Y5SxyYLMJXT" class="logo" alt="logo"/>
+    <h1>Ranking dos Inimigos da Bola</h1>
     <div class="desc">Atualizado automaticamente pela planilha do grupo!</div>
   </div>
   <div id="mainContent">
