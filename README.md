@@ -48,7 +48,7 @@
             position: relative;
         }
         .logo {
-            width: 98px;
+            width: 120px; /* Increased from 98px */
             margin-bottom: 10px;
             border-radius: 11px;
             box-shadow: 0 2px 16px #b71c1c44;
@@ -71,7 +71,7 @@
         .highlight-star {
             position: absolute;
             top: 12px;
-            right: 12px;
+            right: 24px; /* Moved further right from 12px */
             background: #fff;
             border-radius: 10px;
             box-shadow: 0 2px 12px #b71c1c33;
@@ -478,6 +478,18 @@
         .comparison-table .percent {
             font-weight: bold;
             color: #d32f2f;
+        }
+        .instruction-card {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px #b71c1c22;
+            padding: 18px;
+            margin: 20px auto;
+            max-width: 600px;
+            text-align: center;
+            font-size: 1em;
+            color: #b71c1c;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -1190,8 +1202,9 @@
                     ${makeRankingCard(jogadores, "golsTomados", "Menos Gols Tomados", j => j.golsTomados > 0)}
                 </div>
                 ${renderJogosLista(partidas)}
-                <div style="text-align:center;font-size:1em;color:#b71c1c;margin-top:20px;">
-                    <b>Clique no nome do jogador para ver detalhes!<br> Clique na data do jogo para ver o resumo da partida!</b>
+                <div class="instruction-card">
+                    Clique no nome do jogador para ver detalhes!<br>
+                    Clique na data do jogo para ver o resumo da partida!
                 </div>
             `;
             if (document.getElementById('jogosListaUl')) {
