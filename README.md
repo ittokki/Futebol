@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Ranking dos Inimigos da Bola</title>
     <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://drive.google.com/uc?export=view&id=1x-iONhJrjibDu4QqkdJw0Y5SxyYLMJXT"/>
+    <link rel="icon" href="https://raw.githubusercontent.com/ittokki/Futebol/ba59ab86cf2095d4e9214bd5e24e21ac8aeaf33a/inimigos%20da%20bola.jpg"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -487,7 +487,7 @@
         <button class="nav-btn" id="navCharts" aria-label="Exibir Gráficos">Gráficos</button>
     </div>
     <div class="header">
-        <img src="https://drive.google.com/uc?export=view&id=1x-iONhJrjibDu4QqkdJw0Y5SxyYLMJXT" class="logo" alt="logo"/>
+        <img src="https://raw.githubusercontent.com/ittokki/Futebol/ba59ab86cf2095d4e9214bd5e24e21ac8aeaf33a/inimigos%20da%20bola.jpg" class="logo" alt="logo"/>
         <h1>Ranking dos Inimigos da Bola</h1>
         <div class="desc">Atualizado automaticamente pela planilha do grupo!</div>
         <div class="highlight-star" id="mainHighlightStar" style="display:none;">
