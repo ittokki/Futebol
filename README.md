@@ -8,7 +8,6 @@
     <link rel="icon" href="https://drive.google.com/uc?export=view&id=1x-iONhJrjibDu4QqkdJw0Y5SxyYLMJXT"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Todo o CSS igual ao do dashboard original */
         body {
             background: linear-gradient(135deg, #fff 0%, #b71c1c 100%);
             font-family: 'Montserrat', Arial, sans-serif;
@@ -374,6 +373,30 @@
             font-weight: bold;
             color: #d32f2f;
         }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .pagination button {
+            background: #f44336;
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            font-size: 0.95em;
+            font-weight: bold;
+            padding: 6px 12px;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: background 0.17s;
+        }
+        .pagination button:hover {
+            background: #b71c1c;
+        }
+        .pagination button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
         .charts-page {
             max-width: 900px;
             margin: 0 auto;
@@ -482,7 +505,7 @@
         </div>
     </div>
     <footer>
-        <small> Dashboard esportivo feito para o grupo!<br/> Dados puxados da <a href="https://docs.google.com/spreadsheets/d/1TvrVT8ksYYMlpw8gkKIFvpnnCf02J8uYTkhHc5c0vdo/edit?usp=sharing" target="_blank">Google Planilha</a> </small>
+        <small>Dashboard esportivo feito para o grupo!</small>
     </footer>
     <script>
         const apiKey = "AIzaSyCL19ds6YqVOv5vV-zygBjeC-byy-rDPfM";
@@ -491,7 +514,6 @@
         const rangePagina2 = "Página2!A2:H300";
         const rankingIcons = { gols: "⚽️", assistencias: "🅰️", vitorias: "🏅", jogos: "🎽", golsTomados: "🛡️", aproveitamento: "📈", notaGeral: "⭐" };
         const medalhas = ['🥇','🥈','🥉'];
-        const goleiros = ['BRUNO GUIMARAES', 'DAVI', 'EDERSON', 'FILIPE BABS (GOLEIRO)', 'THALES', 'VITOR (GOLEIRO)'];
 
         function parseNum(val) {
             if (typeof val === "number") return val;
@@ -523,11 +545,12 @@
             let golsTomados = parseNum(dados.golsTomados);
             let golsContra = parseNum(dados.golsContra);
             let vitoria = dados.vitoria ? 1 : 0;
+            const isGoleiro = golsTomados > 0;
 
             let PESO_ADM = 5;
-            let PESO_GOLS = 0.7;
-            let PESO_ASSIST = 0.5;
-            let PESO_GOLS_TOMADOS = 0.2;
+            let PESO_GOLS = isGoleiro ? 0.3 : 0.7;
+            let PESO_ASSIST = isGoleiro ? 0.2 : 0.5;
+            let PESO_GOLS_TOMADOS = isGoleiro ? 0.5 : 0.2;
             let PESO_GOLS_CONTRA = -0.5;
             let PESO_VITORIA = 0.3;
             let NOTA_BASE = 6.0;
@@ -536,7 +559,7 @@
             let notaFinal = (notaTecnica + notaADM * PESO_ADM) / (1 + PESO_ADM);
 
             notaFinal = Math.max(0, Math.min(10, Math.round(notaFinal * 10) / 10));
-            return notaFinal;
+            return {nota: notaFinal, isGoleiro};
         }
 
         async function fetchPartidas() {
@@ -547,11 +570,12 @@
                 const [nome, gols, assistencias, golsTomados, golsContra, notaADM, dataJogo, vitoriaRaw] = fixRow(row, 8);
                 if (!nome || !dataJogo) return null;
                 const vitoria = (typeof vitoriaRaw === "string" && vitoriaRaw.trim().toLowerCase() === "sim") ? 1 : 0;
-                const notaPartida = calcularNotaPartida({ gols, assistencias, golsTomados, golsContra, vitoria, notaADM });
+                const notaInfo = calcularNotaPartida({ gols, assistencias, golsTomados, golsContra, vitoria, notaADM });
                 return {
                     nome: nome.trim(),
                     gols, assistencias, golsTomados, golsContra, dataJogo, vitoria, notaADM,
-                    notaPartida
+                    notaPartida: notaInfo.nota,
+                    isGoleiro: notaInfo.isGoleiro
                 };
             }).filter(x => x);
         }
@@ -576,7 +600,11 @@
                     golsTomados: parseNum(golsTomados),
                     golsContra: parseNum(golsContra),
                     aproveitamento: calcularAproveitamento(parseNum(jogos), parseNum(vitorias)),
-                    notaGeral: 0
+                    notaGeral: 0,
+                    notaGeralGoleiro: 0,
+                    notaGeralLinha: 0,
+                    jogosGoleiro: 0,
+                    jogosLinha: 0
                 });
             });
             return jogadores;
@@ -586,15 +614,22 @@
             const notasPorJogador = {};
             partidas.forEach(p => {
                 const nomeNorm = normalizaNome(p.nome);
-                if (!notasPorJogador[nomeNorm]) notasPorJogador[nomeNorm] = [];
-                notasPorJogador[nomeNorm].push(p.notaPartida);
+                if (!notasPorJogador[nomeNorm]) notasPorJogador[nomeNorm] = { todas: [], goleiro: [], linha: [] };
+                notasPorJogador[nomeNorm].todas.push(p.notaPartida);
+                if (p.isGoleiro) {
+                    notasPorJogador[nomeNorm].goleiro.push(p.notaPartida);
+                } else {
+                    notasPorJogador[nomeNorm].linha.push(p.notaPartida);
+                }
             });
             jogadores.forEach(jogador => {
                 const nomeNorm = normalizaNome(jogador.nome);
-                const notas = notasPorJogador[nomeNorm] || [];
-                jogador.notaGeral = notas.length > 0
-                    ? Math.round((notas.reduce((a, b) => a + b, 0) / notas.length) * 10) / 10
-                    : 0;
+                const notas = notasPorJogador[nomeNorm] || { todas: [], goleiro: [], linha: [] };
+                jogador.notaGeral = notas.todas.length > 0 ? Math.round((notas.todas.reduce((a, b) => a + b, 0) / notas.todas.length) * 10) / 10 : 0;
+                jogador.notaGeralGoleiro = notas.goleiro.length > 0 ? Math.round((notas.goleiro.reduce((a, b) => a + b, 0) / notas.goleiro.length) * 10) / 10 : 0;
+                jogador.notaGeralLinha = notas.linha.length > 0 ? Math.round((notas.linha.reduce((a, b) => a + b, 0) / notas.linha.length) * 10) / 10 : 0;
+                jogador.jogosGoleiro = notas.goleiro.length;
+                jogador.jogosLinha = notas.linha.length;
             });
         }
 
@@ -650,7 +685,7 @@
 
             let btnHtml = "";
             if (arr.length > maxDefault) {
-                btnHtml = `<button class="see-more-btn" id="${btnId}" onclick="toggleTable('${tableId}','${btnId}',${arr.length},${maxDefault})">Ver Mais</button>`;
+                btnHtml = `<button class="see-more-btn" id="${btnId}" aria-label="Ver mais itens do ranking" onclick="toggleTable('${tableId}','${btnId}',${arr.length},${maxDefault})">Ver Mais</button>`;
             }
 
             return `
@@ -721,7 +756,7 @@
                     partidas.slice(-5).reverse().map(p => `
                         <tr>
                             <td>${p.dataJogo}</td>
-                            <td>Nota: ${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td>
+                            <td>Nota: ${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (${p.isGoleiro ? 'Goleiro' : 'Linha'})</td>
                         </tr>
                     `).join('');
             }
@@ -730,6 +765,8 @@
                 <div class="big">${jogador.nome}</div>
                 <table>
                     <tr><th>Jogos</th><td>${jogador.jogos}</td></tr>
+                    <tr><th>Jogos como Goleiro</th><td>${jogador.jogosGoleiro}</td></tr>
+                    <tr><th>Jogos na Linha</th><td>${jogador.jogosLinha}</td></tr>
                     <tr><th>Vitórias</th><td>${jogador.vitorias}</td></tr>
                     <tr><th>Gols</th><td>${jogador.gols}</td></tr>
                     <tr><th>Assistências</th><td>${jogador.assistencias}</td></tr>
@@ -737,6 +774,8 @@
                     <tr><th>Gols Contra</th><td>${jogador.golsContra}</td></tr>
                     <tr><th>Aproveitamento</th><td>${jogador.aproveitamento}%</td></tr>
                     <tr><th>Nota Geral</th><td>${jogador.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
+                    <tr><th>Nota Geral como Goleiro</th><td>${jogador.notaGeralGoleiro.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
+                    <tr><th>Nota Geral na Linha</th><td>${jogador.notaGeralLinha.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
                     ${partidasHtml}
                 </table>
             `;
@@ -758,7 +797,7 @@
                     <td>${parseNum(p.golsTomados)}</td>
                     <td>${parseNum(p.golsContra)}</td>
                     <td>${p.vitoria ? "Sim" : "Não"}</td>
-                    <td>${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td>
+                    <td>${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (${p.isGoleiro ? 'Goleiro' : 'Linha'})</td>
                 </tr>
             `).join('');
             const modalContent = document.getElementById('modalContent');
@@ -777,7 +816,7 @@
                             <th>Gols Tomados</th>
                             <th>Gols Contra</th>
                             <th>Vitória</th>
-                            <th>Nota</th>
+                            <th>Nota (Posição)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -802,20 +841,46 @@
                 const dB = b.split('/').reverse().join('-');
                 return dA > dB ? -1 : dA < dB ? 1 : 0;
             });
+            const itemsPerPage = 10;
+            let currentPage = 1;
+
+            window.renderPage = function(page) {
+                const start = (page - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                const pageDatas = datas.slice(start, end);
+                const ul = document.getElementById('jogosListaUl');
+                ul.innerHTML = pageDatas.map(dataJogo => `<li onclick="showJogoModal('${dataJogo}')"><span class="date">${dataJogo}</span></li>`).join('');
+                const prevBtn = document.getElementById('prevPage');
+                const nextBtn = document.getElementById('nextPage');
+                if (prevBtn) prevBtn.disabled = page === 1;
+                if (nextBtn) nextBtn.disabled = page * itemsPerPage >= datas.length;
+            };
+
+            window.prevPage = function() { if (currentPage > 1) { currentPage--; window.renderPage(currentPage); } };
+            window.nextPage = function() { if (currentPage * itemsPerPage < datas.length) { currentPage++; window.renderPage(currentPage); } };
+
             return `
                 <div class="jogos-lista">
                     <h2>Jogos</h2>
-                    <ul>
-                        ${datas.map(dataJogo => `<li onclick="showJogoModal('${dataJogo}')"><span class="date">${dataJogo}</span></li>`).join('')}
-                    </ul>
+                    <ul id="jogosListaUl"></ul>
+                    <div class="pagination">
+                        <button id="prevPage" aria-label="Página anterior" onclick="prevPage()">Anterior</button>
+                        <button id="nextPage" aria-label="Próxima página" onclick="nextPage()">Próxima</button>
+                    </div>
                 </div>
             `;
         }
 
         function renderCharts(jogadores, partidas) {
+            let topNotas = [...jogadores].sort((a,b) => b.notaGeral - a.notaGeral).slice(0,2);
+            let player1Default = topNotas[0] ? topNotas[0].nome : "";
+            let player2Default = topNotas[1] ? topNotas[1].nome : "";
             let topGoleadores = [...jogadores].sort((a,b) => b.gols - a.gols).slice(0,10);
             let nomesGoleadores = topGoleadores.map(j => j.nome);
             let golsGoleadores = topGoleadores.map(j => j.gols);
+            let topAssistidores = [...jogadores].sort((a,b) => b.assistencias - a.assistencias).slice(0,10);
+            let nomesAssistidores = topAssistidores.map(j => j.nome);
+            let assistenciasAssistidores = topAssistidores.map(j => j.assistencias);
             let topJogos = [...jogadores].sort((a,b) => b.jogos - a.jogos).slice(0,10);
             let nomesJogos = topJogos.map(j => j.nome);
             let jogosJogos = topJogos.map(j => j.jogos);
@@ -833,12 +898,24 @@
                         <div class="chart-legend">Top 10 Goleadores</div>
                     </div>
                     <div class="chart-container">
+                        <canvas id="chartAssistidores"></canvas>
+                        <div class="chart-legend">Top 10 Assistidores</div>
+                    </div>
+                    <div class="chart-container">
                         <canvas id="chartParticipacao"></canvas>
                         <div class="chart-legend">Top 10 Participação (Jogos)</div>
                     </div>
                     <div class="chart-container">
                         <canvas id="chartAproveitamento"></canvas>
                         <div class="chart-legend">Top 10 Aproveitamento (%)</div>
+                    </div>
+                    <div class="chart-container">
+                        <select id="playerEvolucao" aria-label="Selecionar jogador para evolução de notas" onchange="updateEvolucaoChart()">
+                            <option value="">Selecione um jogador</option>
+                            ${playerNames.map(name => `<option value="${name}">${name}</option>`).join('')}
+                        </select>
+                        <canvas id="chartEvolucaoNotas"></canvas>
+                        <div class="chart-legend">Evolução de Notas do Jogador</div>
                     </div>
                     <div style="margin-top:22px; font-size:1.07em; color:#b71c1c;">
                         <b>Gols totais no grupo:</b> <span style="color:#d32f2f">${totalGols}</span>
@@ -847,23 +924,57 @@
                         <h2>Comparar Jogadores</h2>
                         <select id="player1" aria-label="Selecionar primeiro jogador">
                             <option value="">Selecione Jogador 1</option>
-                            ${playerNames.map(name => `<option value="${name}">${name}</option>`).join('')}
+                            ${playerNames.map(name => `<option value="${name}" ${name === player1Default ? 'selected' : ''}>${name}</option>`).join('')}
                         </select>
                         <select id="player2" aria-label="Selecionar segundo jogador">
                             <option value="">Selecione Jogador 2</option>
-                            ${playerNames.map(name => `<option value="${name}">${name}</option>`).join('')}
+                            ${playerNames.map(name => `<option value="${name}" ${name === player2Default ? 'selected' : ''}>${name}</option>`).join('')}
                         </select>
-                        <button onclick="comparePlayers()">Comparar</button>
+                        <button aria-label="Comparar jogadores selecionados" onclick="comparePlayers()">Comparar</button>
                         <div id="comparisonResult"></div>
                     </div>
                 </div>
             `;
         }
 
+        let evolucaoChart = null;
+
+        window.updateEvolucaoChart = function() {
+            const playerName = document.getElementById('playerEvolucao').value;
+            if (!playerName) return;
+
+            const partidasJogador = window.__PARTIDAS__.filter(p => normalizaNome(p.nome) === normalizaNome(playerName));
+            const datas = partidasJogador.map(p => p.dataJogo).sort((a, b) => a.split('/').reverse().join('-') > b.split('/').reverse().join('-') ? 1 : -1);
+            const notas = partidasJogador.sort((a, b) => a.dataJogo.split('/').reverse().join('-') > b.dataJogo.split('/').reverse().join('-') ? 1 : -1).map(p => p.notaPartida);
+
+            if (evolucaoChart) evolucaoChart.destroy();
+
+            evolucaoChart = new Chart(document.getElementById('chartEvolucaoNotas'), {
+                type: 'line',
+                data: {
+                    labels: datas,
+                    datasets: [{
+                        label: `Notas de ${playerName}`,
+                        data: notas,
+                        borderColor: '#f44336',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
+                    scales: { y: { beginAtZero: true, max: 10 } }
+                }
+            });
+        }
+
         function drawCharts(jogadores, partidas) {
             let topGoleadores = [...jogadores].sort((a,b) => b.gols - a.gols).slice(0,10);
             let nomesGoleadores = topGoleadores.map(j => j.nome);
             let golsGoleadores = topGoleadores.map(j => j.gols);
+            let topAssistidores = [...jogadores].sort((a,b) => b.assistencias - a.assistencias).slice(0,10);
+            let nomesAssistidores = topAssistidores.map(j => j.nome);
+            let assistenciasAssistidores = topAssistidores.map(j => j.assistencias);
             let topJogos = [...jogadores].sort((a,b) => b.jogos - a.jogos).slice(0,10);
             let nomesJogos = topJogos.map(j => j.nome);
             let jogosJogos = topJogos.map(j => j.jogos);
@@ -883,7 +994,24 @@
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { display: false } },
+                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            new Chart(document.getElementById('chartAssistidores'), {
+                type: 'bar',
+                data: {
+                    labels: nomesAssistidores,
+                    datasets: [{
+                        label: 'Assistências',
+                        data: assistenciasAssistidores,
+                        backgroundColor: '#4caf50'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
                     scales: { y: { beginAtZero: true } }
                 }
             });
@@ -900,7 +1028,7 @@
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { display: false } },
+                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
                     scales: { y: { beginAtZero: true } }
                 }
             });
@@ -917,7 +1045,7 @@
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { display: false } },
+                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
                     scales: { y: { beginAtZero: true } }
                 }
             });
@@ -1049,7 +1177,7 @@
                 jogos: [...jogadores].filter(j => Number(j.jogos) > 0).sort((a,b) => b.jogos - a.jogos),
                 aproveitamento: [...jogadores].filter(j => j.jogos > 0).sort((a,b) => b.aproveitamento - a.aproveitamento),
                 notaGeral: [...jogadores].sort((a,b) => b.notaGeral - a.notaGeral),
-                golsTomados: [...jogadores].filter(j => goleiros.includes(j.nome)).sort((a,b) => a.golsTomados - b.golsTomados)
+                golsTomados: [...jogadores].filter(j => j.golsTomados > 0).sort((a,b) => a.golsTomados - b.golsTomados)
             };
             main.innerHTML = `
                 <div class="rankings">
@@ -1059,13 +1187,16 @@
                     ${makeRankingCard(jogadores, "jogos", "Participação")}
                     ${makeRankingCard(jogadores, "aproveitamento", "Aproveitamento", j => j.jogos > 0, " (%)")}
                     ${makeRankingCard(jogadores, "notaGeral", "Nota Geral")}
-                    ${makeRankingCard(jogadores, "golsTomados", "Menos Gols Tomados (Goleiros)", j => goleiros.includes(j.nome))}
+                    ${makeRankingCard(jogadores, "golsTomados", "Menos Gols Tomados", j => j.golsTomados > 0)}
                 </div>
                 ${renderJogosLista(partidas)}
                 <div style="text-align:center;font-size:1em;color:#b71c1c;margin-top:20px;">
                     <b>Clique no nome do jogador para ver detalhes!<br> Clique na data do jogo para ver o resumo da partida!</b>
                 </div>
             `;
+            if (document.getElementById('jogosListaUl')) {
+                window.renderPage(1); // Renderiza a primeira página diretamente
+            }
         }
 
         function renderChartsPage(jogadores, partidas) {
