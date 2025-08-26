@@ -523,7 +523,7 @@
         const apiKey = "AIzaSyCL19ds6YqVOv5vV-zygBjeC-byy-rDPfM";
         const spreadsheetId = "1TvrVT8ksYYMlpw8gkKIFvpnnCf02J8uYTkhHc5c0vdo";
         const rangePagina1 = "Página1!A2:H100";
-        const rangePagina2 = "Página2!A2:H300";
+        const rangePagina2 = "Página2!A2:J300";
         const rankingIcons = { gols: "⚽️", assistencias: "🅰️", vitorias: "🏅", jogos: "🎽", golsTomados: "🛡️", aproveitamento: "📈", notaGeral: "⭐" };
         const medalhas = ['🥇','🥈','🥉'];
 
@@ -579,7 +579,7 @@
             const resp = await fetch(url);
             const data = await resp.json();
             return (data.values || []).map(row => {
-                const [nome, gols, assistencias, golsTomados, golsContra, notaADM, dataJogo, vitoriaRaw] = fixRow(row, 8);
+                const [nome, gols, assistencias, golsTomados, golsContra, notaADM, dataJogo, vitoriaRaw, time, resultado] = fixRow(row, 10);
                 if (!nome || !dataJogo) return null;
                 const vitoria = (typeof vitoriaRaw === "string" && vitoriaRaw.trim().toLowerCase() === "sim") ? 1 : 0;
                 const notaInfo = calcularNotaPartida({ gols, assistencias, golsTomados, golsContra, vitoria, notaADM });
@@ -587,7 +587,9 @@
                     nome: nome.trim(),
                     gols, assistencias, golsTomados, golsContra, dataJogo, vitoria, notaADM,
                     notaPartida: notaInfo.nota,
-                    isGoleiro: notaInfo.isGoleiro
+                    isGoleiro: notaInfo.isGoleiro,
+                    time: time ? time.trim() : '',
+                    resultado: resultado ? parseNum(resultado) : 0
                 };
             }).filter(x => x);
         }
@@ -795,46 +797,87 @@
         }
 
         window.showJogoModal = function(dataJogo) {
-            const partidas = window.__PARTIDAS__.filter(p => p.dataJogo === dataJogo);
+            let partidas = window.__PARTIDAS__.filter(p => p.dataJogo === dataJogo);
             if (!partidas.length) return;
             let destaque = { nome: "", nota: -1 };
             partidas.forEach(p => {
                 if (p.notaPartida > destaque.nota) destaque = { nome: p.nome, nota: p.notaPartida };
             });
-            let jogadoresHtml = partidas.map(p => `
-                <tr>
-                    <td>${p.nome}</td>
-                    <td>${parseNum(p.gols)}</td>
-                    <td>${parseNum(p.assistencias)}</td>
-                    <td>${parseNum(p.golsTomados)}</td>
-                    <td>${parseNum(p.golsContra)}</td>
-                    <td>${p.vitoria ? "Sim" : "Não"}</td>
-                    <td>${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (${p.isGoleiro ? 'Goleiro' : 'Linha'})</td>
-                </tr>
-            `).join('');
+            // Ordenar por time
+            partidas = [...partidas].sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+            // Obter times únicos
+            const uniqueTimes = [...new Set(partidas.map(p => p.time).filter(Boolean))].sort();
+            let matchTitle = dataJogo;
+            if (uniqueTimes.length >= 2) {
+                // Coletar resultados por time (apenas o primeiro preenchido)
+                const placarPorTime = {};
+                partidas.forEach(p => {
+                    if (p.time && p.resultado && !placarPorTime[p.time]) {
+                        placarPorTime[p.time] = p.resultado;
+                    }
+                });
+                // Calcular gols por time
+                const golsPorTime = {};
+                uniqueTimes.forEach(t => golsPorTime[t] = 0);
+                partidas.forEach(p => {
+                    if (p.time) {
+                        golsPorTime[p.time] += parseNum(p.gols);
+                    }
+                });
+                // Usar placar fornecido ou calculado
+                const placar1 = placarPorTime[uniqueTimes[0]] || golsPorTime[uniqueTimes[0]];
+                const placar2 = placarPorTime[uniqueTimes[1]] || golsPorTime[uniqueTimes[1]];
+                matchTitle = `${uniqueTimes[0]} ${placar1}x${placar2} ${uniqueTimes[1]}`;
+            }
+            // Dividir jogadores por time
+            const jogadoresPorTime = {};
+            uniqueTimes.forEach(time => {
+                jogadoresPorTime[time] = partidas.filter(p => p.time === time);
+            });
+            // Gerar HTML para cada time
+            let timesHtml = '';
+            uniqueTimes.forEach((time) => {
+                const jogadores = jogadoresPorTime[time];
+                timesHtml += `
+                    <div style="margin-bottom: 15px;">
+                        <h3 style="color: #d32f2f; font-weight: bold; font-size: 1.1em; margin-bottom: 8px;">${time}</h3>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Gols</th>
+                                    <th>Assistências</th>
+                                    <th>Gols Tomados</th>
+                                    <th>Gols Contra</th>
+                                    <th>Vitória</th>
+                                    <th>Nota (Posição)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${jogadores.map(p => `
+                                    <tr>
+                                        <td>${p.nome}</td>
+                                        <td>${parseNum(p.gols)}</td>
+                                        <td>${parseNum(p.assistencias)}</td>
+                                        <td>${parseNum(p.golsTomados)}</td>
+                                        <td>${parseNum(p.golsContra)}</td>
+                                        <td>${p.vitoria ? "Sim" : "Não"}</td>
+                                        <td>${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (${p.isGoleiro ? 'Goleiro' : 'Linha'})</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
             const modalContent = document.getElementById('modalContent');
             modalContent.innerHTML = `
-                <div class="date-title">${dataJogo}</div>
+                <div class="date-title">${matchTitle}</div>
                 <div class="match-highlight">
                     <span class="star-icon">⭐</span> Destaque da partida: <span class="highlight-player">${destaque.nome}</span>
                     <span class="highlight-note">${destaque.nota.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</span>
                 </div>
-                <table style="width: 100%;">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Gols</th>
-                            <th>Assistências</th>
-                            <th>Gols Tomados</th>
-                            <th>Gols Contra</th>
-                            <th>Vitória</th>
-                            <th>Nota (Posição)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${jogadoresHtml}
-                    </tbody>
-                </table>
+                ${timesHtml}
             `;
             document.getElementById('modalBg').classList.add('active');
         }
