@@ -7,200 +7,238 @@
     <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
     <link rel="icon" href="https://raw.githubusercontent.com/ittokki/Futebol/ba59ab86cf2095d4e9214bd5e24e21ac8aeaf33a/inimigos%20da%20bola.jpg"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
-            --vibrant-red: #f44336;
-            --vibrant-green: #00e676;
-            --vibrant-yellow: #fbc02d;
-            --vibrant-blue: #2196f3;
+            --primary-red: #b71c1c;
+            --secondary-red: #d32f2f;
+            --accent-gold: #fbc02d;
+            --text-dark: #333;
+            --bg-light: #fff;
+            --shadow-color: rgba(183, 28, 28, 0.2);
+            --boca-blue: #001F5B;
+            --boca-gold: #F3B61F;
+            --boca-light-blue: rgba(0, 31, 91, 0.1); /* Light blue for backgrounds */
+            --river-red: #DA291C;
+            --river-white: #fff;
+            --river-light-red: rgba(218, 41, 28, 0.1); /* Light red for backgrounds */
+            --stat-gold: #FFD700;
         }
+
         body {
-            background: linear-gradient(135deg, #fff 0%, #b71c1c 100%);
+            background: linear-gradient(135deg, var(--bg-light) 0%, var(--primary-red) 100%);
             font-family: 'Montserrat', Arial, sans-serif;
             margin: 0;
             padding-bottom: 80px;
+            color: var(--text-dark);
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
+
         .navbar {
             display: flex;
             justify-content: center;
             align-items: center;
-            background: #fff;
-            box-shadow: 0 2px 12px #b71c1c22;
+            background: var(--bg-light);
+            box-shadow: 0 2px 12px var(--shadow-color);
             padding: 16px 0 0 0;
             position: sticky;
             top: 0;
             z-index: 100;
-            border-bottom: 2px solid #b71c1c33;
+            border-bottom: 2px solid rgba(183, 28, 28, 0.2);
         }
+
         .nav-btn {
             background: none;
             border: none;
-            color: #b71c1c;
+            color: var(--primary-red);
             font-size: 1.15em;
             font-weight: bold;
             margin: 0 24px;
             cursor: pointer;
             padding-bottom: 9px;
             border-bottom: 3px solid transparent;
-            transition: border-bottom 0.18s, color 0.15s;
+            transition: border-bottom 0.18s ease, color 0.15s ease, transform 0.2s ease;
         }
+
         .nav-btn.active {
             border-bottom: 3px solid #f44336;
-            color: #d32f2f;
+            color: var(--secondary-red);
         }
+
+        .nav-btn:hover {
+            transform: scale(1.05);
+        }
+
         .header {
             text-align: center;
             padding: 28px 10px 12px 10px;
             position: relative;
         }
+
         .logo {
             width: 120px;
             margin-bottom: 10px;
-            border-radius: 11px;
-            box-shadow: 0 2px 16px #b71c1c44;
-            background: #fff;
+            border-radius: 50%; /* More modern rounded logo */
+            box-shadow: 0 2px 16px var(--shadow-color);
+            background: var(--bg-light);
+            transition: transform 0.3s ease;
         }
+
+        .logo:hover {
+            transform: rotate(360deg);
+        }
+
         h1 {
             font-size: 2em;
             margin: 0;
             letter-spacing: 1px;
-            color: #b71c1c;
-            text-shadow: 1px 1px 0 #fff3;
+            color: var(--primary-red);
+            text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.2);
         }
+
         .desc {
             margin-top: 6px;
-            color: #b71c1c;
+            color: var(--primary-red);
             font-size: 1.03em;
             font-weight: bold;
-            text-shadow: 1px 1px 0 #fff7;
+            text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.45);
         }
+
         .highlight-star {
             position: absolute;
             top: 12px;
             right: 24px;
-            background: #fff;
+            background: var(--bg-light);
             border-radius: 10px;
-            box-shadow: 0 2px 12px #b71c1c33;
+            box-shadow: 0 2px 12px var(--shadow-color);
             padding: 10px 18px 10px 14px;
             font-size: 1.18em;
-            color: #fbc02d;
+            color: var(--accent-gold);
             font-weight: bold;
             display: flex;
             align-items: center;
             gap: 6px;
             z-index: 10;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
+
+        .highlight-star:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px var(--shadow-color);
+        }
+
         .highlight-star .star-icon {
             font-size: 1.45em;
-            color: #fbc02d;
+            color: var(--accent-gold);
             margin-right: 5px;
             vertical-align: middle;
         }
+
         .highlight-star .highlight-player {
-            color: #d32f2f;
+            color: var(--secondary-red);
             font-weight: bold;
             margin-left: 7px;
             font-size: 1.07em;
         }
+
         .highlight-star .highlight-note {
-            background: #fbc02d22;
-            color: #b71c1c;
+            background: rgba(251, 192, 45, 0.13);
+            color: var(--primary-red);
             border-radius: 8px;
             padding: 2px 9px;
             margin-left: 8px;
             font-size: 0.97em;
             font-weight: bold;
-            border: 1px solid #fbc02d88;
+            border: 1px solid rgba(251, 192, 45, 0.53);
         }
+
         .rankings {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 32px;
             margin: 28px auto 0 auto;
             max-width: 1340px;
+            padding: 0 16px;
         }
+
         .ranking-card {
-            background: #fff;
+            background: var(--bg-light);
             border-radius: 18px;
-            box-shadow: 0 4px 24px #b71c1c22;
-            padding: 18px 12px 18px 12px;
-            min-width: 230px;
-            max-width: 320px;
-            margin-bottom: 15px;
-            border: 2px solid #b71c1c;
+            box-shadow: 0 4px 24px var(--shadow-color);
+            padding: 18px 12px;
+            border: 2px solid var(--primary-red);
             display: flex;
             flex-direction: column;
             align-items: center;
             position: relative;
-            transition: box-shadow 0.18s;
-            animation: fadeIn 0.5s ease-in;
+            transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smoother transition */
         }
+
         .ranking-card:hover {
-            box-shadow: 0 8px 32px #b71c1c44;
+            box-shadow: 0 8px 32px rgba(183, 28, 28, 0.27);
             background: #fff7f7;
+            transform: translateY(-4px);
         }
-        .ranking-card.gols { border-color: var(--vibrant-red); }
-        .ranking-card.assistencias { border-color: var(--vibrant-green); }
-        .ranking-card.vitorias { border-color: var(--vibrant-blue); }
-        .ranking-card.jogos { border-color: var(--vibrant-blue); }
-        .ranking-card.golsTomados { border-color: var(--vibrant-green); }
-        .ranking-card.aproveitamento { border-color: var(--vibrant-yellow); }
-        .ranking-card.notaGeral { border-color: var(--vibrant-yellow); }
+
         .ranking-title {
             margin: 0 0 12px 0;
             font-size: 1.08em;
-            color: #b71c1c;
-            text-shadow: 1px 1px 0 #fff7;
+            color: var(--primary-red);
+            text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.45);
             font-weight: bold;
             text-align: center;
             letter-spacing: 0.5px;
         }
+
         .ranking-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.98em;
             margin-bottom: 8px;
         }
+
         .ranking-table th, .ranking-table td {
             padding: 7px 3px;
         }
+
         .ranking-table th {
-            background: var(--vibrant-red);
-            color: #fff !important;
+            background: var(--primary-red);
+            color: var(--bg-light) !important;
             border-radius: 5px;
             font-weight: bold;
             letter-spacing: 0.5px;
             border: none;
         }
+
         .ranking-table td {
-            color: #b71c1c !important;
+            color: var(--primary-red) !important;
             font-weight: 500;
             background: transparent;
-            border-bottom: 1px solid #d32f2f22;
+            border-bottom: 1px solid rgba(211, 47, 47, 0.13);
             cursor: pointer;
             position: relative;
-            transition: background 0.12s;
+            transition: background 0.12s ease;
         }
+
         .ranking-table tr.top-player td {
-            background: linear-gradient(90deg, var(--vibrant-yellow) 0%, #fff 100%);
-            color: #d32f2f !important;
+            background: linear-gradient(90deg, rgba(244, 67, 54, 0.25) 0%, var(--bg-light) 100%);
+            color: var(--secondary-red) !important;
             font-weight: bold;
             border-left: 5px solid #f44336;
         }
+
         .ranking-table tr:hover td {
-            background: #f4433633;
+            background: rgba(244, 67, 54, 0.2);
         }
+
         .medal {
             font-size: 1.16em;
             vertical-align: middle;
             margin-right: 3px;
         }
+
         .see-more-btn {
             background: #f44336;
-            color: #fff;
+            color: var(--bg-light);
             border: none;
             border-radius: 7px;
             font-size: 0.95em;
@@ -209,43 +247,102 @@
             cursor: pointer;
             margin-top: 10px;
             margin-bottom: 2px;
-            transition: background 0.17s;
-            box-shadow: 0 2px 8px #b71c1c19;
+            transition: background 0.17s ease, transform 0.17s ease;
+            box-shadow: 0 2px 8px rgba(183, 28, 28, 0.1);
         }
+
         .see-more-btn:hover {
-            background: #b71c1c;
+            background: var(--primary-red);
+            transform: scale(1.05);
         }
+
         .loading {
             text-align: center;
             font-size: 1.45em;
             margin: 42px 0;
-            color: #b71c1c;
+            color: var(--primary-red);
             animation: blink 1.2s infinite;
         }
+
         @keyframes blink {
             50% { opacity: 0.6; }
         }
+
         footer {
             position: fixed;
             left: 0;
             right: 0;
             bottom: 0;
-            background: #b71c1c;
-            color: #fff;
+            background: var(--primary-red);
+            color: var(--bg-light);
             text-align: center;
             padding: 14px 0 10px 0;
             font-size: 1em;
-            box-shadow: 0 -3px 20px #b71c1c44;
+            box-shadow: 0 -3px 20px var(--shadow-color);
             letter-spacing: 0.5px;
         }
+
         a {
-            color: #fff;
+            color: var(--bg-light);
             text-decoration: underline;
         }
+
         @media (max-width: 950px) {
-            .rankings { flex-direction: column; align-items: center;}
-            .highlight-star { position: static; margin-bottom: 10px;}
+            .rankings { grid-template-columns: 1fr; }
+            .highlight-star { position: static; margin: 10px auto; width: fit-content; }
         }
+
+        @media (max-width: 600px) {
+            .ranking-card, .modal, .comparison-section, .jogos-lista, .chart-container {
+                overflow-x: auto;
+            }
+
+            .ranking-table, .modal table, .comparison-table {
+                min-width: 300px;
+            }
+
+            .navbar {
+                flex-wrap: wrap;
+            }
+
+            .nav-btn {
+                margin: 0 12px;
+                font-size: 1em;
+            }
+
+            h1 {
+                font-size: 1.6em;
+            }
+
+            .logo {
+                width: 100px;
+            }
+
+            /* Enhanced mobile responsiveness */
+            .rankings {
+                gap: 20px;
+                padding: 0 10px;
+            }
+
+            .ranking-card {
+                padding: 15px 10px;
+            }
+
+            .charts-page {
+                padding: 20px 5px;
+            }
+
+            .chart-container {
+                max-width: 100%;
+                padding: 15px 10px;
+            }
+
+            .comparison-section select {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+
         .modal-bg {
             display: none;
             position: fixed;
@@ -258,145 +355,223 @@
             justify-content: center;
             align-items: center;
         }
+
         .modal-bg.active {
             display: flex;
         }
+
         .modal {
-            background: #fff;
-            color: #b71c1c;
+            background: var(--bg-light);
+            color: var(--primary-red);
             border-radius: 16px;
             padding: 26px 32px;
-            box-shadow: 0 8px 32px #b71c1c55;
+            box-shadow: 0 8px 32px rgba(183,28,28,0.33);
             max-width: 95vw;
             min-width: 270px;
             text-align: center;
             position: relative;
             font-size: 1.07em;
-            animation: modal-in 0.2s;
+            animation: modal-in 0.2s ease;
             overflow-y: auto;
             max-height: 90vh;
         }
+
         @keyframes modal-in {
             0% { transform: scale(0.95); opacity: 0;}
             100% { transform: scale(1); opacity: 1;}
         }
+
         .modal .close-btn {
             position: absolute;
             top: 10px;
             right: 18px;
             font-size: 1.5em;
-            color: #b71c1c;
-            background: #fff;
+            color: var(--primary-red);
+            background: var(--bg-light);
             border: none;
             cursor: pointer;
             font-weight: bold;
             outline: none;
+            transition: color 0.2s ease;
         }
+
+        .modal .close-btn:hover {
+            color: var(--secondary-red);
+        }
+
         .modal .big {
             font-size: 1.35em;
             margin-bottom: 2px;
             font-weight: bold;
-            color: #d32f2f;
+            color: var(--secondary-red);
         }
+
         .modal table {
             margin: 18px auto 0 auto;
             width: 100%;
             font-size: 1em;
             border-collapse: collapse;
         }
+
         .modal th, .modal td {
             padding: 7px 3px;
-            color: #b71c1c;
-            border-bottom: 1px solid #d32f2f22;
+            color: var(--primary-red);
+            border-bottom: 1px solid rgba(211, 47, 47, 0.13);
         }
+
         .modal tr:last-child td {
             border-bottom: none;
         }
+
         .modal .date-title {
             font-size: 1.15em;
             margin-bottom: 10px;
             font-weight: bold;
-            color: #d32f2f;
+            color: var(--secondary-red);
         }
+
         .modal .match-highlight {
             margin: 14px 0 8px 0;
             font-size: 1.15em;
             font-weight: bold;
-            color: #fbc02d;
+            color: var(--accent-gold);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 9px;
         }
+
         .modal .match-highlight .star-icon {
             font-size: 1.35em;
             margin-right: 6px;
-            color: #fbc02d;
+            color: var(--accent-gold);
             vertical-align: middle;
         }
+
         .modal .match-highlight .highlight-player {
-            color: #d32f2f;
+            color: var(--secondary-red);
             font-weight: bold;
             margin-left: 7px;
             font-size: 1.1em;
         }
+
         .modal .match-highlight .highlight-note {
-            background: #fbc02d22;
-            color: #b71c1c;
+            background: rgba(251, 192, 45, 0.13);
+            color: var(--primary-red);
             border-radius: 8px;
             padding: 2px 9px;
             margin-left: 8px;
             font-size: 0.97em;
             font-weight: bold;
-            border: 1px solid #fbc02d88;
+            border: 1px solid rgba(251, 192, 45, 0.53);
         }
+
+        .team-boca h3 {
+            background-color: var(--boca-blue);
+            color: var(--boca-gold);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .team-boca th {
+            background-color: var(--boca-blue);
+            color: var(--boca-gold);
+        }
+
+        .team-boca tbody tr td {
+            background: var(--boca-light-blue); /* Light blue background for rows */
+            color: var(--boca-blue); /* Dark blue text for names */
+        }
+
+        .team-boca tbody tr:hover td {
+            background: rgba(0, 31, 91, 0.2); /* Slightly darker on hover */
+        }
+
+        .team-river h3 {
+            background-color: var(--river-red);
+            color: var(--river-white);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .team-river th {
+            background-color: var(--river-red);
+            color: var(--river-white);
+        }
+
+        .team-river tbody tr td {
+            background: var(--river-light-red); /* Light red background for rows */
+            color: var(--river-red); /* Red text for names */
+        }
+
+        .team-river tbody tr:hover td {
+            background: rgba(218, 41, 28, 0.2); /* Slightly darker on hover */
+        }
+
+        .team-boca td.stat, .team-river td.stat {
+            color: var(--stat-gold);
+            font-weight: bold;
+        }
+
         .jogos-lista {
-            background: #fff;
+            background: var(--bg-light);
             border-radius: 18px;
-            box-shadow: 0 4px 24px #b71c1c22;
+            box-shadow: 0 4px 24px var(--shadow-color);
             padding: 22px 18px;
             margin-bottom: 20px;
             max-width: 350px;
             margin-left: auto;
             margin-right: auto;
         }
+
         .jogos-lista h2 {
             margin-bottom: 10px;
             font-size: 1.18em;
-            color: #b71c1c;
+            color: var(--primary-red);
             font-weight: bold;
-            text-shadow: 1px 1px 0 #fff7;
+            text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.45);
         }
+
         .jogos-lista ul {
             list-style: none;
             margin: 0;
             padding: 0;
             font-size: 1.07em;
         }
+
         .jogos-lista li {
             padding: 8px 0;
             cursor: pointer;
-            border-bottom: 1px solid #d32f2f22;
-            transition: background 0.15s;
+            border-bottom: 1px solid rgba(211, 47, 47, 0.13);
+            transition: background 0.15s ease;
         }
+
         .jogos-lista li:last-child {
             border-bottom: none;
         }
+
         .jogos-lista li:hover {
-            background: #f4433633;
+            background: rgba(244, 67, 54, 0.2);
         }
+
         .jogos-lista .date {
             font-weight: bold;
-            color: #d32f2f;
+            color: var(--secondary-red);
         }
+
         .pagination {
             display: flex;
             justify-content: center;
             margin-top: 10px;
         }
+
         .pagination button {
             background: #f44336;
-            color: #fff;
+            color: var(--bg-light);
             border: none;
             border-radius: 7px;
             font-size: 0.95em;
@@ -404,152 +579,127 @@
             padding: 6px 12px;
             cursor: pointer;
             margin: 0 5px;
-            transition: background 0.17s;
+            transition: background 0.17s ease, transform 0.17s ease;
         }
+
         .pagination button:hover {
-            background: #b71c1c;
+            background: var(--primary-red);
+            transform: scale(1.05);
         }
+
         .pagination button:disabled {
             background: #ccc;
             cursor: not-allowed;
+            transform: none;
         }
+
         .charts-page {
             max-width: 900px;
             margin: 0 auto;
             padding: 25px 10px 0 10px;
             text-align: center;
         }
+
         .charts-title {
             font-size: 1.4em;
             font-weight: bold;
-            color: #d32f2f;
+            color: var(--secondary-red);
             margin-bottom: 22px;
             letter-spacing: 1px;
         }
+
         .chart-container {
             margin: 0 auto 34px auto;
-            background: #fff;
+            background: var(--bg-light);
             border-radius: 16px;
-            box-shadow: 0 4px 24px #b71c1c22;
+            box-shadow: 0 4px 24px var(--shadow-color);
             padding: 22px 18px 10px 18px;
             max-width: 600px;
         }
+
         .chart-legend {
             margin-top: 7px;
             font-size: 0.98em;
-            color: #b71c1c;
+            color: var(--primary-red);
         }
+
         .comparison-section {
-            background: #fff;
+            background: var(--bg-light);
             border-radius: 18px;
-            box-shadow: 0 4px 24px #b71c1c22;
+            box-shadow: 0 4px 24px var(--shadow-color);
             padding: 22px 18px;
             margin: 20px auto;
             max-width: 600px;
         }
+
         .comparison-section h2 {
             font-size: 1.18em;
-            color: #b71c1c;
+            color: var(--primary-red);
             font-weight: bold;
             margin-bottom: 15px;
         }
+
         .comparison-section select {
             width: 45%;
             padding: 8px;
             margin: 0 2.5% 10px 2.5%;
-            border: 1px solid #b71c1c;
+            border: 1px solid var(--primary-red);
             border-radius: 5px;
             font-size: 1em;
         }
+
         .comparison-section button {
             background: #f44336;
-            color: #fff;
+            color: var(--bg-light);
             border: none;
             border-radius: 7px;
             font-size: 0.95em;
             font-weight: bold;
             padding: 6px 18px;
             cursor: pointer;
-            transition: background 0.17s;
+            transition: background 0.17s ease, transform 0.17s ease;
             display: block;
             margin: 10px auto;
         }
+
         .comparison-section button:hover {
-            background: #b71c1c;
+            background: var(--primary-red);
+            transform: scale(1.05);
         }
+
         .comparison-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.98em;
         }
+
         .comparison-table th, .comparison-table td {
             padding: 7px 3px;
-            border-bottom: 1px solid #d32f2f22;
+            border-bottom: 1px solid rgba(211, 47, 47, 0.13);
             text-align: center;
         }
+
         .comparison-table th {
-            background: #b71c1c;
-            color: #fff;
+            background: var(--primary-red);
+            color: var(--bg-light);
         }
+
         .comparison-table .percent {
             font-weight: bold;
-            color: #d32f2f;
+            color: var(--secondary-red);
         }
+
         .instruction-card {
-            background: #fff;
+            background: var(--bg-light);
             border-radius: 18px;
-            box-shadow: 0 4px 24px #b71c1c22;
+            box-shadow: 0 4px 24px var(--shadow-color);
             padding: 18px;
             margin: 20px auto;
             max-width: 600px;
             text-align: center;
             font-size: 1em;
-            color: #b71c1c;
+            color: var(--primary-red);
             font-weight: bold;
-        }
-        .vote-btn {
-            background: var(--vibrant-green);
-            color: #fff;
-            border: none;
-            border-radius: 7px;
-            padding: 5px 10px;
-            font-size: 0.9em;
-            cursor: pointer;
-            margin-left: 10px;
-            transition: background 0.17s;
-            animation: pulse 2s infinite;
-        }
-        .vote-btn:hover {
-            background: #00c853;
-        }
-        .vote-result {
-            color: var(--vibrant-yellow);
-            font-size: 0.9em;
-            margin-left: 10px;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        #shareBtn {
-            background: var(--vibrant-blue);
-            color: #fff;
-            border: none;
-            border-radius: 7px;
-            font-size: 0.95em;
-            font-weight: bold;
-            padding: 6px 18px;
-            cursor: pointer;
-            margin: 0 24px;
-            transition: background 0.17s;
-        }
-        #shareBtn:hover {
-            background: #1976d2;
         }
     </style>
 </head>
@@ -557,8 +707,6 @@
     <div class="navbar">
         <button class="nav-btn active" id="navRankings" aria-label="Exibir Rankings">Rankings</button>
         <button class="nav-btn" id="navCharts" aria-label="Exibir Gráficos">Gráficos</button>
-        <button class="nav-btn" id="shareBtn" aria-label="Compartilhar dashboard">📤 Compartilhar</button>
-        <button class="nav-btn" onclick="exportGeneralData()" aria-label="Exportar dados gerais">Exportar Geral 📜</button>
     </div>
     <div class="header">
         <img src="https://raw.githubusercontent.com/ittokki/Futebol/ba59ab86cf2095d4e9214bd5e24e21ac8aeaf33a/inimigos%20da%20bola.jpg" class="logo" alt="logo"/>
@@ -586,7 +734,7 @@
         const spreadsheetId = "1TvrVT8ksYYMlpw8gkKIFvpnnCf02J8uYTkhHc5c0vdo";
         const rangePagina1 = "Página1!A2:H100";
         const rangePagina2 = "Página2!A2:J300";
-        const rankingIcons = { gols: "⚽️", assistencias: "🅰️", vitorias: "🏆", jogos: "🎽", golsTomados: "🛡️", aproveitamento: "📈", notaGeral: "⭐", golsContra: "🚫" };
+        const rankingIcons = { gols: "⚽️", assistencias: "🅰️", vitorias: "🏅", jogos: "🎽", golsTomados: "🛡️", aproveitamento: "📈", notaGeral: "⭐" };
         const medalhas = ['🥇','🥈','🥉'];
 
         function parseNum(val) {
@@ -732,8 +880,7 @@
         }
 
         function medalhaHTML(index) {
-            const colors = ['#ffd700', '#c0c0c0', '#cd7f32'];
-            return index < 3 ? `<span class="medal" style="color:${colors[index]}">${medalhas[index]}</span>` : '';
+            return index < 3 ? `<span class="medal">${medalhas[index]}</span>` : '';
         }
 
         function makeRankingCard(jogadores, tipo, titulo, filterFn = null, sufixo = "") {
@@ -764,10 +911,9 @@
             if (arr.length > maxDefault) {
                 btnHtml = `<button class="see-more-btn" id="${btnId}" aria-label="Ver mais itens do ranking" onclick="toggleTable('${tableId}','${btnId}',${arr.length},${maxDefault})">Ver Mais</button>`;
             }
-            const exportBtn = `<button class="see-more-btn" onclick="exportRanking('${tipo}')">Exportar 📥</button>`;
 
             return `
-                <div class="ranking-card ${tipo}">
+                <div class="ranking-card">
                     <div class="ranking-title">${rankingIcons[tipo] || ""} ${titulo}</div>
                     <table class="ranking-table" id="${tableId}">
                         <thead>
@@ -782,7 +928,6 @@
                         </tbody>
                     </table>
                     ${btnHtml}
-                    ${exportBtn}
                 </div>
             `;
         }
@@ -843,18 +988,18 @@
             modalContent.innerHTML = `
                 <div class="big">${jogador.nome}</div>
                 <table>
-                    <tr><th>🎽 Jogos</th><td>${jogador.jogos}</td></tr>
-                    <tr><th>🛡️ Jogos como Goleiro</th><td>${jogador.jogosGoleiro}</td></tr>
-                    <tr><th>🏃 Jogos na Linha</th><td>${jogador.jogosLinha}</td></tr>
-                    <tr><th>🏆 Vitórias</th><td>${jogador.vitorias}</td></tr>
-                    <tr><th>⚽️ Gols</th><td>${jogador.gols}</td></tr>
-                    <tr><th>🅰️ Assistências</th><td>${jogador.assistencias}</td></tr>
-                    <tr><th>🛡️ Gols Tomados</th><td>${jogador.golsTomados}</td></tr>
-                    <tr><th>🚫 Gols Contra</th><td>${jogador.golsContra}</td></tr>
-                    <tr><th>📈 Aproveitamento</th><td>${jogador.aproveitamento}%</td></tr>
-                    <tr><th>⭐ Nota Geral</th><td>${jogador.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
-                    <tr><th>⭐ Nota Geral como Goleiro</th><td>${jogador.notaGeralGoleiro.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
-                    <tr><th>⭐ Nota Geral na Linha</th><td>${jogador.notaGeralLinha.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
+                    <tr><th>Jogos</th><td>${jogador.jogos}</td></tr>
+                    <tr><th>Jogos como Goleiro</th><td>${jogador.jogosGoleiro}</td></tr>
+                    <tr><th>Jogos na Linha</th><td>${jogador.jogosLinha}</td></tr>
+                    <tr><th>Vitórias</th><td>${jogador.vitorias}</td></tr>
+                    <tr><th>Gols</th><td>${jogador.gols}</td></tr>
+                    <tr><th>Assistências</th><td>${jogador.assistencias}</td></tr>
+                    <tr><th>Gols Tomados</th><td>${jogador.golsTomados}</td></tr>
+                    <tr><th>Gols Contra</th><td>${jogador.golsContra}</td></tr>
+                    <tr><th>Aproveitamento</th><td>${jogador.aproveitamento}%</td></tr>
+                    <tr><th>Nota Geral</th><td>${jogador.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
+                    <tr><th>Nota Geral como Goleiro</th><td>${jogador.notaGeralGoleiro.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
+                    <tr><th>Nota Geral na Linha</th><td>${jogador.notaGeralLinha.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
                     ${partidasHtml}
                 </table>
             `;
@@ -868,16 +1013,20 @@
             partidas.forEach(p => {
                 if (p.notaPartida > destaque.nota) destaque = { nome: p.nome, nota: p.notaPartida };
             });
+            // Ordenar por time
             partidas = [...partidas].sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+            // Obter times únicos
             const uniqueTimes = [...new Set(partidas.map(p => p.time).filter(Boolean))].sort();
             let matchTitle = dataJogo;
             if (uniqueTimes.length >= 2) {
+                // Coletar resultados por time (apenas o primeiro preenchido)
                 const placarPorTime = {};
                 partidas.forEach(p => {
                     if (p.time && p.resultado && !placarPorTime[p.time]) {
                         placarPorTime[p.time] = p.resultado;
                     }
                 });
+                // Calcular gols por time
                 const golsPorTime = {};
                 uniqueTimes.forEach(t => golsPorTime[t] = 0);
                 partidas.forEach(p => {
@@ -885,42 +1034,45 @@
                         golsPorTime[p.time] += parseNum(p.gols);
                     }
                 });
+                // Usar placar fornecido ou calculado
                 const placar1 = placarPorTime[uniqueTimes[0]] || golsPorTime[uniqueTimes[0]];
                 const placar2 = placarPorTime[uniqueTimes[1]] || golsPorTime[uniqueTimes[1]];
                 matchTitle = `${uniqueTimes[0]} ${placar1}x${placar2} ${uniqueTimes[1]}`;
             }
+            // Dividir jogadores por time
             const jogadoresPorTime = {};
             uniqueTimes.forEach(time => {
                 jogadoresPorTime[time] = partidas.filter(p => p.time === time);
             });
+            // Gerar HTML para cada time
             let timesHtml = '';
             uniqueTimes.forEach((time) => {
                 const jogadores = jogadoresPorTime[time];
                 timesHtml += `
-                    <div style="margin-bottom: 15px;">
-                        <h3 style="color: #d32f2f; font-weight: bold; font-size: 1.1em; margin-bottom: 8px;">${time}</h3>
+                    <div class="team-${time.toLowerCase()}" style="margin-bottom: 15px;">
+                        <h3>${time}</h3>
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
                                 <tr>
                                     <th>Nome</th>
-                                    <th>⚽️ Gols</th>
-                                    <th>🅰️ Assistências</th>
-                                    <th>🛡️ Gols Tomados</th>
-                                    <th>🚫 Gols Contra</th>
-                                    <th>🏆 Vitória</th>
-                                    <th>⭐ Nota (Posição)</th>
+                                    <th>Gols</th>
+                                    <th>Assistências</th>
+                                    <th>Gols Tomados</th>
+                                    <th>Gols Contra</th>
+                                    <th>Vitória</th>
+                                    <th>Nota (Posição)</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${jogadores.map(p => `
                                     <tr>
                                         <td>${p.nome}</td>
-                                        <td>${parseNum(p.gols)}</td>
-                                        <td>${parseNum(p.assistencias)}</td>
-                                        <td>${parseNum(p.golsTomados)}</td>
-                                        <td>${parseNum(p.golsContra)}</td>
-                                        <td>${p.vitoria ? "Sim" : "Não"}</td>
-                                        <td>${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (${p.isGoleiro ? 'Goleiro' : 'Linha'})</td>
+                                        <td class="stat">${parseNum(p.gols)}</td>
+                                        <td class="stat">${parseNum(p.assistencias)}</td>
+                                        <td class="stat">${parseNum(p.golsTomados)}</td>
+                                        <td class="stat">${parseNum(p.golsContra)}</td>
+                                        <td class="stat">${p.vitoria ? "Sim" : "Não"}</td>
+                                        <td class="stat">${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (${p.isGoleiro ? 'Goleiro' : 'Linha'})</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -962,12 +1114,11 @@
                 const end = start + itemsPerPage;
                 const pageDatas = datas.slice(start, end);
                 const ul = document.getElementById('jogosListaUl');
-                ul.innerHTML = pageDatas.map(dataJogo => `<li onclick="showJogoModal('${dataJogo}')"><span class="date">${dataJogo}</span><button onclick="event.stopPropagation(); showVoteModal('${dataJogo}')" class="vote-btn">Votar MVP 🗳️</button><span id="voteResult-${dataJogo}" class="vote-result"></span></li>`).join('');
+                ul.innerHTML = pageDatas.map(dataJogo => `<li onclick="showJogoModal('${dataJogo}')"><span class="date">${dataJogo}</span></li>`).join('');
                 const prevBtn = document.getElementById('prevPage');
                 const nextBtn = document.getElementById('nextPage');
                 if (prevBtn) prevBtn.disabled = page === 1;
                 if (nextBtn) nextBtn.disabled = page * itemsPerPage >= datas.length;
-                pageDatas.forEach(dataJogo => updateVoteResults(dataJogo));
             };
 
             window.prevPage = function() { if (currentPage > 1) { currentPage--; window.renderPage(currentPage); } };
@@ -983,49 +1134,6 @@
                     </div>
                 </div>
             `;
-        }
-
-        window.showVoteModal = function(dataJogo) {
-            const partidas = window.__PARTIDAS__.filter(p => p.dataJogo === dataJogo);
-            const jogadores = [...new Set(partidas.map(p => p.nome))].sort();
-            let modalContent = `
-                <div class="date-title">Votar MVP - ${dataJogo}</div>
-                <select id="votePlayer" aria-label="Selecionar jogador para MVP">
-                    <option value="">Escolha o MVP</option>
-                    ${jogadores.map(name => `<option value="${name}">${name}</option>`).join('')}
-                </select>
-                <button onclick="submitVote('${dataJogo}')" class="vote-btn">Votar 🗳️</button>
-                <div id="voteResults" class="vote-result"></div>
-            `;
-            document.getElementById('modalContent').innerHTML = modalContent;
-            document.getElementById('modalBg').classList.add('active');
-            updateVoteResults(dataJogo);
-        }
-
-        window.submitVote = function(dataJogo) {
-            const player = document.getElementById('votePlayer').value;
-            if (!player) { alert('Selecione um jogador!'); return; }
-            const voteKey = `vote_${dataJogo}_${navigator.userAgent}`;
-            if (localStorage.getItem(voteKey)) { alert('Você já votou nesta partida!'); return; }
-            localStorage.setItem(voteKey, player);
-            const votes = JSON.parse(localStorage.getItem(`votes_${dataJogo}`) || '{}');
-            votes[player] = (votes[player] || 0) + 1;
-            localStorage.setItem(`votes_${dataJogo}`, JSON.stringify(votes));
-            updateVoteResults(dataJogo);
-            document.getElementById('modalBg').classList.remove('active');
-        }
-
-        window.updateVoteResults = function(dataJogo) {
-            const votes = JSON.parse(localStorage.getItem(`votes_${dataJogo}`) || '{}');
-            let topPlayer = ''; let maxVotes = 0;
-            for (const [player, count] of Object.entries(votes)) {
-                if (count > maxVotes) { topPlayer = player; maxVotes = count; }
-            }
-            const resultText = maxVotes > 0 ? `MVP Popular: ${topPlayer} (${maxVotes} votos) 🗳️` : '';
-            const resultElem = document.getElementById(`voteResult-${dataJogo}`);
-            if (resultElem) resultElem.textContent = resultText;
-            const modalResult = document.getElementById('voteResults');
-            if (modalResult) modalResult.textContent = resultText;
         }
 
         function renderCharts(jogadores, partidas) {
@@ -1074,8 +1182,8 @@
                         <canvas id="chartEvolucaoNotas"></canvas>
                         <div class="chart-legend">Evolução de Notas do Jogador</div>
                     </div>
-                    <div style="margin-top:22px; font-size:1.07em; color:#b71c1c;">
-                        <b>Gols totais no grupo:</b> <span style="color:#d32f2f">${totalGols}</span>
+                    <div style="margin-top:22px; font-size:1.07em; color:var(--primary-red);">
+                        <b>Gols totais no grupo:</b> <span style="color:var(--secondary-red)">${totalGols}</span>
                     </div>
                     <div class="comparison-section">
                         <h2>Comparar Jogadores</h2>
@@ -1102,7 +1210,7 @@
 
             const partidasJogador = window.__PARTIDAS__.filter(p => normalizaNome(p.nome) === normalizaNome(playerName));
             const datas = partidasJogador.map(p => p.dataJogo).sort((a, b) => a.split('/').reverse().join('-') > b.split('/').reverse().join('-') ? 1 : -1);
-            const notas = partidasJogador.sort((a, b) => a.dataJogo.split('/').reverse().join('-') > b.split('/').reverse().join('-') ? 1 : -1).map(p => p.notaPartida);
+            const notas = partidasJogador.sort((a, b) => a.dataJogo.split('/').reverse().join('-') > b.dataJogo.split('/').reverse().join('-') ? 1 : -1).map(p => p.notaPartida);
 
             if (evolucaoChart) evolucaoChart.destroy();
 
@@ -1146,7 +1254,7 @@
                     datasets: [{
                         label: 'Gols',
                         data: golsGoleadores,
-                        backgroundColor: '#ff5722'
+                        backgroundColor: '#f44336'
                     }]
                 },
                 options: {
@@ -1163,7 +1271,7 @@
                     datasets: [{
                         label: 'Assistências',
                         data: assistenciasAssistidores,
-                        backgroundColor: '#00e676'
+                        backgroundColor: '#4caf50'
                     }]
                 },
                 options: {
@@ -1197,7 +1305,7 @@
                     datasets: [{
                         label: 'Aproveitamento (%)',
                         data: aproveitamentoVals,
-                        backgroundColor: '#fbc02d'
+                        backgroundColor: '#ffd600'
                     }]
                 },
                 options: {
@@ -1238,25 +1346,25 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>🎽 Jogos</td>
+                            <td>Jogos</td>
                             <td>${player1.jogos}</td>
                             <td>${player2.jogos}</td>
                             <td>${player1.jogos - player2.jogos}</td>
                         </tr>
                         <tr>
-                            <td>🏆 Vitórias</td>
+                            <td>Vitórias</td>
                             <td>${player1.vitorias}</td>
                             <td>${player2.vitorias}</td>
                             <td>${player1.vitorias - player2.vitorias}</td>
                         </tr>
                         <tr>
-                            <td>📈 Aproveitamento</td>
+                            <td>Aproveitamento</td>
                             <td class="percent">${player1.aproveitamento}%</td>
                             <td class="percent">${player2.aproveitamento}%</td>
                             <td>${player1.aproveitamento - player2.aproveitamento}%</td>
                         </tr>
                         <tr>
-                            <td>⚽️ Gols</td>
+                            <td>Gols</td>
                             <td>${player1.gols}</td>
                             <td>${player2.gols}</td>
                             <td>${player1.gols - player2.gols}</td>
@@ -1268,7 +1376,7 @@
                             <td>${percGols1 - percGols2}%</td>
                         </tr>
                         <tr>
-                            <td>🅰️ Assistências</td>
+                            <td>Assistências</td>
                             <td>${player1.assistencias}</td>
                             <td>${player2.assistencias}</td>
                             <td>${player1.assistencias - player2.assistencias}</td>
@@ -1280,13 +1388,13 @@
                             <td>${percAssist1 - percAssist2}%</td>
                         </tr>
                         <tr>
-                            <td>🛡️ Gols Tomados</td>
+                            <td>Gols Tomados</td>
                             <td>${player1.golsTomados}</td>
                             <td>${player2.golsTomados}</td>
                             <td>${player1.golsTomados - player2.golsTomados}</td>
                         </tr>
                         <tr>
-                            <td>⭐ Nota Geral</td>
+                            <td>Nota Geral</td>
                             <td>${player1.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td>
                             <td>${player2.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td>
                             <td>${(player1.notaGeral - player2.notaGeral).toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td>
@@ -1307,83 +1415,6 @@
             document.getElementById('navRankings').classList.remove('active');
             document.getElementById('navCharts').classList.add('active');
             renderChartsPage(window.__JOGADORES__, window.__PARTIDAS__);
-        }
-
-        document.getElementById('shareBtn').onclick = async function() {
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Ranking dos Inimigos da Bola',
-                    text: 'Confira os top jogadores do nosso grupo! ⚽️',
-                    url: window.location.href
-                });
-            } else {
-                navigator.clipboard.writeText(window.location.href);
-                alert('Link copiado para a área de transferência!');
-            }
-            const canvas = await html2canvas(document.querySelector('.rankings'));
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
-            link.download = 'ranking_inimigos_da_bola.png';
-            link.click();
-        };
-
-        window.exportRanking = async function(tipo) {
-            const canvas = await html2canvas(document.getElementById(`table_${tipo}`));
-            const imgData = canvas.toDataURL('image/png');
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF();
-            pdf.addImage(imgData, 'PNG', 10, 10, 190, 0);
-            pdf.save(`ranking_${tipo}.pdf`);
-        }
-
-        window.exportGeneralData = async function() {
-            const jogadores = window.__JOGADORES__.sort((a, b) => a.nome.localeCompare(b.nome));
-            const tempDiv = document.createElement('div');
-            tempDiv.style.position = 'absolute';
-            tempDiv.style.left = '-9999px';
-            tempDiv.innerHTML = `
-                <div style="padding: 20px; background: #fff; border: 2px solid #f44336; border-radius: 10px;">
-                    <h2 style="color: #b71c1c; text-align: center; font-size: 1.5em; margin-bottom: 15px;">Estatísticas Gerais - Inimigos da Bola</h2>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
-                        <thead>
-                            <tr style="background: #f44336; color: #fff;">
-                                <th style="padding: 8px;">Nome</th>
-                                <th style="padding: 8px;">🎽 Jogos</th>
-                                <th style="padding: 8px;">🏆 Vitórias</th>
-                                <th style="padding: 8px;">📈 Aprov. (%)</th>
-                                <th style="padding: 8px;">⚽️ Gols</th>
-                                <th style="padding: 8px;">🅰️ Assist.</th>
-                                <th style="padding: 8px;">🛡️ Gols Tom.</th>
-                                <th style="padding: 8px;">🚫 Gols Contra</th>
-                                <th style="padding: 8px;">⭐ Nota Geral</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${jogadores.map(j => `
-                                <tr style="border-bottom: 1px solid #d32f2f22;">
-                                    <td style="padding: 8px; color: #b71c1c;">${j.nome}</td>
-                                    <td style="padding: 8px; color: #b71c1c;">${j.jogos}</td>
-                                    <td style="padding: 8px; color: #b71c1c;">${j.vitorias}</td>
-                                    <td style="padding: 8px; color: #b71c1c;">${j.aproveitamento}%</td>
-                                    <td style="padding: 8px; color: #b71c1c;">${j.gols}</td>
-                                    <td style="padding: 8px; color: #b71c1c;">${j.assistencias}</td>
-                                    <td style="padding: 8px; color: #b71c1c;">${j.golsTomados}</td>
-                                    <td style="padding: 8px; color: #b71c1c;">${j.golsContra}</td>
-                                    <td style="padding: 8px; color: #b71c1c;">${j.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            document.body.appendChild(tempDiv);
-            const canvas = await html2canvas(tempDiv, { scale: 2 });
-            const imgData = canvas.toDataURL('image/png');
-            document.body.removeChild(tempDiv);
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF();
-            pdf.addImage(imgData, 'PNG', 10, 10, 190, 0);
-            pdf.save('estatisticas_gerais_inimigos_da_bola.pdf');
         }
 
         async function mainLoader() {
@@ -1430,7 +1461,7 @@
                 </div>
             `;
             if (document.getElementById('jogosListaUl')) {
-                window.renderPage(1);
+                window.renderPage(1); // Renderiza a primeira página diretamente
             }
         }
 
