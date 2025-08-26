@@ -7,7 +7,15 @@
     <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
     <link rel="icon" href="https://raw.githubusercontent.com/ittokki/Futebol/ba59ab86cf2095d4e9214bd5e24e21ac8aeaf33a/inimigos%20da%20bola.jpg"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
+        :root {
+            --vibrant-red: #f44336;
+            --vibrant-green: #00e676;
+            --vibrant-yellow: #fbc02d;
+            --vibrant-blue: #2196f3;
+        }
         body {
             background: linear-gradient(135deg, #fff 0%, #b71c1c 100%);
             font-family: 'Montserrat', Arial, sans-serif;
@@ -48,7 +56,7 @@
             position: relative;
         }
         .logo {
-            width: 120px; /* Increased from 98px */
+            width: 120px;
             margin-bottom: 10px;
             border-radius: 11px;
             box-shadow: 0 2px 16px #b71c1c44;
@@ -71,7 +79,7 @@
         .highlight-star {
             position: absolute;
             top: 12px;
-            right: 24px; /* Moved further right from 12px */
+            right: 24px;
             background: #fff;
             border-radius: 10px;
             box-shadow: 0 2px 12px #b71c1c33;
@@ -128,11 +136,19 @@
             align-items: center;
             position: relative;
             transition: box-shadow 0.18s;
+            animation: fadeIn 0.5s ease-in;
         }
         .ranking-card:hover {
             box-shadow: 0 8px 32px #b71c1c44;
             background: #fff7f7;
         }
+        .ranking-card.gols { border-color: var(--vibrant-red); }
+        .ranking-card.assistencias { border-color: var(--vibrant-green); }
+        .ranking-card.vitorias { border-color: var(--vibrant-blue); }
+        .ranking-card.jogos { border-color: var(--vibrant-blue); }
+        .ranking-card.golsTomados { border-color: var(--vibrant-green); }
+        .ranking-card.aproveitamento { border-color: var(--vibrant-yellow); }
+        .ranking-card.notaGeral { border-color: var(--vibrant-yellow); }
         .ranking-title {
             margin: 0 0 12px 0;
             font-size: 1.08em;
@@ -152,7 +168,7 @@
             padding: 7px 3px;
         }
         .ranking-table th {
-            background: #b71c1c;
+            background: var(--vibrant-red);
             color: #fff !important;
             border-radius: 5px;
             font-weight: bold;
@@ -169,7 +185,7 @@
             transition: background 0.12s;
         }
         .ranking-table tr.top-player td {
-            background: linear-gradient(90deg, #f4433640 0%, #fff 100%);
+            background: linear-gradient(90deg, var(--vibrant-yellow) 0%, #fff 100%);
             color: #d32f2f !important;
             font-weight: bold;
             border-left: 5px solid #f44336;
@@ -491,12 +507,58 @@
             color: #b71c1c;
             font-weight: bold;
         }
+        .vote-btn {
+            background: var(--vibrant-green);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 5px 10px;
+            font-size: 0.9em;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.17s;
+            animation: pulse 2s infinite;
+        }
+        .vote-btn:hover {
+            background: #00c853;
+        }
+        .vote-result {
+            color: var(--vibrant-yellow);
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        #shareBtn {
+            background: var(--vibrant-blue);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            font-size: 0.95em;
+            font-weight: bold;
+            padding: 6px 18px;
+            cursor: pointer;
+            margin: 0 24px;
+            transition: background 0.17s;
+        }
+        #shareBtn:hover {
+            background: #1976d2;
+        }
     </style>
 </head>
 <body>
     <div class="navbar">
         <button class="nav-btn active" id="navRankings" aria-label="Exibir Rankings">Rankings</button>
         <button class="nav-btn" id="navCharts" aria-label="Exibir Gráficos">Gráficos</button>
+        <button class="nav-btn" id="shareBtn" aria-label="Compartilhar dashboard">📤 Compartilhar</button>
+        <button class="nav-btn" onclick="exportGeneralData()" aria-label="Exportar dados gerais">Exportar Geral 📜</button>
     </div>
     <div class="header">
         <img src="https://raw.githubusercontent.com/ittokki/Futebol/ba59ab86cf2095d4e9214bd5e24e21ac8aeaf33a/inimigos%20da%20bola.jpg" class="logo" alt="logo"/>
@@ -524,7 +586,7 @@
         const spreadsheetId = "1TvrVT8ksYYMlpw8gkKIFvpnnCf02J8uYTkhHc5c0vdo";
         const rangePagina1 = "Página1!A2:H100";
         const rangePagina2 = "Página2!A2:J300";
-        const rankingIcons = { gols: "⚽️", assistencias: "🅰️", vitorias: "🏅", jogos: "🎽", golsTomados: "🛡️", aproveitamento: "📈", notaGeral: "⭐" };
+        const rankingIcons = { gols: "⚽️", assistencias: "🅰️", vitorias: "🏆", jogos: "🎽", golsTomados: "🛡️", aproveitamento: "📈", notaGeral: "⭐", golsContra: "🚫" };
         const medalhas = ['🥇','🥈','🥉'];
 
         function parseNum(val) {
@@ -670,7 +732,8 @@
         }
 
         function medalhaHTML(index) {
-            return index < 3 ? `<span class="medal">${medalhas[index]}</span>` : '';
+            const colors = ['#ffd700', '#c0c0c0', '#cd7f32'];
+            return index < 3 ? `<span class="medal" style="color:${colors[index]}">${medalhas[index]}</span>` : '';
         }
 
         function makeRankingCard(jogadores, tipo, titulo, filterFn = null, sufixo = "") {
@@ -701,9 +764,10 @@
             if (arr.length > maxDefault) {
                 btnHtml = `<button class="see-more-btn" id="${btnId}" aria-label="Ver mais itens do ranking" onclick="toggleTable('${tableId}','${btnId}',${arr.length},${maxDefault})">Ver Mais</button>`;
             }
+            const exportBtn = `<button class="see-more-btn" onclick="exportRanking('${tipo}')">Exportar 📥</button>`;
 
             return `
-                <div class="ranking-card">
+                <div class="ranking-card ${tipo}">
                     <div class="ranking-title">${rankingIcons[tipo] || ""} ${titulo}</div>
                     <table class="ranking-table" id="${tableId}">
                         <thead>
@@ -718,6 +782,7 @@
                         </tbody>
                     </table>
                     ${btnHtml}
+                    ${exportBtn}
                 </div>
             `;
         }
@@ -778,18 +843,18 @@
             modalContent.innerHTML = `
                 <div class="big">${jogador.nome}</div>
                 <table>
-                    <tr><th>Jogos</th><td>${jogador.jogos}</td></tr>
-                    <tr><th>Jogos como Goleiro</th><td>${jogador.jogosGoleiro}</td></tr>
-                    <tr><th>Jogos na Linha</th><td>${jogador.jogosLinha}</td></tr>
-                    <tr><th>Vitórias</th><td>${jogador.vitorias}</td></tr>
-                    <tr><th>Gols</th><td>${jogador.gols}</td></tr>
-                    <tr><th>Assistências</th><td>${jogador.assistencias}</td></tr>
-                    <tr><th>Gols Tomados</th><td>${jogador.golsTomados}</td></tr>
-                    <tr><th>Gols Contra</th><td>${jogador.golsContra}</td></tr>
-                    <tr><th>Aproveitamento</th><td>${jogador.aproveitamento}%</td></tr>
-                    <tr><th>Nota Geral</th><td>${jogador.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
-                    <tr><th>Nota Geral como Goleiro</th><td>${jogador.notaGeralGoleiro.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
-                    <tr><th>Nota Geral na Linha</th><td>${jogador.notaGeralLinha.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
+                    <tr><th>🎽 Jogos</th><td>${jogador.jogos}</td></tr>
+                    <tr><th>🛡️ Jogos como Goleiro</th><td>${jogador.jogosGoleiro}</td></tr>
+                    <tr><th>🏃 Jogos na Linha</th><td>${jogador.jogosLinha}</td></tr>
+                    <tr><th>🏆 Vitórias</th><td>${jogador.vitorias}</td></tr>
+                    <tr><th>⚽️ Gols</th><td>${jogador.gols}</td></tr>
+                    <tr><th>🅰️ Assistências</th><td>${jogador.assistencias}</td></tr>
+                    <tr><th>🛡️ Gols Tomados</th><td>${jogador.golsTomados}</td></tr>
+                    <tr><th>🚫 Gols Contra</th><td>${jogador.golsContra}</td></tr>
+                    <tr><th>📈 Aproveitamento</th><td>${jogador.aproveitamento}%</td></tr>
+                    <tr><th>⭐ Nota Geral</th><td>${jogador.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
+                    <tr><th>⭐ Nota Geral como Goleiro</th><td>${jogador.notaGeralGoleiro.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
+                    <tr><th>⭐ Nota Geral na Linha</th><td>${jogador.notaGeralLinha.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
                     ${partidasHtml}
                 </table>
             `;
@@ -803,20 +868,16 @@
             partidas.forEach(p => {
                 if (p.notaPartida > destaque.nota) destaque = { nome: p.nome, nota: p.notaPartida };
             });
-            // Ordenar por time
             partidas = [...partidas].sort((a, b) => (a.time || '').localeCompare(b.time || ''));
-            // Obter times únicos
             const uniqueTimes = [...new Set(partidas.map(p => p.time).filter(Boolean))].sort();
             let matchTitle = dataJogo;
             if (uniqueTimes.length >= 2) {
-                // Coletar resultados por time (apenas o primeiro preenchido)
                 const placarPorTime = {};
                 partidas.forEach(p => {
                     if (p.time && p.resultado && !placarPorTime[p.time]) {
                         placarPorTime[p.time] = p.resultado;
                     }
                 });
-                // Calcular gols por time
                 const golsPorTime = {};
                 uniqueTimes.forEach(t => golsPorTime[t] = 0);
                 partidas.forEach(p => {
@@ -824,17 +885,14 @@
                         golsPorTime[p.time] += parseNum(p.gols);
                     }
                 });
-                // Usar placar fornecido ou calculado
                 const placar1 = placarPorTime[uniqueTimes[0]] || golsPorTime[uniqueTimes[0]];
                 const placar2 = placarPorTime[uniqueTimes[1]] || golsPorTime[uniqueTimes[1]];
                 matchTitle = `${uniqueTimes[0]} ${placar1}x${placar2} ${uniqueTimes[1]}`;
             }
-            // Dividir jogadores por time
             const jogadoresPorTime = {};
             uniqueTimes.forEach(time => {
                 jogadoresPorTime[time] = partidas.filter(p => p.time === time);
             });
-            // Gerar HTML para cada time
             let timesHtml = '';
             uniqueTimes.forEach((time) => {
                 const jogadores = jogadoresPorTime[time];
@@ -845,12 +903,12 @@
                             <thead>
                                 <tr>
                                     <th>Nome</th>
-                                    <th>Gols</th>
-                                    <th>Assistências</th>
-                                    <th>Gols Tomados</th>
-                                    <th>Gols Contra</th>
-                                    <th>Vitória</th>
-                                    <th>Nota (Posição)</th>
+                                    <th>⚽️ Gols</th>
+                                    <th>🅰️ Assistências</th>
+                                    <th>🛡️ Gols Tomados</th>
+                                    <th>🚫 Gols Contra</th>
+                                    <th>🏆 Vitória</th>
+                                    <th>⭐ Nota (Posição)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -904,11 +962,12 @@
                 const end = start + itemsPerPage;
                 const pageDatas = datas.slice(start, end);
                 const ul = document.getElementById('jogosListaUl');
-                ul.innerHTML = pageDatas.map(dataJogo => `<li onclick="showJogoModal('${dataJogo}')"><span class="date">${dataJogo}</span></li>`).join('');
+                ul.innerHTML = pageDatas.map(dataJogo => `<li onclick="showJogoModal('${dataJogo}')"><span class="date">${dataJogo}</span><button onclick="event.stopPropagation(); showVoteModal('${dataJogo}')" class="vote-btn">Votar MVP 🗳️</button><span id="voteResult-${dataJogo}" class="vote-result"></span></li>`).join('');
                 const prevBtn = document.getElementById('prevPage');
                 const nextBtn = document.getElementById('nextPage');
                 if (prevBtn) prevBtn.disabled = page === 1;
                 if (nextBtn) nextBtn.disabled = page * itemsPerPage >= datas.length;
+                pageDatas.forEach(dataJogo => updateVoteResults(dataJogo));
             };
 
             window.prevPage = function() { if (currentPage > 1) { currentPage--; window.renderPage(currentPage); } };
@@ -924,6 +983,49 @@
                     </div>
                 </div>
             `;
+        }
+
+        window.showVoteModal = function(dataJogo) {
+            const partidas = window.__PARTIDAS__.filter(p => p.dataJogo === dataJogo);
+            const jogadores = [...new Set(partidas.map(p => p.nome))].sort();
+            let modalContent = `
+                <div class="date-title">Votar MVP - ${dataJogo}</div>
+                <select id="votePlayer" aria-label="Selecionar jogador para MVP">
+                    <option value="">Escolha o MVP</option>
+                    ${jogadores.map(name => `<option value="${name}">${name}</option>`).join('')}
+                </select>
+                <button onclick="submitVote('${dataJogo}')" class="vote-btn">Votar 🗳️</button>
+                <div id="voteResults" class="vote-result"></div>
+            `;
+            document.getElementById('modalContent').innerHTML = modalContent;
+            document.getElementById('modalBg').classList.add('active');
+            updateVoteResults(dataJogo);
+        }
+
+        window.submitVote = function(dataJogo) {
+            const player = document.getElementById('votePlayer').value;
+            if (!player) { alert('Selecione um jogador!'); return; }
+            const voteKey = `vote_${dataJogo}_${navigator.userAgent}`;
+            if (localStorage.getItem(voteKey)) { alert('Você já votou nesta partida!'); return; }
+            localStorage.setItem(voteKey, player);
+            const votes = JSON.parse(localStorage.getItem(`votes_${dataJogo}`) || '{}');
+            votes[player] = (votes[player] || 0) + 1;
+            localStorage.setItem(`votes_${dataJogo}`, JSON.stringify(votes));
+            updateVoteResults(dataJogo);
+            document.getElementById('modalBg').classList.remove('active');
+        }
+
+        window.updateVoteResults = function(dataJogo) {
+            const votes = JSON.parse(localStorage.getItem(`votes_${dataJogo}`) || '{}');
+            let topPlayer = ''; let maxVotes = 0;
+            for (const [player, count] of Object.entries(votes)) {
+                if (count > maxVotes) { topPlayer = player; maxVotes = count; }
+            }
+            const resultText = maxVotes > 0 ? `MVP Popular: ${topPlayer} (${maxVotes} votos) 🗳️` : '';
+            const resultElem = document.getElementById(`voteResult-${dataJogo}`);
+            if (resultElem) resultElem.textContent = resultText;
+            const modalResult = document.getElementById('voteResults');
+            if (modalResult) modalResult.textContent = resultText;
         }
 
         function renderCharts(jogadores, partidas) {
@@ -1000,7 +1102,7 @@
 
             const partidasJogador = window.__PARTIDAS__.filter(p => normalizaNome(p.nome) === normalizaNome(playerName));
             const datas = partidasJogador.map(p => p.dataJogo).sort((a, b) => a.split('/').reverse().join('-') > b.split('/').reverse().join('-') ? 1 : -1);
-            const notas = partidasJogador.sort((a, b) => a.dataJogo.split('/').reverse().join('-') > b.dataJogo.split('/').reverse().join('-') ? 1 : -1).map(p => p.notaPartida);
+            const notas = partidasJogador.sort((a, b) => a.dataJogo.split('/').reverse().join('-') > b.split('/').reverse().join('-') ? 1 : -1).map(p => p.notaPartida);
 
             if (evolucaoChart) evolucaoChart.destroy();
 
@@ -1044,7 +1146,7 @@
                     datasets: [{
                         label: 'Gols',
                         data: golsGoleadores,
-                        backgroundColor: '#f44336'
+                        backgroundColor: '#ff5722'
                     }]
                 },
                 options: {
@@ -1061,7 +1163,7 @@
                     datasets: [{
                         label: 'Assistências',
                         data: assistenciasAssistidores,
-                        backgroundColor: '#4caf50'
+                        backgroundColor: '#00e676'
                     }]
                 },
                 options: {
@@ -1095,7 +1197,7 @@
                     datasets: [{
                         label: 'Aproveitamento (%)',
                         data: aproveitamentoVals,
-                        backgroundColor: '#ffd600'
+                        backgroundColor: '#fbc02d'
                     }]
                 },
                 options: {
@@ -1136,25 +1238,25 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Jogos</td>
+                            <td>🎽 Jogos</td>
                             <td>${player1.jogos}</td>
                             <td>${player2.jogos}</td>
                             <td>${player1.jogos - player2.jogos}</td>
                         </tr>
                         <tr>
-                            <td>Vitórias</td>
+                            <td>🏆 Vitórias</td>
                             <td>${player1.vitorias}</td>
                             <td>${player2.vitorias}</td>
                             <td>${player1.vitorias - player2.vitorias}</td>
                         </tr>
                         <tr>
-                            <td>Aproveitamento</td>
+                            <td>📈 Aproveitamento</td>
                             <td class="percent">${player1.aproveitamento}%</td>
                             <td class="percent">${player2.aproveitamento}%</td>
                             <td>${player1.aproveitamento - player2.aproveitamento}%</td>
                         </tr>
                         <tr>
-                            <td>Gols</td>
+                            <td>⚽️ Gols</td>
                             <td>${player1.gols}</td>
                             <td>${player2.gols}</td>
                             <td>${player1.gols - player2.gols}</td>
@@ -1166,7 +1268,7 @@
                             <td>${percGols1 - percGols2}%</td>
                         </tr>
                         <tr>
-                            <td>Assistências</td>
+                            <td>🅰️ Assistências</td>
                             <td>${player1.assistencias}</td>
                             <td>${player2.assistencias}</td>
                             <td>${player1.assistencias - player2.assistencias}</td>
@@ -1178,13 +1280,13 @@
                             <td>${percAssist1 - percAssist2}%</td>
                         </tr>
                         <tr>
-                            <td>Gols Tomados</td>
+                            <td>🛡️ Gols Tomados</td>
                             <td>${player1.golsTomados}</td>
                             <td>${player2.golsTomados}</td>
                             <td>${player1.golsTomados - player2.golsTomados}</td>
                         </tr>
                         <tr>
-                            <td>Nota Geral</td>
+                            <td>⭐ Nota Geral</td>
                             <td>${player1.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td>
                             <td>${player2.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td>
                             <td>${(player1.notaGeral - player2.notaGeral).toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td>
@@ -1205,6 +1307,83 @@
             document.getElementById('navRankings').classList.remove('active');
             document.getElementById('navCharts').classList.add('active');
             renderChartsPage(window.__JOGADORES__, window.__PARTIDAS__);
+        }
+
+        document.getElementById('shareBtn').onclick = async function() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Ranking dos Inimigos da Bola',
+                    text: 'Confira os top jogadores do nosso grupo! ⚽️',
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Link copiado para a área de transferência!');
+            }
+            const canvas = await html2canvas(document.querySelector('.rankings'));
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = 'ranking_inimigos_da_bola.png';
+            link.click();
+        };
+
+        window.exportRanking = async function(tipo) {
+            const canvas = await html2canvas(document.getElementById(`table_${tipo}`));
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            pdf.addImage(imgData, 'PNG', 10, 10, 190, 0);
+            pdf.save(`ranking_${tipo}.pdf`);
+        }
+
+        window.exportGeneralData = async function() {
+            const jogadores = window.__JOGADORES__.sort((a, b) => a.nome.localeCompare(b.nome));
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.innerHTML = `
+                <div style="padding: 20px; background: #fff; border: 2px solid #f44336; border-radius: 10px;">
+                    <h2 style="color: #b71c1c; text-align: center; font-size: 1.5em; margin-bottom: 15px;">Estatísticas Gerais - Inimigos da Bola</h2>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                        <thead>
+                            <tr style="background: #f44336; color: #fff;">
+                                <th style="padding: 8px;">Nome</th>
+                                <th style="padding: 8px;">🎽 Jogos</th>
+                                <th style="padding: 8px;">🏆 Vitórias</th>
+                                <th style="padding: 8px;">📈 Aprov. (%)</th>
+                                <th style="padding: 8px;">⚽️ Gols</th>
+                                <th style="padding: 8px;">🅰️ Assist.</th>
+                                <th style="padding: 8px;">🛡️ Gols Tom.</th>
+                                <th style="padding: 8px;">🚫 Gols Contra</th>
+                                <th style="padding: 8px;">⭐ Nota Geral</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${jogadores.map(j => `
+                                <tr style="border-bottom: 1px solid #d32f2f22;">
+                                    <td style="padding: 8px; color: #b71c1c;">${j.nome}</td>
+                                    <td style="padding: 8px; color: #b71c1c;">${j.jogos}</td>
+                                    <td style="padding: 8px; color: #b71c1c;">${j.vitorias}</td>
+                                    <td style="padding: 8px; color: #b71c1c;">${j.aproveitamento}%</td>
+                                    <td style="padding: 8px; color: #b71c1c;">${j.gols}</td>
+                                    <td style="padding: 8px; color: #b71c1c;">${j.assistencias}</td>
+                                    <td style="padding: 8px; color: #b71c1c;">${j.golsTomados}</td>
+                                    <td style="padding: 8px; color: #b71c1c;">${j.golsContra}</td>
+                                    <td style="padding: 8px; color: #b71c1c;">${j.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.body.appendChild(tempDiv);
+            const canvas = await html2canvas(tempDiv, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            document.body.removeChild(tempDiv);
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            pdf.addImage(imgData, 'PNG', 10, 10, 190, 0);
+            pdf.save('estatisticas_gerais_inimigos_da_bola.pdf');
         }
 
         async function mainLoader() {
@@ -1251,7 +1430,7 @@
                 </div>
             `;
             if (document.getElementById('jogosListaUl')) {
-                window.renderPage(1); // Renderiza a primeira página diretamente
+                window.renderPage(1);
             }
         }
 
