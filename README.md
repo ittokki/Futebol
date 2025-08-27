@@ -733,7 +733,7 @@
         const apiKey = "AIzaSyCL19ds6YqVOv5vV-zygBjeC-byy-rDPfM";
         const spreadsheetId = "1TvrVT8ksYYMlpw8gkKIFvpnnCf02J8uYTkhHc5c0vdo";
         const rangePagina1 = "Página1!A2:H100";
-        const rangePagina2 = "Página2!A2:J300";
+        const rangePagina2 = "Página2!A2:K300"; // Atualizado para incluir coluna K (jogo aconteceu)
         const rankingIcons = { gols: "⚽️", assistencias: "🅰️", vitorias: "🏅", jogos: "🎽", golsTomados: "🛡️", aproveitamento: "📈", notaGeral: "⭐" };
         const medalhas = ['🥇','🥈','🥉'];
 
@@ -796,7 +796,7 @@
             const resp = await fetch(url);
             const data = await resp.json();
             return (data.values || []).map(row => {
-                const [nome, gols, assistencias, golsTomados, golsContra, notaADM, dataJogo, vitoriaRaw, time, resultado] = fixRow(row, 10);
+                const [nome, gols, assistencias, golsTomados, golsContra, notaADM, dataJogo, vitoriaRaw, time, resultado, jogoAconteceuRaw] = fixRow(row, 11);
                 if (!nome || !dataJogo) return null;
                 const vitoria = (typeof vitoriaRaw === "string" && vitoriaRaw.trim().toLowerCase() === "sim") ? 1 : 0;
                 const notaInfo = calcularNotaPartida({ gols, assistencias, golsTomados, golsContra, vitoria, notaADM });
@@ -806,7 +806,8 @@
                     notaPartida: notaInfo.nota,
                     isGoleiro: notaInfo.isGoleiro,
                     time: time ? time.trim() : '',
-                    resultado: resultado ? parseNum(resultado) : 0
+                    resultado: resultado ? parseNum(resultado) : 0,
+                    jogoAconteceu: (typeof jogoAconteceuRaw === "string" && jogoAconteceuRaw.trim().toLowerCase() === "sim") // Novo: flag para jogo acontecido
                 };
             }).filter(x => x);
         }
@@ -844,6 +845,7 @@
         function calcularNotasGerais(jogadores, partidas) {
             const notasPorJogador = {};
             partidas.forEach(p => {
+                if (!p.jogoAconteceu) return; // Ignorar partidas que não aconteceram ainda
                 const nomeNorm = normalizaNome(p.nome);
                 if (!notasPorJogador[nomeNorm]) notasPorJogador[nomeNorm] = { todas: [], goleiro: [], linha: [] };
                 notasPorJogador[nomeNorm].todas.push(p.notaPartida);
@@ -1228,9 +1230,9 @@
             const playerName = document.getElementById('playerEvolucao').value;
             if (!playerName) return;
 
-            const partidasJogador = window.__PARTIDAS__.filter(p => normalizaNome(p.nome) === normalizaNome(playerName));
+            const partidasJogador = window.__PARTIDAS__.filter(p => normalizaNome(p.nome) === normalizaNome(playerName) && p.jogoAconteceu); // Filtrar apenas jogos que aconteceram
             const datas = partidasJogador.map(p => p.dataJogo).sort((a, b) => a.split('/').reverse().join('-') > b.split('/').reverse().join('-') ? 1 : -1);
-            const notas = partidasJogador.sort((a, b) => a.dataJogo.split('/').reverse().join('-') > b.split('/').reverse().join('-') ? 1 : -1).map(p => p.notaPartida);
+            const notas = partidasJogador.sort((a, b) => a.dataJogo.split('/').reverse().join('-') > b.dataJogo.split('/').reverse().join('-') ? 1 : -1).map(p => p.notaPartida);
 
             if (evolucaoChart) evolucaoChart.destroy();
 
