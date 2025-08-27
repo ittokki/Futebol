@@ -17,10 +17,10 @@
             --shadow-color: rgba(183, 28, 28, 0.2);
             --boca-blue: #001F5B;
             --boca-gold: #F3B61F;
-            --boca-light-blue: rgba(0, 31, 91, 0.1); /* Light blue for backgrounds */
+            --boca-light-blue: rgba(0, 31, 91, 0.1);
             --river-red: #DA291C;
             --river-white: #fff;
-            --river-light-red: rgba(218, 41, 28, 0.1); /* Light red for backgrounds */
+            --river-light-red: rgba(218, 41, 28, 0.1);
             --stat-gold: #FFD700;
         }
 
@@ -30,7 +30,7 @@
             margin: 0;
             padding-bottom: 80px;
             color: var(--text-dark);
-            overflow-x: hidden; /* Prevent horizontal scroll */
+            overflow-x: hidden;
         }
 
         .navbar {
@@ -77,7 +77,7 @@
         .logo {
             width: 120px;
             margin-bottom: 10px;
-            border-radius: 50%; /* More modern rounded logo */
+            border-radius: 50%;
             box-shadow: 0 2px 16px var(--shadow-color);
             background: var(--bg-light);
             transition: transform 0.3s ease;
@@ -170,7 +170,7 @@
             flex-direction: column;
             align-items: center;
             position: relative;
-            transition: box-shadow 0.3s ease, transform 0.3s ease; /* Smoother transition */
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
         }
 
         .ranking-card:hover {
@@ -318,7 +318,6 @@
                 width: 100px;
             }
 
-            /* Enhanced mobile responsiveness */
             .rankings {
                 gap: 20px;
                 padding: 0 10px;
@@ -481,12 +480,12 @@
         }
 
         .team-boca tbody tr td {
-            background: var(--boca-light-blue); /* Light blue background for rows */
-            color: var(--boca-blue); /* Dark blue text for names */
+            background: var(--boca-light-blue);
+            color: var(--boca-blue);
         }
 
         .team-boca tbody tr:hover td {
-            background: rgba(0, 31, 91, 0.2); /* Slightly darker on hover */
+            background: rgba(0, 31, 91, 0.2);
         }
 
         .team-river h3 {
@@ -504,12 +503,12 @@
         }
 
         .team-river tbody tr td {
-            background: var(--river-light-red); /* Light red background for rows */
-            color: var(--river-red); /* Red text for names */
+            background: var(--river-light-red);
+            color: var(--river-red);
         }
 
         .team-river tbody tr:hover td {
-            background: rgba(218, 41, 28, 0.2); /* Slightly darker on hover */
+            background: rgba(218, 41, 28, 0.2);
         }
 
         .team-boca td.stat, .team-river td.stat {
@@ -729,6 +728,7 @@
     <footer>
         <small>Dashboard esportivo feito para o grupo!</small>
     </footer>
+    <audio id="clickSound" src="https://raw.githubusercontent.com/ittokki/Futebol/5cc70b08d51f09dae0341672e52b2a435a276c05/PES%202013%20Select%20Game%20Main%20Menu%20Sound%20Effect%20(mp3cut.net).mp3"></audio>
     <script>
         const apiKey = "AIzaSyCL19ds6YqVOv5vV-zygBjeC-byy-rDPfM";
         const spreadsheetId = "1TvrVT8ksYYMlpw8gkKIFvpnnCf02J8uYTkhHc5c0vdo";
@@ -736,6 +736,13 @@
         const rangePagina2 = "Página2!A2:J300";
         const rankingIcons = { gols: "⚽️", assistencias: "🅰️", vitorias: "🏅", jogos: "🎽", golsTomados: "🛡️", aproveitamento: "📈", notaGeral: "⭐" };
         const medalhas = ['🥇','🥈','🥉'];
+
+        // Function to play the click sound
+        function playClickSound() {
+            const sound = document.getElementById('clickSound');
+            sound.currentTime = 0; // Reset to start
+            sound.play().catch(e => console.log("Sound play failed:", e)); // Handle autoplay restrictions
+        }
 
         function parseNum(val) {
             if (typeof val === "number") return val;
@@ -933,6 +940,7 @@
         }
 
         window.toggleTable = function(tableId, btnId, total, limit) {
+            playClickSound(); // Play sound on "Ver Mais"/"Ver Menos" click
             const table = document.getElementById(tableId);
             const btn = document.getElementById(btnId);
             const tipo = tableId.replace('table_','');
@@ -970,6 +978,7 @@
         }
 
         window.showModal = function(playerName) {
+            playClickSound(); // Play sound on player name click
             const nome = decodeURIComponent(playerName);
             const jogador = window.__JOGADORES__.find(j => j.nome === nome);
             if (!jogador) return;
@@ -1007,26 +1016,23 @@
         }
 
         window.showJogoModal = function(dataJogo) {
+            playClickSound(); // Play sound on game date click
             let partidas = window.__PARTIDAS__.filter(p => p.dataJogo === dataJogo);
             if (!partidas.length) return;
             let destaque = { nome: "", nota: -1 };
             partidas.forEach(p => {
                 if (p.notaPartida > destaque.nota) destaque = { nome: p.nome, nota: p.notaPartida };
             });
-            // Ordenar por time
             partidas = [...partidas].sort((a, b) => (a.time || '').localeCompare(b.time || ''));
-            // Obter times únicos
             const uniqueTimes = [...new Set(partidas.map(p => p.time).filter(Boolean))].sort();
             let matchTitle = dataJogo;
             if (uniqueTimes.length >= 2) {
-                // Coletar resultados por time (apenas o primeiro preenchido)
                 const placarPorTime = {};
                 partidas.forEach(p => {
                     if (p.time && p.resultado && !placarPorTime[p.time]) {
                         placarPorTime[p.time] = p.resultado;
                     }
                 });
-                // Calcular gols por time
                 const golsPorTime = {};
                 uniqueTimes.forEach(t => golsPorTime[t] = 0);
                 partidas.forEach(p => {
@@ -1034,17 +1040,14 @@
                         golsPorTime[p.time] += parseNum(p.gols);
                     }
                 });
-                // Usar placar fornecido ou calculado
                 const placar1 = placarPorTime[uniqueTimes[0]] || golsPorTime[uniqueTimes[0]];
                 const placar2 = placarPorTime[uniqueTimes[1]] || golsPorTime[uniqueTimes[1]];
                 matchTitle = `${uniqueTimes[0]} ${placar1}x${placar2} ${uniqueTimes[1]}`;
             }
-            // Dividir jogadores por time
             const jogadoresPorTime = {};
             uniqueTimes.forEach(time => {
                 jogadoresPorTime[time] = partidas.filter(p => p.time === time);
             });
-            // Gerar HTML para cada time
             let timesHtml = '';
             uniqueTimes.forEach((time) => {
                 const jogadores = jogadoresPorTime[time];
@@ -1093,11 +1096,15 @@
         }
 
         document.getElementById('modalClose').onclick = function() {
+            playClickSound(); // Play sound on modal close
             document.getElementById('modalBg').classList.remove('active');
         }
 
         document.getElementById('modalBg').onclick = function(e) {
-            if (e.target === this) this.classList.remove('active');
+            if (e.target === this) {
+                playClickSound(); // Play sound on modal background click
+                this.classList.remove('active');
+            }
         }
 
         function renderJogosLista(partidas) {
@@ -1121,8 +1128,20 @@
                 if (nextBtn) nextBtn.disabled = page * itemsPerPage >= datas.length;
             };
 
-            window.prevPage = function() { if (currentPage > 1) { currentPage--; window.renderPage(currentPage); } };
-            window.nextPage = function() { if (currentPage * itemsPerPage < datas.length) { currentPage++; window.renderPage(currentPage); } };
+            window.prevPage = function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    playClickSound(); // Play sound on previous page
+                    window.renderPage(currentPage);
+                }
+            };
+            window.nextPage = function() {
+                if (currentPage * itemsPerPage < datas.length) {
+                    currentPage++;
+                    playClickSound(); // Play sound on next page
+                    window.renderPage(currentPage);
+                }
+            };
 
             return `
                 <div class="jogos-lista">
@@ -1205,12 +1224,13 @@
         let evolucaoChart = null;
 
         window.updateEvolucaoChart = function() {
+            playClickSound(); // Play sound on player selection for evolution chart
             const playerName = document.getElementById('playerEvolucao').value;
             if (!playerName) return;
 
             const partidasJogador = window.__PARTIDAS__.filter(p => normalizaNome(p.nome) === normalizaNome(playerName));
             const datas = partidasJogador.map(p => p.dataJogo).sort((a, b) => a.split('/').reverse().join('-') > b.split('/').reverse().join('-') ? 1 : -1);
-            const notas = partidasJogador.sort((a, b) => a.dataJogo.split('/').reverse().join('-') > b.dataJogo.split('/').reverse().join('-') ? 1 : -1).map(p => p.notaPartida);
+            const notas = partidasJogador.sort((a, b) => a.dataJogo.split('/').reverse().join('-') > b.split('/').reverse().join('-') ? 1 : -1).map(p => p.notaPartida);
 
             if (evolucaoChart) evolucaoChart.destroy();
 
@@ -1317,6 +1337,7 @@
         }
 
         window.comparePlayers = function() {
+            playClickSound(); // Play sound on compare button click
             const player1Name = document.getElementById('player1').value;
             const player2Name = document.getElementById('player2').value;
             if (!player1Name || !player2Name) {
@@ -1406,12 +1427,14 @@
         }
 
         document.getElementById('navRankings').onclick = function() {
+            playClickSound(); // Play sound on Rankings nav click
             document.getElementById('navRankings').classList.add('active');
             document.getElementById('navCharts').classList.remove('active');
             renderDashboard(window.__JOGADORES__, window.__PARTIDAS__);
         }
 
         document.getElementById('navCharts').onclick = function() {
+            playClickSound(); // Play sound on Charts nav click
             document.getElementById('navRankings').classList.remove('active');
             document.getElementById('navCharts').classList.add('active');
             renderChartsPage(window.__JOGADORES__, window.__PARTIDAS__);
