@@ -770,9 +770,10 @@
             return fixed;
         }
 
-        function calcularAproveitamento(jogos, vitorias) {
+        function calcularAproveitamento(jogos, vitorias, empates) {
             if (jogos === 0) return 0;
-            return Math.round((vitorias / jogos) * 100);
+            const pontos = vitorias + (empates * 0.5); // Empates valem 0.5 pontos
+            return Math.round((pontos / jogos) * 100); // Aproveitamento em porcentagem
         }
 
         function calcularNotaPartida(dados) {
@@ -781,7 +782,7 @@
             let assistencias = parseNum(dados.assistencias);
             let golsTomados = parseNum(dados.golsTomados);
             let golsContra = parseNum(dados.golsContra);
-            let vitoria = dados.vitoria ? 1 : 0;
+            let vitoria = parseNum(dados.vitoria); // Agora pode ser 1, 0.5 ou 0
             const isGoleiro = golsTomados > 0;
 
             let PESO_ADM = 5;
@@ -789,10 +790,10 @@
             let PESO_ASSIST = isGoleiro ? 0.2 : 0.5;
             let PESO_GOLS_TOMADOS = isGoleiro ? 0.5 : 0.2;
             let PESO_GOLS_CONTRA = -0.5;
-            let PESO_VITORIA = 0.3;
+            let PESO_VITORIA = vitoria === 1 ? 0.3 : vitoria === 0.5 ? 0.15 : 0; // Novo: 0.15 para empate
             let NOTA_BASE = 6.0;
 
-            let notaTecnica = NOTA_BASE + gols * PESO_GOLS + assistencias * PESO_ASSIST + golsTomados * PESO_GOLS_TOMADOS + golsContra * PESO_GOLS_CONTRA + vitoria * PESO_VITORIA;
+            let notaTecnica = NOTA_BASE + gols * PESO_GOLS + assistencias * PESO_ASSIST + golsTomados * PESO_GOLS_TOMADOS + golsContra * PESO_GOLS_CONTRA + PESO_VITORIA;
             let notaFinal = (notaTecnica + notaADM * PESO_ADM) / (1 + PESO_ADM);
 
             notaFinal = Math.max(0, Math.min(10, Math.round(notaFinal * 10) / 10));
@@ -806,7 +807,8 @@
             return (data.values || []).map(row => {
                 const [nome, gols, assistencias, golsTomados, golsContra, notaADM, dataJogo, vitoriaRaw, time, resultado, jogoAconteceuRaw] = fixRow(row, 11);
                 if (!nome || !dataJogo) return null;
-                const vitoria = (typeof vitoriaRaw === "string" && vitoriaRaw.trim().toLowerCase() === "sim") ? 1 : 0;
+                const vitoriaStatus = (typeof vitoriaRaw === "string" ? vitoriaRaw.trim().toLowerCase() : "");
+                const vitoria = vitoriaStatus === "sim" ? 1 : vitoriaStatus === "empate" ? 0.5 : 0; // Novo: 0.5 para empate
                 const notaInfo = calcularNotaPartida({ gols, assistencias, golsTomados, golsContra, vitoria, notaADM });
                 return {
                     nome: nome.trim(),
@@ -826,20 +828,35 @@
             const data = await resp.json();
             const nomesSet = new Set();
             const jogadores = [];
+            const partidas = await fetchPartidas(); // Obter partidas para calcular empates
+            const partidasPorJogador = {};
+
+            // Agrupar partidas por jogador
+            partidas.forEach(p => {
+                if (!p.jogoAconteceu) return;
+                const nomeNorm = normalizaNome(p.nome);
+                if (!partidasPorJogador[nomeNorm]) partidasPorJogador[nomeNorm] = [];
+                partidasPorJogador[nomeNorm].push(p);
+            });
+
             (data.values || []).forEach(row => {
                 const [id, nome, jogos, vitorias, gols, assistencias, golsTomados, golsContra] = fixRow(row, 8);
                 if (!nome || nomesSet.has(nome.trim())) return;
                 nomesSet.add(nome.trim());
+                const nomeNorm = normalizaNome(nome);
+                const partidasJogador = partidasPorJogador[nomeNorm] || [];
+                const empates = partidasJogador.filter(p => p.vitoria === 0.5).length; // Contar empates
                 jogadores.push({
                     id: id,
                     nome: nome.trim(),
                     jogos: parseNum(jogos),
                     vitorias: parseNum(vitorias),
+                    empates: empates, // Novo: contar empates
                     gols: parseNum(gols),
                     assistencias: parseNum(assistencias),
                     golsTomados: parseNum(golsTomados),
                     golsContra: parseNum(golsContra),
-                    aproveitamento: calcularAproveitamento(parseNum(jogos), parseNum(vitorias)),
+                    aproveitamento: calcularAproveitamento(parseNum(jogos), parseNum(vitorias), empates),
                     notaGeral: 0,
                     notaGeralGoleiro: 0,
                     notaGeralLinha: 0,
@@ -904,24 +921,45 @@
             let arr = jogadores;
             if (filterFn) arr = arr.filter(filterFn);
             if (tipo === "jogos") arr = arr.filter(j => Number(j.jogos) > 0);
-            arr = [...arr].sort((a, b) => (
-                tipo === "golsTomados" ? a[tipo] - b[tipo] : b[tipo] - a[tipo]
-            ));
+            
+            // Ordenar com critério de desempate
+            arr = [...arr].sort((a, b) => {
+                const valA = tipo === "golsTomados" ? a[tipo] : b[tipo];
+                const valB = tipo === "golsTomados" ? b[tipo] : a[tipo];
+                if (valA !== valB) return valA - valB;
+                // Critério de desempate: menor número de jogos (maior eficiência)
+                if (a.jogos !== b.jogos) return a.jogos - b.jogos;
+                // Desempate final: ordem alfabética pelo nome
+                return a.nome.localeCompare(b.nome);
+            });
+
             const maxDefault = 10;
             const tableId = "table_" + tipo;
             const btnId = "btn_" + tipo;
 
+            // Lógica para posições com empates
             function buildRows(limit) {
-                return arr.slice(0, limit).map((jogador, i) => `
-                    <tr${i === 0 ? ' class="top-player"' : ''}>
-                        <td>${i+1}</td>
-                        <td onclick="showModal('${encodeURIComponent(jogador.nome)}')">
-                            ${medalhaHTML(i)}${jogador.nome}
-                        </td>
-                        <td>${tipo === "aproveitamento" ? jogador[tipo].toLocaleString('pt-BR') + "%" :
-                        (tipo === "notaGeral" ? jogador[tipo].toLocaleString('pt-BR', { minimumFractionDigits: 1 }) : jogador[tipo])}</td>
-                    </tr>
-                `).join('');
+                let rows = '';
+                let currentPos = 1;
+                let prevValue = null;
+                arr.slice(0, limit).forEach((jogador, i) => {
+                    const value = tipo === "golsTomados" ? jogador[tipo] : jogador[tipo];
+                    if (i > 0 && value !== prevValue) {
+                        currentPos = i + 1;
+                    }
+                    prevValue = value;
+                    rows += `
+                        <tr${i === 0 ? ' class="top-player"' : ''}>
+                            <td>${currentPos}</td>
+                            <td onclick="showModal('${encodeURIComponent(jogador.nome)}')">
+                                ${medalhaHTML(currentPos - 1)}${jogador.nome}
+                            </td>
+                            <td>${tipo === "aproveitamento" ? jogador[tipo].toLocaleString('pt-BR') + "%" :
+                            (tipo === "notaGeral" ? jogador[tipo].toLocaleString('pt-BR', { minimumFractionDigits: 1 }) : jogador[tipo])}</td>
+                        </tr>
+                    `;
+                });
+                return rows;
             }
 
             let btnHtml = "";
@@ -958,29 +996,49 @@
             const expanded = btn.getAttribute("data-expanded") === "true";
             let rowsHtml = "";
             if (!expanded) {
-                rowsHtml = arr.map((jogador, i) => `
-                    <tr${i === 0 ? ' class="top-player"' : ''}>
-                        <td>${i+1}</td>
-                        <td onclick="showModal('${encodeURIComponent(jogador.nome)}')">
-                            ${medalhaHTML(i)}${jogador.nome}
-                        </td>
-                        <td>${tipo === "aproveitamento" ? jogador[tipo].toLocaleString('pt-BR') + "%" :
-                        (tipo === "notaGeral" ? jogador[tipo].toLocaleString('pt-BR', { minimumFractionDigits: 1 }) : jogador[tipo])}</td>
-                    </tr>
-                `).join('');
+                // Lógica para posições com empates no modo expandido
+                let currentPos = 1;
+                let prevValue = null;
+                arr.forEach((jogador, i) => {
+                    const value = tipo === "golsTomados" ? jogador[tipo] : jogador[tipo];
+                    if (i > 0 && value !== prevValue) {
+                        currentPos = i + 1;
+                    }
+                    prevValue = value;
+                    rowsHtml += `
+                        <tr${i === 0 ? ' class="top-player"' : ''}>
+                            <td>${currentPos}</td>
+                            <td onclick="showModal('${encodeURIComponent(jogador.nome)}')">
+                                ${medalhaHTML(currentPos - 1)}${jogador.nome}
+                            </td>
+                            <td>${tipo === "aproveitamento" ? jogador[tipo].toLocaleString('pt-BR') + "%" :
+                            (tipo === "notaGeral" ? jogador[tipo].toLocaleString('pt-BR', { minimumFractionDigits: 1 }) : jogador[tipo])}</td>
+                        </tr>
+                    `;
+                });
                 btn.textContent = "Ver Menos";
                 btn.setAttribute("data-expanded", "true");
             } else {
-                rowsHtml = arr.slice(0,limit).map((jogador, i) => `
-                    <tr${i === 0 ? ' class="top-player"' : ''}>
-                        <td>${i+1}</td>
-                        <td onclick="showModal('${encodeURIComponent(jogador.nome)}')">
-                            ${medalhaHTML(i)}${jogador.nome}
-                        </td>
-                        <td>${tipo === "aproveitamento" ? jogador[tipo].toLocaleString('pt-BR') + "%" :
-                        (tipo === "notaGeral" ? jogador[tipo].toLocaleString('pt-BR', { minimumFractionDigits: 1 }) : jogador[tipo])}</td>
-                    </tr>
-                `).join('');
+                // Lógica para posições com empates no modo default
+                let currentPos = 1;
+                let prevValue = null;
+                arr.slice(0, limit).forEach((jogador, i) => {
+                    const value = tipo === "golsTomados" ? jogador[tipo] : jogador[tipo];
+                    if (i > 0 && value !== prevValue) {
+                        currentPos = i + 1;
+                    }
+                    prevValue = value;
+                    rowsHtml += `
+                        <tr${i === 0 ? ' class="top-player"' : ''}>
+                            <td>${currentPos}</td>
+                            <td onclick="showModal('${encodeURIComponent(jogador.nome)}')">
+                                ${medalhaHTML(currentPos - 1)}${jogador.nome}
+                            </td>
+                            <td>${tipo === "aproveitamento" ? jogador[tipo].toLocaleString('pt-BR') + "%" :
+                            (tipo === "notaGeral" ? jogador[tipo].toLocaleString('pt-BR', { minimumFractionDigits: 1 }) : jogador[tipo])}</td>
+                        </tr>
+                    `;
+                });
                 btn.textContent = "Ver Mais";
                 btn.setAttribute("data-expanded", "false");
             }
@@ -999,7 +1057,7 @@
                     partidas.slice(-5).reverse().map(p => `
                         <tr>
                             <td>${p.dataJogo}</td>
-                            <td>Nota: ${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (${p.isGoleiro ? 'Goleiro' : 'Linha'})</td>
+                            <td>Nota: ${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (${p.isGoleiro ? 'Goleiro' : 'Linha'}, ${p.vitoria === 1 ? 'Vitória' : p.vitoria === 0.5 ? 'Empate' : 'Derrota'})</td>
                         </tr>
                     `).join('');
             }
@@ -1011,6 +1069,7 @@
                     <tr><th>Jogos como Goleiro</th><td>${jogador.jogosGoleiro}</td></tr>
                     <tr><th>Jogos na Linha</th><td>${jogador.jogosLinha}</td></tr>
                     <tr><th>Vitórias</th><td>${jogador.vitorias}</td></tr>
+                    <tr><th>Empates</th><td>${jogador.empates}</td></tr>
                     <tr><th>Gols</th><td>${jogador.gols}</td></tr>
                     <tr><th>Assistências</th><td>${jogador.assistencias}</td></tr>
                     <tr><th>Gols Tomados</th><td>${jogador.golsTomados}</td></tr>
@@ -1036,6 +1095,8 @@
             partidas = [...partidas].sort((a, b) => (a.time || '').localeCompare(b.time || ''));
             const uniqueTimes = [...new Set(partidas.map(p => p.time).filter(Boolean))].sort();
             let matchTitle = dataJogo;
+            let isEmpate = false;
+
             if (uniqueTimes.length >= 2) {
                 const placarPorTime = {};
                 partidas.forEach(p => {
@@ -1053,7 +1114,9 @@
                 const placar1 = placarPorTime[uniqueTimes[0]] || golsPorTime[uniqueTimes[0]];
                 const placar2 = placarPorTime[uniqueTimes[1]] || golsPorTime[uniqueTimes[1]];
                 matchTitle = `${uniqueTimes[0]} ${placar1}x${placar2} ${uniqueTimes[1]}`;
+                isEmpate = placar1 === placar2; // Detectar empate
             }
+
             const jogadoresPorTime = {};
             uniqueTimes.forEach(time => {
                 jogadoresPorTime[time] = partidas.filter(p => p.time === time);
@@ -1072,7 +1135,7 @@
                                     <th>Assistências</th>
                                     <th>Gols Tomados</th>
                                     <th>Gols Contra</th>
-                                    <th>Vitória</th>
+                                    <th>Resultado</th>
                                     <th>Nota (Posição)</th>
                                 </tr>
                             </thead>
@@ -1084,7 +1147,7 @@
                                         <td class="stat">${parseNum(p.assistencias)}</td>
                                         <td class="stat">${parseNum(p.golsTomados)}</td>
                                         <td class="stat">${parseNum(p.golsContra)}</td>
-                                        <td class="stat">${p.vitoria ? "Sim" : "Não"}</td>
+                                        <td class="stat">${p.vitoria === 1 ? "Vitória" : p.vitoria === 0.5 ? "Empate" : "Derrota"}</td>
                                         <td class="stat">${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (${p.isGoleiro ? 'Goleiro' : 'Linha'})</td>
                                     </tr>
                                 `).join('')}
@@ -1095,7 +1158,7 @@
             });
             const modalContent = document.getElementById('modalContent');
             modalContent.innerHTML = `
-                <div class="date-title">${matchTitle}</div>
+                <div class="date-title">${matchTitle}${isEmpate ? ' (Empate)' : ''}</div>
                 <div class="match-highlight">
                     <span class="star-icon">⭐</span> Destaque da partida: <span class="highlight-player">${destaque.nome}</span>
                     <span class="highlight-note">${destaque.nota.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</span>
