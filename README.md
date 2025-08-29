@@ -43,7 +43,7 @@
             --text: #E0E0E0;
             --bg-light: #2C2C2C;
             --shadow: rgba(0, 161, 214, 0.3);
-            --primary: #4A4A4A;
+            --primary: #222222; /* Preto mais forte */
             --accent: #00C4FF;
             --table-hover: rgba(0, 161, 214, 0.3);
         }
@@ -832,7 +832,8 @@
                                 ${medalhaHTML(currentPos - 1)}${jogador.nome}${tipo === "pontosMVP" ? ` <span class="badge" data-tooltip="${tooltip}">${jogador.nivel}</span>` : ''}
                             </td>
                             <td data-label="${titulo}">${tipo === "aproveitamento" ? `<div class="progress" style="width: ${Math.min(jogador[tipo], 100)}%;"></div><span class="progress-text">${jogador[tipo]}%</span>` : 
-                            (tipo === "notaGeral" || tipo === "pontosMVP" ? jogador[tipo].toLocaleString('pt-BR', { minimumFractionDigits: 1 }) : jogador[tipo])}</td>
+                            (tipo === "notaGeral" || tipo === "pontosMVP" ? jogador[tipo].toLocaleString('pt-BR', { minimumFractionDigits: 1 }) : jogador[tipo])}
+                            </td>
                         </tr>
                     `;
                 });
@@ -942,7 +943,7 @@
                 <table>
                     <tr><th>Jogos</th><td data-label="Jogos">${jogador.jogos}</td></tr>
                     <tr><th>Vitórias</th><td data-label="Vitórias">${jogador.vitorias}</td></tr>
-                    <tr><th>Aproveitamento</th><td data-label="Aproveitamento"><div class="progress" style="width: ${jogador.aproveitamento}%"></div></td></tr>
+                    <tr><th>Aproveitamento</th><td data-label="Aproveitamento"><div class="progress" style="width: ${jogador.aproveitamento}%"></div><span class="progress-text">${jogador.aproveitamento}%</span></td></tr>
                     <tr><th>Gols</th><td data-label="Gols">${jogador.gols} (Média grupo: ${mediaGols.toFixed(1)})</td></tr>
                     <tr><th>Assistências</th><td data-label="Assistências">${jogador.assistencias}</td></tr>
                     <tr><th>Nota Geral</th><td data-label="Nota Geral">${jogador.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
