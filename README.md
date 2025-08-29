@@ -196,7 +196,7 @@
             padding: 15px;
             border: 2px solid var(--primary);
             transition: all 0.3s ease;
-            min-width: 280px; /* Increased min-width to accommodate progress bars */
+            min-width: 280px;
         }
 
         .ranking-card:hover {
@@ -279,7 +279,7 @@
             background: var(--accent);
             border-radius: 5px;
             margin-top: 2px;
-            max-width: 100px; /* Adjusted to prevent overflow */
+            max-width: 100px;
             display: inline-block;
         }
 
@@ -442,7 +442,7 @@
         }
 
         .team-boca td.stat, .team-river td.stat {
-            color: var(--primary); /* Changed from var(--accent) to var(--primary) for black text */
+            color: var(--primary);
             font-weight: bold;
         }
 
@@ -767,8 +767,11 @@
                 j.notaGeralLinha = notas.linha.length > 0 ? Math.round((notas.linha.reduce((a, b) => a + b, 0) / notas.linha.length) * 10) / 10 : 0;
                 j.jogosGoleiro = notas.goleiro.length;
                 j.jogosLinha = notas.linha.length;
-                j.pontosMVP = j.jogos > 0 ? Math.round(((j.gols * 3 + j.assistencias * 2 + j.vitorias * 5 - j.golsContra * 2) / j.jogos) * 10) : 0;
-                j.nivel = j.pontosMVP > 60 ? 'Lenda' : j.pontosMVP > 30 ? 'Craque' : 'Iniciante';
+                j.pontosMVP = j.jogos > 0 ? Math.min(100, Math.round(j.gols * 2 + j.assistencias * 1 + j.vitorias * 1 - j.golsContra * 0.5 + j.notaGeral * 10)) : 0;
+                j.nivel = j.pontosMVP >= 90 ? 'Lenda' :
+                          j.pontosMVP >= 70 ? 'Craque' :
+                          j.pontosMVP >= 40 ? 'Esforçado' :
+                          j.pontosMVP >= 20 ? 'Bagre' : 'Iniciante';
             });
         }
 
@@ -821,7 +824,7 @@
                     const value = tipo === "golsTomados" ? jogador[tipo] : jogador[tipo];
                     if (i > 0 && value !== prevValue) currentPos = i + 1;
                     prevValue = value;
-                    const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: >60 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 30-60 pontos/jogo' : 'Iniciante: ≤30 pontos/jogo') : '';
+                    const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 40–69 pontos/jogo' : jogador.nivel === 'Bagre' ? 'Bagre: 20–39 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo') : '';
                     rows += `
                         <tr${i === 0 ? ' class="top-player"' : ''}>
                             <td data-label="Posição">${currentPos}</td>
@@ -872,7 +875,7 @@
                     const value = tipo === "golsTomados" ? jogador[tipo] : jogador[tipo];
                     if (i > 0 && value !== prevValue) currentPos = i + 1;
                     prevValue = value;
-                    const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: >60 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 30-60 pontos/jogo' : 'Iniciante: ≤30 pontos/jogo') : '';
+                    const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 40–69 pontos/jogo' : jogador.nivel === 'Bagre' ? 'Bagre: 20–39 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo') : '';
                     rowsHtml += `
                         <tr${i === 0 ? ' class="top-player"' : ''}>
                             <td data-label="Posição">${currentPos}</td>
@@ -895,7 +898,7 @@
                     const value = tipo === "golsTomados" ? jogador[tipo] : jogador[tipo];
                     if (i > 0 && value !== prevValue) currentPos = i + 1;
                     prevValue = value;
-                    const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: >60 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 30-60 pontos/jogo' : 'Iniciante: ≤30 pontos/jogo') : '';
+                    const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 40–69 pontos/jogo' : jogador.nivel === 'Bagre' ? 'Bagre: 20–39 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo') : '';
                     rowsHtml += `
                         <tr${i === 0 ? ' class="top-player"' : ''}>
                             <td data-label="Posição">${currentPos}</td>
@@ -925,7 +928,7 @@
             const partidasJogador = partidas.filter(p => p.jogoAconteceu);
             const datas = partidasJogador.map(p => p.dataJogo).sort((a, b) => a.split('/').reverse().join('-') > b.split('/').reverse().join('-') ? 1 : -1);
             const notas = partidasJogador.sort((a, b) => a.dataJogo.split('/').reverse().join('-') > b.dataJogo.split('/').reverse().join('-') ? 1 : -1).map(p => p.notaPartida);
-            const tooltip = jogador.nivel === 'Lenda' ? 'Lenda: >60 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 30-60 pontos/jogo' : 'Iniciante: ≤30 pontos/jogo';
+            const tooltip = jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 40–69 pontos/jogo' : jogador.nivel === 'Bagre' ? 'Bagre: 20–39 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo';
             let partidasHtml = partidas.length ? `<tr><th colspan="2">Histórico de Partidas</th></tr>` + 
                 partidas.slice(-5).reverse().map(p => `
                     <tr>
