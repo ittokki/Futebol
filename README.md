@@ -43,7 +43,7 @@
             --text: #E0E0E0;
             --bg-light: #2C2C2C;
             --shadow: rgba(0, 161, 214, 0.3);
-            --primary: #222222; /* Preto mais forte */
+            --primary: #222222;
             --accent: #00C4FF;
             --table-hover: rgba(0, 161, 214, 0.3);
         }
@@ -687,7 +687,10 @@
             const data = await resp.json();
             return (data.values || []).map(row => {
                 const [nome, gols, assistencias, golsTomados, golsContra, notaADM, dataJogo, vitoriaRaw, time, resultado, jogoAconteceuRaw] = fixRow(row, 11);
-                if (!nome || !dataJogo) return null;
+                if (!nome || !dataJogo || typeof dataJogo !== 'string' || !dataJogo.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                    console.warn(`Partida ignorada: Nome=${nome}, Data=${dataJogo} (formato inválido ou ausente)`);
+                    return null;
+                }
                 const vitoriaStatus = (typeof vitoriaRaw === "string" ? vitoriaRaw.trim().toLowerCase() : "");
                 const vitoria = vitoriaStatus === "sim" ? 1 : vitoriaStatus === "empate" ? 0.5 : 0;
                 const notaInfo = calcularNotaPartida({ gols, assistencias, golsTomados, golsContra, vitoria, notaADM });
@@ -922,13 +925,22 @@
         window.showModal = function(playerName) {
             playClickSound();
             const nome = decodeURIComponent(playerName);
-            const jogador = window.__JOGADORES__.find(j => j.nome === nome);
-            if (!jogador) return;
-            const partidas = window.__PARTIDAS__.filter(p => normalizaNome(p.nome) === normalizaNome(jogador.nome));
+            const jogador = window.__JOGADORES__.find(j => normalizaNome(j.nome) === normalizaNome(nome));
+            if (!jogador) {
+                console.error(`Jogador ${nome} não encontrado.`);
+                return;
+            }
+            const partidas = window.__PARTIDAS__.filter(p => normalizaNome(p.nome) === normalizaNome(jogador.nome) && typeof p.dataJogo === 'string' && p.dataJogo.match(/^\d{2}\/\d{2}\/\d{4}$/));
             const mediaGols = window.__JOGADORES__.reduce((sum, j) => sum + j.gols, 0) / window.__JOGADORES__.length;
             const partidasJogador = partidas.filter(p => p.jogoAconteceu);
-            const datas = partidasJogador.map(p => p.dataJogo).sort((a, b) => a.split('/').reverse().join('-') > b.split('/').reverse().join('-') ? 1 : -1);
-            const notas = partidasJogador.sort((a, b) => a.dataJogo.split('/').reverse().join('-') > b.dataJogo.split('/').reverse().join('-') ? 1 : -1).map(p => p.notaPartida);
+            const partidasValidas = partidasJogador.filter(p => typeof p.dataJogo === 'string' && p.dataJogo.match(/^\d{2}\/\d{2}\/\d{4}$/));
+            const partidasOrdenadas = partidasValidas.sort((a, b) => {
+                const dateA = a.dataJogo.split('/').reverse().join('-');
+                const dateB = b.dataJogo.split('/').reverse().join('-');
+                return dateA > dateB ? 1 : -1;
+            });
+            const datas = partidasOrdenadas.map(p => p.dataJogo);
+            const notas = partidasOrdenadas.map(p => p.notaPartida);
             const tooltip = jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 40–69 pontos/jogo' : jogador.nivel === 'Bagre' ? 'Bagre: 20–39 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo';
             let partidasHtml = partidas.length ? `<tr><th colspan="2">Histórico de Partidas</th></tr>` + 
                 partidas.slice(-5).reverse().map(p => `
@@ -937,8 +949,10 @@
                         <td data-label="Detalhes">Nota: ${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (${p.isGoleiro ? 'Goleiro' : 'Linha'}, ${p.vitoria === 1 ? 'Vitória' : p.vitoria === 0.5 ? 'Empate' : 'Derrota'})</td>
                     </tr>
                 `).join('') : "";
+            const playerImage = normalizaNome(jogador.nome) === normalizaNome("Henrique Amaral") ? `<img src="https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Henrique.jpg" alt="Foto de ${jogador.nome}" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px; object-fit: cover; box-shadow: 0 2px 8px var(--shadow);" />` : "";
             const modalContent = document.getElementById('modalContent');
             modalContent.innerHTML = `
+                ${playerImage}
                 <div class="big">${jogador.nome} <span class="badge" data-tooltip="${tooltip}">${jogador.nivel}</span></div>
                 <table>
                     <tr><th>Jogos</th><td data-label="Jogos">${jogador.jogos}</td></tr>
