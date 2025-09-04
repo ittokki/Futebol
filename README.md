@@ -850,7 +850,7 @@
                     <table class="ranking-table" id="${tableId}">
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th>Pos</th>
                                 <th>Nome</th>
                                 <th>${titulo}${sufixo}</th>
                             </tr>
@@ -1381,7 +1381,7 @@
             main.innerHTML = `
                 <div class="rankings">
                     ${makeRankingCard(jogadores, "pontosMVP", "MVP Geral")}
-                    ${makeRankingCard(jogadores, "gols", "Goleadores")}
+                    ${makeRankingCard(jogadores, "gols", "Gols")}
                     ${makeRankingCard(jogadores, "assistencias", "Assistências")}
                     ${makeRankingCard(jogadores, "vitorias", "Vitórias")}
                     ${makeRankingCard(jogadores, "jogos", "Participação")}
