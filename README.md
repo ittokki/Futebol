@@ -1052,8 +1052,8 @@
             if (maxGolsPartida >= 5) conquistas.push({ nome: 'Goleada Histórica', desc: `Marcou ${maxGolsPartida} gols em uma partida`, icon: '🔥', rarity: 'lendario' });
             if (maxNotaPartida >= 9.5) conquistas.push({ nome: 'Lenda do Jogo', desc: `Nota ${maxNotaPartida} em uma partida`, icon: '🏆', rarity: 'lendario' });
             if (maxVitoriasSeguidas >= 3) conquistas.push({ nome: 'Invencível', desc: `Venceu ${maxVitoriasSeguidas} jogos consecutivos`, icon: '🥇', rarity: 'raro' });
-            if (jogador.jogos >= 25) conquistas.push({ nome: 'Veterano', desc: `Jogou ${jogador.jogos} partidas`, icon: '🛡️', rarity: 'raro' });
-            if (jogador.vitorias >= 10) conquistas.push({ nome: 'Campeão', desc: `Venceu ${jogador.vitorias} partidas`, icon: '🏅', rarity: 'epico' });
+            if (jogador.jogos >= 50) conquistas.push({ nome: 'Veterano', desc: `Jogou ${jogador.jogos} partidas`, icon: '🛡️', rarity: 'raro' });
+            if (jogador.vitorias >= 30) conquistas.push({ nome: 'Campeão', desc: `Venceu ${jogador.vitorias} partidas`, icon: '🏅', rarity: 'epico' });
             if (melhoresPartidas >= 2) conquistas.push({ nome: `${melhoresPartidas}x Melhor da Partida`, desc: `Foi o melhor em ${melhoresPartidas} partidas`, icon: '⭐', rarity: 'epico' });
 
             // Conquistas de temporada (acumuladas gols)
@@ -1061,7 +1061,7 @@
             if (golsTotais >= 5) conquistas.push({ nome: '5 Gols na Temporada', desc: `Alcançou 5 gols no total`, icon: '⚽', rarity: 'comum' });
             if (golsTotais >= 10) conquistas.push({ nome: '10 Gols na Temporada', desc: `Alcançou 10 gols no total`, icon: '⚽⚽', rarity: 'raro' });
             for (let i = 20; i <= golsTotais; i += 10) {
-                conquistas.push({ nome: `${i} Gols na Temporada`, desc: `Alcançou ${i} gols no total`, icon: '⚽🔥', rarity: i >= 25 ? 'lendario' : 'epico' });
+                conquistas.push({ nome: `${i} Gols na Temporada`, desc: `Alcançou ${i} gols no total`, icon: '⚽🔥', rarity: i >= 50 ? 'lendario' : 'epico' });
             }
 
             return conquistas;
