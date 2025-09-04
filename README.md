@@ -250,13 +250,42 @@
         }
 
         .badge {
-            background: var(--accent);
-            color: var(--primary);
             padding: 2px 8px;
             border-radius: 5px;
             font-size: 0.8em;
             margin-left: 5px;
             position: relative;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .badge:hover {
+            transform: scale(1.1);
+        }
+
+        .badge-lenda {
+            background: #FFD700;
+            color: #333;
+        }
+
+        .badge-craque {
+            background: #C0C0C0;
+            color: #333;
+        }
+
+        .badge-diferenciado {
+            background: #CD7F32;
+            color: #333;
+        }
+
+        .badge-esforçado {
+            background: #0000FF;
+            color: #FFF;
+        }
+
+        .badge-iniciante {
+            background: #008000;
+            color: #333;
         }
 
         .badge:hover::after {
@@ -773,8 +802,8 @@
                 j.pontosMVP = j.jogos > 0 ? Math.min(100, Math.round(j.gols * 2 + j.assistencias * 1 + j.vitorias * 1 - j.golsContra * 0.5 + j.notaGeral * 10)) : 0;
                 j.nivel = j.pontosMVP >= 90 ? 'Lenda' :
                           j.pontosMVP >= 70 ? 'Craque' :
-                          j.pontosMVP >= 40 ? 'Esforçado' :
-                          j.pontosMVP >= 20 ? 'Bagre' : 'Iniciante';
+                          j.pontosMVP >= 50 ? 'Diferenciado' :
+                          j.pontosMVP >= 20 ? 'Esforçado' : 'Iniciante';
             });
         }
 
@@ -825,14 +854,14 @@
                 let prevValue = null;
                 arr.slice(0, limit).forEach((jogador, i) => {
                     const value = tipo === "golsTomados" ? jogador[tipo] : jogador[tipo];
-                    if (i > 0 && value !== prevValue) currentPos = i + 1;
+                    if (i > 0 && value !== prevValue) currentPos++;
                     prevValue = value;
-                    const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 40–69 pontos/jogo' : jogador.nivel === 'Bagre' ? 'Bagre: 20–39 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo') : '';
+                    const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Diferenciado' ? 'Diferenciado: 50–69 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 20–49 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo') : '';
                     rows += `
                         <tr${i === 0 ? ' class="top-player"' : ''}>
                             <td data-label="Posição">${currentPos}</td>
                             <td data-label="Nome" onclick="showModal('${encodeURIComponent(jogador.nome)}')">
-                                ${medalhaHTML(currentPos - 1)}${jogador.nome}${tipo === "pontosMVP" ? ` <span class="badge" data-tooltip="${tooltip}">${jogador.nivel}</span>` : ''}
+                                ${medalhaHTML(currentPos - 1)}${jogador.nome}${tipo === "pontosMVP" ? ` <span class="badge badge-${jogador.nivel.toLowerCase()}" data-tooltip="${tooltip}">${jogador.nivel}</span>` : ''}
                             </td>
                             <td data-label="${titulo}">${tipo === "aproveitamento" ? `<div class="progress" style="width: ${Math.min(jogador[tipo], 100)}%;"></div><span class="progress-text">${jogador[tipo]}%</span>` : 
                             (tipo === "notaGeral" || tipo === "pontosMVP" ? jogador[tipo].toLocaleString('pt-BR', { minimumFractionDigits: 1 }) : jogador[tipo])}
@@ -877,14 +906,14 @@
                 let prevValue = null;
                 arr.forEach((jogador, i) => {
                     const value = tipo === "golsTomados" ? jogador[tipo] : jogador[tipo];
-                    if (i > 0 && value !== prevValue) currentPos = i + 1;
+                    if (i > 0 && value !== prevValue) currentPos++;
                     prevValue = value;
-                    const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 40–69 pontos/jogo' : jogador.nivel === 'Bagre' ? 'Bagre: 20–39 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo') : '';
+                    const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Diferenciado' ? 'Diferenciado: 50–69 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 20–49 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo') : '';
                     rowsHtml += `
                         <tr${i === 0 ? ' class="top-player"' : ''}>
                             <td data-label="Posição">${currentPos}</td>
                             <td data-label="Nome" onclick="showModal('${encodeURIComponent(jogador.nome)}')">
-                                ${medalhaHTML(currentPos - 1)}${jogador.nome}${tipo === "pontosMVP" ? ` <span class="badge" data-tooltip="${tooltip}">${jogador.nivel}</span>` : ''}
+                                ${medalhaHTML(currentPos - 1)}${jogador.nome}${tipo === "pontosMVP" ? ` <span class="badge badge-${jogador.nivel.toLowerCase()}" data-tooltip="${tooltip}">${jogador.nivel}</span>` : ''}
                             </td>
                             <td data-label="${tipo === "aproveitamento" ? 'Aproveitamento' : tipo === "notaGeral" ? 'Nota Geral' : tipo === "pontosMVP" ? 'Pontos MVP' : tipo}">
                                 ${tipo === "aproveitamento" ? `<div class="progress" style="width: ${Math.min(jogador[tipo], 100)}%;"></div><span class="progress-text">${jogador[tipo]}%</span>` : 
@@ -900,14 +929,14 @@
                 let prevValue = null;
                 arr.slice(0, limit).forEach((jogador, i) => {
                     const value = tipo === "golsTomados" ? jogador[tipo] : jogador[tipo];
-                    if (i > 0 && value !== prevValue) currentPos = i + 1;
+                    if (i > 0 && value !== prevValue) currentPos++;
                     prevValue = value;
-                    const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 40–69 pontos/jogo' : jogador.nivel === 'Bagre' ? 'Bagre: 20–39 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo') : '';
+                    const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Diferenciado' ? 'Diferenciado: 50–69 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 20–49 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo') : '';
                     rowsHtml += `
                         <tr${i === 0 ? ' class="top-player"' : ''}>
                             <td data-label="Posição">${currentPos}</td>
                             <td data-label="Nome" onclick="showModal('${encodeURIComponent(jogador.nome)}')">
-                                ${medalhaHTML(currentPos - 1)}${jogador.nome}${tipo === "pontosMVP" ? ` <span class="badge" data-tooltip="${tooltip}">${jogador.nivel}</span>` : ''}
+                                ${medalhaHTML(currentPos - 1)}${jogador.nome}${tipo === "pontosMVP" ? ` <span class="badge badge-${jogador.nivel.toLowerCase()}" data-tooltip="${tooltip}">${jogador.nivel}</span>` : ''}
                             </td>
                             <td data-label="${tipo === "aproveitamento" ? 'Aproveitamento' : tipo === "notaGeral" ? 'Nota Geral' : tipo === "pontosMVP" ? 'Pontos MVP' : tipo}">
                                 ${tipo === "aproveitamento" ? `<div class="progress" style="width: ${Math.min(jogador[tipo], 100)}%;"></div><span class="progress-text">${jogador[tipo]}%</span>` : 
@@ -941,7 +970,7 @@
             });
             const datas = partidasOrdenadas.map(p => p.dataJogo);
             const notas = partidasOrdenadas.map(p => p.notaPartida);
-            const tooltip = jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 40–69 pontos/jogo' : jogador.nivel === 'Bagre' ? 'Bagre: 20–39 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo';
+            const tooltip = jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Diferenciado' ? 'Diferenciado: 50–69 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 20–49 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo';
             let partidasHtml = partidas.length ? `<tr><th colspan="2">Histórico de Partidas</th></tr>` + 
                 partidas.slice(-5).reverse().map(p => `
                     <tr>
@@ -953,7 +982,7 @@
             const modalContent = document.getElementById('modalContent');
             modalContent.innerHTML = `
                 ${playerImage}
-                <div class="big">${jogador.nome} <span class="badge" data-tooltip="${tooltip}">${jogador.nivel}</span></div>
+                <div class="big">${jogador.nome} <span class="badge badge-${jogador.nivel.toLowerCase()}" data-tooltip="${tooltip}">${jogador.nivel}</span></div>
                 <table>
                     <tr><th>Jogos</th><td data-label="Jogos">${jogador.jogos}</td></tr>
                     <tr><th>Vitórias</th><td data-label="Vitórias">${jogador.vitorias}</td></tr>
