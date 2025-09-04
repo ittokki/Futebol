@@ -668,10 +668,10 @@
             const isGoleiro = golsTomados > 0;
 
             let PESO_ADM = 5;
-            let PESO_GOLS = isGoleiro ? 0.3 : 0.7;
-            let PESO_ASSIST = isGoleiro ? 0.2 : 0.5;
-            let PESO_GOLS_TOMADOS = isGoleiro ? 0.5 : 0.2;
-            let PESO_GOLS_CONTRA = -0.5;
+            let PESO_GOLS = 0.7;
+            let PESO_ASSIST = 0.6;
+            let PESO_GOLS_TOMADOS = isGoleiro ? -0.15 : 0;
+            let PESO_GOLS_CONTRA = -0.7;
             let PESO_VITORIA = vitoria === 1 ? 0.3 : vitoria === 0.5 ? 0.15 : 0;
             let NOTA_BASE = 6.0;
 
