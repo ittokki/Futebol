@@ -1,4 +1,3 @@
-```html
 <html lang="pt">
 <head>
     <meta charset="UTF-8"/>
@@ -97,9 +96,13 @@
             transform: scale(1.05);
         }
 
-        .theme-toggle, .theme-selector, .view-toggle {
+        .menu-container {
             position: absolute;
+            right: 20px;
             top: 20px;
+        }
+
+        .menu-btn {
             background: none;
             border: none;
             font-size: 1.5em;
@@ -107,9 +110,41 @@
             color: var(--text);
         }
 
-        .theme-toggle { right: 20px; }
-        .theme-selector { right: 60px; }
-        .view-toggle { right: 100px; }
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: var(--bg-light);
+            box-shadow: 0 2px 12px var(--shadow);
+            border-radius: 8px;
+            padding: 10px;
+            z-index: 101;
+        }
+
+        .menu-dropdown.active {
+            display: block;
+        }
+
+        .menu-item {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .menu-item button, .menu-item select {
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1em;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .menu-item select {
+            border: 1px solid var(--primary);
+            border-radius: 5px;
+            padding: 5px;
+        }
 
         .logo {
             width: 100px;
@@ -208,6 +243,14 @@
             padding: 15px;
             margin: 20px auto;
             max-width: 1340px;
+        }
+
+        .compact-table .medal {
+            font-size: 1.5em;
+        }
+
+        .compact-table tr.top-player td {
+            font-size: 1.1em;
         }
 
         @keyframes fadeIn {
@@ -430,6 +473,38 @@
             font-weight: bold;
             color: var(--primary);
             margin-bottom: 10px;
+        }
+
+        .modal .mini-card {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: var(--table-hover);
+            border-radius: 10px;
+        }
+
+        .modal .mini-stat {
+            text-align: center;
+        }
+
+        .modal .mini-stat label {
+            font-weight: bold;
+        }
+
+        .modal .conquistas-section {
+            margin-top: 20px;
+        }
+
+        .modal .conquistas-group {
+            margin-bottom: 15px;
+        }
+
+        .modal .conquistas-group h4 {
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: var(--accent);
         }
 
         .modal table {
@@ -750,13 +825,24 @@
         <button class="nav-btn active" id="navRankings">Rankings</button>
         <button class="nav-btn" id="navCharts">Gráficos</button>
         <button class="nav-btn" id="navHall">Hall da Fama</button>
-        <button class="theme-toggle" id="themeToggle">🌙</button>
-        <select class="theme-selector" id="themeSelector">
-            <option value="default">Tema Padrão</option>
-            <option value="boca">Boca Juniors</option>
-            <option value="river">River Plate</option>
-        </select>
-        <button class="view-toggle" id="viewToggle" title="Alternar Visualização">📊</button>
+        <div class="menu-container">
+            <button class="menu-btn" id="menuBtn">☰</button>
+            <div class="menu-dropdown" id="menuDropdown">
+                <div class="menu-item">
+                    <button id="themeToggle">🌙 Tema Claro/Escuro</button>
+                </div>
+                <div class="menu-item">
+                    <select id="themeSelector">
+                        <option value="default">Tema Padrão</option>
+                        <option value="boca">Boca Juniors</option>
+                        <option value="river">River Plate</option>
+                    </select>
+                </div>
+                <div class="menu-item">
+                    <button id="viewToggle" title="Alternar Visualização">📊 Visualização</button>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="header">
         <img src="https://raw.githubusercontent.com/ittokki/Futebol/ba59ab86cf2095d4e9214bd5e24e21ac8aeaf33a/inimigos%20da%20bola.jpg" class="logo" alt="logo"/>
@@ -808,6 +894,10 @@
             pontosMVP: '<i class="fas fa-crown"></i>'
         };
         const medalhas = ['🥇','🥈','🥉'];
+
+        let currentView = 'rankings';
+        let filteredJogadores = [];
+        let filteredPartidas = [];
 
         function playClickSound() {
             const sound = document.getElementById('clickSound');
@@ -1052,8 +1142,8 @@
             if (maxGolsPartida >= 5) conquistas.push({ nome: 'Goleada Histórica', desc: `Marcou ${maxGolsPartida} gols em uma partida`, icon: '🔥', rarity: 'lendario' });
             if (maxNotaPartida >= 9.5) conquistas.push({ nome: 'Lenda do Jogo', desc: `Nota ${maxNotaPartida} em uma partida`, icon: '🏆', rarity: 'lendario' });
             if (maxVitoriasSeguidas >= 3) conquistas.push({ nome: 'Invencível', desc: `Venceu ${maxVitoriasSeguidas} jogos consecutivos`, icon: '🥇', rarity: 'raro' });
-            if (jogador.jogos >= 50) conquistas.push({ nome: 'Veterano', desc: `Jogou ${jogador.jogos} partidas`, icon: '🛡️', rarity: 'raro' });
-            if (jogador.vitorias >= 30) conquistas.push({ nome: 'Campeão', desc: `Venceu ${jogador.vitorias} partidas`, icon: '🏅', rarity: 'epico' });
+            if (jogador.jogos >= 25) conquistas.push({ nome: 'Veterano', desc: `Jogou ${jogador.jogos} partidas`, icon: '🛡️', rarity: 'raro' });
+            if (jogador.vitorias >= 10) conquistas.push({ nome: 'Campeão', desc: `Venceu ${jogador.vitorias} partidas`, icon: '🏅', rarity: 'epico' });
             if (melhoresPartidas >= 2) conquistas.push({ nome: `${melhoresPartidas}x Melhor da Partida`, desc: `Foi o melhor em ${melhoresPartidas} partidas`, icon: '⭐', rarity: 'epico' });
 
             // Conquistas de temporada (acumuladas gols)
@@ -1229,15 +1319,15 @@
         window.showModal = function(playerName) {
             playClickSound();
             const nome = decodeURIComponent(playerName);
-            const jogador = window.__JOGADORES__.find(j => normalizaNome(j.nome) === normalizaNome(nome));
+            const jogador = filteredJogadores.find(j => normalizaNome(j.nome) === normalizaNome(nome));
             if (!jogador) {
                 console.error(`Jogador ${nome} não encontrado.`);
                 return;
             }
-            const partidas = window.__PARTIDAS__.filter(p => normalizaNome(p.nome) === normalizaNome(jogador.nome) && typeof p.dataJogo === 'string' && p.dataJogo.match(/^\d{2}\/\d{2}\/\d{4}$/));
-            const mediaGols = window.__JOGADORES__.reduce((sum, j) => sum + j.gols, 0) / window.__JOGADORES__.length;
-            const mediaAssistencias = window.__JOGADORES__.reduce((sum, j) => sum + j.assistencias, 0) / window.__JOGADORES__.length;
-            const mediaNota = window.__JOGADORES__.reduce((sum, j) => sum + j.notaGeral, 0) / window.__JOGADORES__.length;
+            const partidas = filteredPartidas.filter(p => normalizaNome(p.nome) === normalizaNome(jogador.nome) && typeof p.dataJogo === 'string' && p.dataJogo.match(/^\d{2}\/\d{2}\/\d{4}$/));
+            const mediaGols = filteredJogadores.reduce((sum, j) => sum + j.gols, 0) / filteredJogadores.length;
+            const mediaAssistencias = filteredJogadores.reduce((sum, j) => sum + j.assistencias, 0) / filteredJogadores.length;
+            const mediaNota = filteredJogadores.reduce((sum, j) => sum + j.notaGeral, 0) / filteredJogadores.length;
             const ultimasNotas = partidas.filter(p => p.jogoAconteceu).slice(-3).map(p => p.notaPartida);
             const tendenciaNota = ultimasNotas.length >= 2 ? ((ultimasNotas[ultimasNotas.length - 1] - ultimasNotas[0]) / ultimasNotas[0] * 100).toFixed(1) : 0;
             const partidasOrdenadas = partidas.sort((a, b) => {
@@ -1249,8 +1339,30 @@
             const notas = partidasOrdenadas.map(p => p.jogoAconteceu ? p.notaPartida : null);
             const tooltip = jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Diferenciado' ? 'Diferenciado: 50–69 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 20–49 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo';
             const playerImage = normalizaNome(jogador.nome) === normalizaNome("Henrique Amaral") ? `<img src="https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Henrique.jpg" alt="Foto de ${jogador.nome}" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px; object-fit: cover; box-shadow: 0 2px 8px var(--shadow);" />` : "";
-            const conquistasHtml = jogador.conquistas.length ? `<tr><th colspan="2">Conquistas</th></tr>` + 
-                jogador.conquistas.map(c => `<tr><td colspan="2"><span class="badge badge-${c.rarity} animate">${c.icon} ${c.nome}</span>: ${c.desc}</td></tr>`).join('') : "";
+            
+            const conquistasPorRaridade = {
+                mitico: [],
+                lendario: [],
+                epico: [],
+                raro: [],
+                comum: []
+            };
+            jogador.conquistas.forEach(c => {
+                if (conquistasPorRaridade[c.rarity]) conquistasPorRaridade[c.rarity].push(c);
+            });
+            let conquistasHtml = '';
+            Object.keys(conquistasPorRaridade).forEach(rarity => {
+                if (conquistasPorRaridade[rarity].length > 0) {
+                    conquistasHtml += `
+                        <div class="conquistas-group">
+                            <h4>${rarity.charAt(0).toUpperCase() + rarity.slice(1)}</h4>
+                            ${conquistasPorRaridade[rarity].map(c => `<div><span class="badge badge-${c.rarity} animate">${c.icon} ${c.nome}</span>: ${c.desc}</div>`).join('')}
+                        </div>
+                    `;
+                }
+            });
+            conquistasHtml = jogador.conquistas.length ? `<div class="conquistas-section"><h3>Conquistas</h3>${conquistasHtml}</div>` : "";
+
             const partidasHtml = partidas.length ? `<tr><th colspan="2">Histórico de Partidas (Últimas 5)</th></tr>` + 
                 partidas.filter(p => p.jogoAconteceu).slice(-5).reverse().map(p => `
                     <tr>
@@ -1262,17 +1374,22 @@
             modalContent.innerHTML = `
                 ${playerImage}
                 <div class="big">${jogador.nome} <span class="badge badge-${jogador.nivel.toLowerCase()}" data-tooltip="${tooltip}">${jogador.nivel}</span></div>
+                <div class="mini-card">
+                    <div class="mini-stat"><label>Jogos</label><br>${jogador.jogos}</div>
+                    <div class="mini-stat"><label>Gols</label><br>${jogador.gols}</div>
+                    <div class="mini-stat"><label>Assistências</label><br>${jogador.assistencias}</div>
+                    <div class="mini-stat"><label>Nota</label><br>${jogador.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</div>
+                </div>
                 <table>
-                    <tr><th>Jogos</th><td data-label="Jogos">${jogador.jogos}</td></tr>
                     <tr><th>Vitórias</th><td data-label="Vitórias">${jogador.vitorias}</td></tr>
                     <tr><th>Aproveitamento</th><td data-label="Aproveitamento"><div class="progress" style="width: ${jogador.aproveitamento}%"></div><span class="progress-text">${jogador.aproveitamento}%</span></td></tr>
                     <tr><th>Gols</th><td data-label="Gols">${jogador.gols} (Média grupo: ${mediaGols.toFixed(1)})</td></tr>
                     <tr><th>Assistências</th><td data-label="Assistências">${jogador.assistencias} (Média grupo: ${mediaAssistencias.toFixed(1)})</td></tr>
                     <tr><th>Nota Geral</th><td data-label="Nota Geral">${jogador.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (Média grupo: ${mediaNota.toFixed(1)})</td></tr>
                     <tr><th>Tendência</th><td data-label="Tendência">${tendenciaNota > 0 ? '+' : ''}${tendenciaNota}% nos últimos ${ultimasNotas.length} jogos</td></tr>
-                    ${conquistasHtml}
                     ${partidasHtml}
                 </table>
+                ${conquistasHtml}
                 <div class="chart-container">
                     <canvas id="modalChart"></canvas>
                     <div class="chart-legend">Evolução de Notas</div>
@@ -1301,7 +1418,7 @@
 
         window.showJogoModal = function(dataJogo) {
             playClickSound();
-            let partidas = window.__PARTIDAS__.filter(p => p.dataJogo === dataJogo);
+            let partidas = filteredPartidas.filter(p => p.dataJogo === dataJogo);
             if (!partidas.length) return;
             let destaque = { nome: "", nota: -1 };
             partidas.forEach(p => {
@@ -1412,16 +1529,16 @@
         window.applyPeriodFilter = function() {
             playClickSound();
             const period = document.getElementById('periodFilter').value;
-            const filteredPartidas = window.__PARTIDAS__.filter(periodFilters[period]);
-            const filteredJogadores = JSON.parse(JSON.stringify(window.__JOGADORES__));
+            filteredPartidas = window.__PARTIDAS__.filter(periodFilters[period]);
+            filteredJogadores = JSON.parse(JSON.stringify(window.__JOGADORES__));
             calcularNotasGerais(filteredJogadores, filteredPartidas);
-            renderDashboard(filteredJogadores, filteredPartidas);
+            renderCurrentView();
         };
 
         window.exportCSV = function() {
             playClickSound();
             const csv = 'Nome,Gols,Assistencias,Vitorias,PontosMVP,Nivel\n' + 
-                        window.__JOGADORES__.map(j => `${j.nome},${j.gols},${j.assistencias},${j.vitorias},${j.pontosMVP},${j.nivel}`).join('\n');
+                        filteredJogadores.map(j => `${j.nome},${j.gols},${j.assistencias},${j.vitorias},${j.pontosMVP},${j.nivel}`).join('\n');
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = 'rankings.csv'; a.click();
@@ -1576,7 +1693,7 @@
                         <canvas id="chartEvolucaoGrupo"></canvas>
                         <div class="chart-legend">Evolução de Gols por Mês</div>
                     </div>
-                    <div style="margin-top:20px; font-size:1.1em; color:var(--primary);">
+                    <div style="margin-top:20px; font-size:1.1em; font-color:var(--primary);">
                         <b>Gols totais no grupo:</b> <span style="color:var(--accent)">${totalGols}</span>
                     </div>
                 </div>
@@ -1591,16 +1708,16 @@
                 alert('Selecione dois jogadores para comparar!');
                 return;
             }
-            const player1 = window.__JOGADORES__.find(j => j.nome === player1Name);
-            const player2 = window.__JOGADORES__.find(j => j.nome === player2Name);
+            const player1 = filteredJogadores.find(j => j.nome === player1Name);
+            const player2 = filteredJogadores.find(j => j.nome === player2Name);
             if (!player1 || !player2) return;
 
             const derrotas1 = player1.jogos - player1.vitorias - player1.empates;
             const derrotas2 = player2.jogos - player2.vitorias - player2.empates;
-            const totalGolsGrupo = window.__JOGADORES__.reduce((sum, j) => sum + j.gols, 0);
+            const totalGolsGrupo = filteredJogadores.reduce((sum, j) => sum + j.gols, 0);
             const percGols1 = totalGolsGrupo > 0 ? Math.round((player1.gols / totalGolsGrupo) * 100) : 0;
             const percGols2 = totalGolsGrupo > 0 ? Math.round((player2.gols / totalGolsGrupo) * 100) : 0;
-            const totalAssistGrupo = window.__JOGADORES__.reduce((sum, j) => sum + j.assistencias, 0);
+            const totalAssistGrupo = filteredJogadores.reduce((sum, j) => sum + j.assistencias, 0);
             const percAssist1 = totalAssistGrupo > 0 ? Math.round((player1.assistencias / totalAssistGrupo) * 100) : 0;
             const percAssist2 = totalAssistGrupo > 0 ? Math.round((player2.assistencias / totalAssistGrupo) * 100) : 0;
 
@@ -1810,13 +1927,27 @@
             showMaiorDestaque(jogadores);
         }
 
+        window.renderCurrentView = function() {
+            const mainContent = document.getElementById('mainContent');
+            if (currentView === 'rankings') {
+                renderDashboard(filteredJogadores, filteredPartidas);
+            } else if (currentView === 'charts') {
+                mainContent.innerHTML = renderCharts(filteredJogadores, filteredPartidas);
+                drawCharts(filteredJogadores, filteredPartidas);
+            } else if (currentView === 'hall') {
+                mainContent.innerHTML = renderHallFama(filteredJogadores, filteredPartidas);
+            }
+        }
+
         async function init() {
             try {
                 window.__JOGADORES__ = await fetchJogadores();
                 window.__PARTIDAS__ = await fetchPartidas();
                 calcularNotasGerais(window.__JOGADORES__, window.__PARTIDAS__);
                 window.__PARTIDAS__ = window.__PARTIDAS__.filter(p => typeof p.dataJogo === 'string' && p.dataJogo.match(/^\d{2}\/\d{2}\/\d{4}$/)); // Manter jogos futuros
-                window.renderDashboard(window.__JOGADORES__, window.__PARTIDAS__);
+                filteredJogadores = window.__JOGADORES__;
+                filteredPartidas = window.__PARTIDAS__;
+                renderCurrentView();
             } catch (e) {
                 console.error('Erro ao carregar dados:', e);
                 document.getElementById('mainContent').innerHTML = '<div style="text-align: center; color: var(--primary);">Erro ao carregar os dados. Tente novamente mais tarde.</div>';
@@ -1831,44 +1962,54 @@
             location.reload();
         }
 
+        document.getElementById('menuBtn').onclick = function() {
+            playClickSound();
+            document.getElementById('menuDropdown').classList.toggle('active');
+        };
+
         document.getElementById('themeToggle').onclick = function() {
             playClickSound();
             document.body.classList.toggle('dark');
-            document.getElementById('themeToggle').textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+            document.getElementById('themeToggle').textContent = document.body.classList.contains('dark') ? '☀️ Tema Claro/Escuro' : '🌙 Tema Claro/Escuro';
+            document.getElementById('menuDropdown').classList.remove('active');
         };
 
         document.getElementById('themeSelector').onchange = function() {
             playClickSound();
             document.body.classList.remove('theme-boca', 'theme-river');
             if (this.value !== 'default') document.body.classList.add(`theme-${this.value}`);
+            document.getElementById('menuDropdown').classList.remove('active');
         };
 
         document.getElementById('viewToggle').onclick = function() {
             playClickSound();
             document.body.classList.toggle('compact');
-            renderDashboard(window.__JOGADORES__, window.__PARTIDAS__);
+            renderCurrentView();
+            document.getElementById('menuDropdown').classList.remove('active');
         };
 
         document.getElementById('navRankings').onclick = function() {
             playClickSound();
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
-            renderDashboard(window.__JOGADORES__, window.__PARTIDAS__);
+            currentView = 'rankings';
+            renderCurrentView();
         };
 
         document.getElementById('navCharts').onclick = function() {
             playClickSound();
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
-            document.getElementById('mainContent').innerHTML = renderCharts(window.__JOGADORES__, window.__PARTIDAS__);
-            drawCharts(window.__JOGADORES__, window.__PARTIDAS__);
+            currentView = 'charts';
+            renderCurrentView();
         };
 
         document.getElementById('navHall').onclick = function() {
             playClickSound();
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
-            document.getElementById('mainContent').innerHTML = renderHallFama(window.__JOGADORES__, window.__PARTIDAS__);
+            currentView = 'hall';
+            renderCurrentView();
         };
 
         window.onscroll = function() {
@@ -1889,4 +2030,3 @@
     </script>
 </body>
 </html>
-```
