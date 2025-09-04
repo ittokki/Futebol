@@ -1061,7 +1061,7 @@
             if (golsTotais >= 5) conquistas.push({ nome: '5 Gols na Temporada', desc: `Alcançou 5 gols no total`, icon: '⚽', rarity: 'comum' });
             if (golsTotais >= 10) conquistas.push({ nome: '10 Gols na Temporada', desc: `Alcançou 10 gols no total`, icon: '⚽⚽', rarity: 'raro' });
             for (let i = 20; i <= golsTotais; i += 10) {
-                conquistas.push({ nome: `${i} Gols na Temporada`, desc: `Alcançou ${i} gols no total`, icon: '⚽🔥', rarity: i >= 50 ? 'lendario' : 'epico' });
+                conquistas.push({ nome: `${i} Gols na Temporada`, desc: `Alcançou ${i} gols no total`, icon: '⚽🔥', rarity: i >= 25 ? 'lendario' : 'epico' });
             }
 
             return conquistas;
