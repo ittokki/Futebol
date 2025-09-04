@@ -1,3 +1,4 @@
+```html
 <html lang="pt">
 <head>
     <meta charset="UTF-8"/>
@@ -14,6 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" href="https://raw.githubusercontent.com/ittokki/Futebol/ba59ab86cf2095d4e9214bd5e24e21ac8aeaf33a/inimigos%20da%20bola.jpg"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         :root {
             --primary: #333333;
@@ -26,6 +28,7 @@
             --text: #333;
             --shadow: rgba(0, 0, 0, 0.2);
             --bg-light: #fff;
+            --table-hover: rgba(0, 161, 214, 0.2);
         }
 
         body {
@@ -46,6 +49,18 @@
             --primary: #222222;
             --accent: #00C4FF;
             --table-hover: rgba(0, 161, 214, 0.3);
+        }
+
+        body.theme-boca {
+            --primary: var(--boca-blue);
+            --accent: var(--boca-yellow);
+            --neutral: #E6F0FA;
+        }
+
+        body.theme-river {
+            --primary: var(--river-red);
+            --accent: var(--river-white);
+            --neutral: #FFF5F5;
         }
 
         .navbar {
@@ -82,37 +97,19 @@
             transform: scale(1.05);
         }
 
-        .header {
-            text-align: center;
-            padding: 20px 10px;
-            position: relative;
-        }
-
-        .search-bar {
-            margin: 10px auto;
-            max-width: 300px;
-        }
-
-        .search-bar input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--primary);
-            border-radius: 5px;
-            font-size: 1em;
-            background: var(--bg-light);
-            color: var(--text);
-        }
-
-        .theme-toggle {
+        .theme-toggle, .theme-selector, .view-toggle {
             position: absolute;
             top: 20px;
-            right: 20px;
             background: none;
             border: none;
             font-size: 1.5em;
             cursor: pointer;
             color: var(--text);
         }
+
+        .theme-toggle { right: 20px; }
+        .theme-selector { right: 60px; }
+        .view-toggle { right: 100px; }
 
         .logo {
             width: 100px;
@@ -130,12 +127,28 @@
             font-size: 1.8em;
             margin: 5px 0;
             color: var(--primary);
+            text-align: center;
         }
 
         .desc {
             font-size: 1em;
             color: var(--primary);
             font-weight: bold;
+            text-align: center;
+        }
+
+        .search-bar {
+            margin: 10px auto;
+            max-width: 300px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--primary);
+            border-radius: 5px;
+            background: var(--bg-light);
+            color: var(--text);
         }
 
         .highlight-star {
@@ -167,7 +180,7 @@
         }
 
         .highlight-star .highlight-note {
-            background: rgba(0, 161, 214, 0.2);
+            background: var(--table-hover);
             color: var(--primary);
             border-radius: 8px;
             padding: 2px 8px;
@@ -182,6 +195,19 @@
             max-width: 1340px;
             padding: 0 16px;
             animation: fadeIn 0.5s ease;
+        }
+
+        .rankings.compact {
+            grid-template-columns: 1fr;
+        }
+
+        .compact-table {
+            background: var(--bg-light);
+            border-radius: 20px;
+            box-shadow: 0 4px 24px var(--shadow);
+            padding: 15px;
+            margin: 20px auto;
+            max-width: 1340px;
         }
 
         @keyframes fadeIn {
@@ -212,40 +238,40 @@
             margin-bottom: 10px;
         }
 
-        .ranking-table {
+        .ranking-table, .compact-table table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.95em;
         }
 
-        .ranking-table th, .ranking-table td {
+        .ranking-table th, .ranking-table td, .compact-table th, .compact-table td {
             padding: 8px;
         }
 
-        .ranking-table th {
+        .ranking-table th, .compact-table th {
             background: var(--primary);
-            color: var(--accent) !important;
+            color: var(--accent);
             border-radius: 5px;
             font-weight: bold;
         }
 
-        .ranking-table td {
-            color: var(--primary) !important;
+        .ranking-table td, .compact-table td {
+            color: var(--primary);
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             cursor: pointer;
         }
 
-        .ranking-table tr:nth-child(even) {
+        .ranking-table tr:nth-child(even), .compact-table tr:nth-child(even) {
             background: rgba(0, 0, 0, 0.05);
         }
 
-        .ranking-table tr.top-player td {
-            background: linear-gradient(90deg, rgba(0, 161, 214, 0.2) 0%, var(--bg-light) 100%);
-            color: var(--primary) !important;
+        .ranking-table tr.top-player td, .compact-table tr.top-player td {
+            background: linear-gradient(90deg, var(--table-hover) 0%, var(--bg-light) 100%);
+            color: var(--primary);
             font-weight: bold;
         }
 
-        .ranking-table tr:hover td {
+        .ranking-table tr:hover td, .compact-table tr:hover td {
             background: var(--table-hover);
         }
 
@@ -263,30 +289,18 @@
             transform: scale(1.1);
         }
 
-        .badge-lenda {
-            background: #FFD700;
-            color: #333;
-        }
+        .badge-lenda { background: #FFD700; color: #333; }
+        .badge-craque { background: #C0C0C0; color: #333; }
+        .badge-diferenciado { background: #CD7F32; color: #333; }
+        .badge-esforçado { background: #0000FF; color: #FFF; }
+        .badge-iniciante { background: #008000; color: #333; }
+        .badge-conquista { background: #FF4500; color: #FFF; }
 
-        .badge-craque {
-            background: #C0C0C0;
-            color: #333;
-        }
-
-        .badge-diferenciado {
-            background: #CD7F32;
-            color: #333;
-        }
-
-        .badge-esforçado {
-            background: #0000FF;
-            color: #FFF;
-        }
-
-        .badge-iniciante {
-            background: #008000;
-            color: #333;
-        }
+        .badge-comum { background: #008000; color: #FFF; } /* Verde para Comum */
+        .badge-raro { background: #00BFFF; color: #FFF; } /* Azul para Raro */
+        .badge-epico { background: #9932CC; color: #FFF; } /* Roxo para Épico */
+        .badge-lendario { background: #FFA500; color: #333; } /* Laranja para Lendário */
+        .badge-mitico { background: #FFD700; color: #333; } /* Dourado para Mítico */
 
         .badge:hover::after {
             content: attr(data-tooltip);
@@ -301,6 +315,15 @@
             font-size: 0.8em;
             white-space: nowrap;
             z-index: 10;
+        }
+
+        .badge.animate {
+            animation: glow 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 5px var(--shadow); }
+            to { box-shadow: 0 0 15px var(--accent); }
         }
 
         .progress {
@@ -498,12 +521,17 @@
         }
 
         .jogos-lista li:hover {
-            background: rgba(0, 161, 214, 0.15);
+            background: var(--table-hover);
         }
 
         .jogos-lista .date {
             color: var(--primary);
             font-weight: bold;
+        }
+
+        .jogos-lista .agendado {
+            color: #FF4500;
+            font-style: italic;
         }
 
         .pagination button {
@@ -520,16 +548,17 @@
             background: #222222;
         }
 
-        .charts-page {
+        .charts-page, .hall-page {
             max-width: 900px;
             margin: 0 auto;
             padding: 20px 10px;
         }
 
-        .charts-title {
+        .charts-title, .hall-title {
             font-size: 1.3em;
             color: var(--primary);
             font-weight: bold;
+            text-align: center;
         }
 
         .chart-container {
@@ -540,16 +569,31 @@
             margin-bottom: 20px;
         }
 
+        .chart-legend {
+            text-align: center;
+            font-size: 1em;
+            color: var(--primary);
+            margin-top: 10px;
+        }
+
         .comparison-section {
             background: var(--bg-light);
             border-radius: 16px;
             box-shadow: 0 4px 24px var(--shadow);
             padding: 15px;
+            margin-bottom: 20px;
         }
 
-        .comparison-section select {
-            width: 45%;
+        .comparison-section h2 {
+            font-size: 1.2em;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .comparison-section select, .comparison-section button {
+            width: 100%;
             padding: 8px;
+            margin: 5px 0;
             border: 1px solid var(--primary);
             border-radius: 5px;
             background: var(--bg-light);
@@ -560,8 +604,23 @@
             background: var(--primary);
             color: var(--accent);
             border: none;
-            border-radius: 8px;
-            padding: 8px 16px;
+            cursor: pointer;
+        }
+
+        .comparison-section button:hover {
+            background: #222222;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .comparison-table th, .comparison-table td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
 
         .comparison-table th {
@@ -569,18 +628,85 @@
             color: var(--accent);
         }
 
-        .comparison-table td {
-            color: var(--primary);
+        .comparison-table .percent {
+            font-weight: bold;
         }
 
-        .instruction-card {
+        .hall-card {
             background: var(--bg-light);
             border-radius: 16px;
             box-shadow: 0 4px 24px var(--shadow);
             padding: 15px;
             margin: 20px auto;
             max-width: 600px;
+        }
+
+        .hall-card h3 {
             color: var(--primary);
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .hall-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .hall-card li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-bar {
+            margin: 10px auto;
+            max-width: 300px;
+        }
+
+        .filter-bar select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--primary);
+            border-radius: 5px;
+            background: var(--bg-light);
+            color: var(--text);
+        }
+
+        #backToTop {
+            display: none;
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: var(--primary);
+            color: var(--accent);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2em;
+            cursor: pointer;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        #backToTop:hover {
+            transform: scale(1.1);
+        }
+
+        .share-btn {
+            background: var(--primary);
+            color: var(--accent);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .share-btn:hover {
+            background: #222222;
+            transform: scale(1.05);
         }
 
         @media (max-width: 950px) {
@@ -593,25 +719,24 @@
             h1 { font-size: 1.5em; }
             .logo { width: 80px; }
             .rankings { gap: 15px; padding: 0 10px; }
-            .comparison-section select { width: 100%; margin-bottom: 10px; }
         }
 
         @media (max-width: 400px) {
-            .ranking-table, .modal table, .comparison-table {
+            .ranking-table, .modal table, .compact-table table, .comparison-table {
                 display: block;
             }
-            .ranking-table thead, .modal thead, .comparison-table thead { display: none; }
-            .ranking-table tr, .modal tr, .comparison-table tr {
+            .ranking-table thead, .modal thead, .compact-table thead, .comparison-table thead { display: none; }
+            .ranking-table tr, .modal tr, .compact-table tr, .comparison-table tr {
                 display: block;
                 margin-bottom: 10px;
                 border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             }
-            .ranking-table td, .modal td, .comparison-table td {
+            .ranking-table td, .modal td, .compact-table td, .comparison-table td {
                 display: block;
                 text-align: left;
                 padding: 5px;
             }
-            .ranking-table td:before, .modal td:before, .comparison-table td:before {
+            .ranking-table td:before, .modal td:before, .compact-table td:before, .comparison-table td:before {
                 content: attr(data-label);
                 font-weight: bold;
                 display: inline-block;
@@ -624,19 +749,34 @@
     <div class="navbar">
         <button class="nav-btn active" id="navRankings">Rankings</button>
         <button class="nav-btn" id="navCharts">Gráficos</button>
+        <button class="nav-btn" id="navHall">Hall da Fama</button>
         <button class="theme-toggle" id="themeToggle">🌙</button>
+        <select class="theme-selector" id="themeSelector">
+            <option value="default">Tema Padrão</option>
+            <option value="boca">Boca Juniors</option>
+            <option value="river">River Plate</option>
+        </select>
+        <button class="view-toggle" id="viewToggle" title="Alternar Visualização">📊</button>
     </div>
     <div class="header">
         <img src="https://raw.githubusercontent.com/ittokki/Futebol/ba59ab86cf2095d4e9214bd5e24e21ac8aeaf33a/inimigos%20da%20bola.jpg" class="logo" alt="logo"/>
         <h1>Ranking dos Inimigos da Bola</h1>
         <div class="desc">Atualizado automaticamente pela planilha do grupo!</div>
         <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Buscar jogador..." onkeyup="filterRankings()">
+            <input type="text" id="searchInput" placeholder="Buscar jogador..." onkeyup="if(event.key === 'Enter') filterRankings()">
+        </div>
+        <div class="filter-bar">
+            <select id="periodFilter" onchange="applyPeriodFilter()">
+                <option value="all">Todo o Tempo</option>
+                <option value="last30">Últimos 30 Dias</option>
+                <option value="last90">Últimos 90 Dias</option>
+            </select>
         </div>
         <div class="highlight-star" id="mainHighlightStar" style="display:none;">
             <span class="star-icon">⭐</span> Maior destaque: <span class="highlight-player" id="mainHighlightPlayer"></span>
             <span class="highlight-note" id="mainHighlightNote"></span>
         </div>
+        <button onclick="clearCache()">Limpar Cache e Atualizar</button>
     </div>
     <div id="mainContent">
         <div class="loading">Carregando dados...</div>
@@ -647,8 +787,9 @@
             <div id="modalContent"></div>
         </div>
     </div>
+    <button id="backToTop"><i class="fas fa-arrow-up"></i></button>
     <footer>
-        <small>Dashboard esportivo feito para o grupo! <button onclick="exportCSV()">Exportar Rankings</button></small>
+        <small>Dashboard esportivo feito para o grupo! <button onclick="exportCSV()">Exportar Rankings</button> <button class="share-btn" onclick="shareRankings()">Compartilhar Rankings</button></small>
     </footer>
     <audio id="clickSound" src="https://raw.githubusercontent.com/ittokki/Futebol/5cc70b08d51f09dae0341672e52b2a435a276c05/PES%202013%20Select%20Game%20Main%20Menu%20Sound%20Effect%20(mp3cut.net).mp3"></audio>
     <script>
@@ -656,7 +797,16 @@
         const spreadsheetId = "1TvrVT8ksYYMlpw8gkKIFvpnnCf02J8uYTkhHc5c0vdo";
         const rangePagina1 = "Página1!A2:H100";
         const rangePagina2 = "Página2!A2:K300";
-        const rankingIcons = { gols: '<i class="fas fa-futbol"></i>', assistencias: '<i class="fas fa-pass"></i>', vitorias: '<i class="fas fa-trophy"></i>', jogos: '<i class="fas fa-running"></i>', golsTomados: '<i class="fas fa-shield-alt"></i>', aproveitamento: '<i class="fas fa-chart-line"></i>', notaGeral: '<i class="fas fa-star"></i>', pontosMVP: '<i class="fas fa-crown"></i>' };
+        const rankingIcons = {
+            gols: '<i class="fas fa-futbol"></i>',
+            assistencias: '<i class="fas fa-pass"></i>',
+            vitorias: '<i class="fas fa-trophy"></i>',
+            jogos: '<i class="fas fa-running"></i>',
+            golsTomados: '<i class="fas fa-shield-alt"></i>',
+            aproveitamento: '<i class="fas fa-chart-line"></i>',
+            notaGeral: '<i class="fas fa-star"></i>',
+            pontosMVP: '<i class="fas fa-crown"></i>'
+        };
         const medalhas = ['🥇','🥈','🥉'];
 
         function playClickSound() {
@@ -672,7 +822,7 @@
         }
 
         function normalizaNome(nome) {
-            return nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim().toUpperCase();
+            return nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").replace(/\(GOL\)/gi, "").trim().toUpperCase();
         }
 
         function fixRow(row, len) {
@@ -711,31 +861,57 @@
         }
 
         async function fetchPartidas() {
+            const cacheKey = 'partidasCache';
+            const cacheTimeKey = 'partidasCacheTime';
+            const cacheDuration = 60 * 60 * 1000; // 1 hora
+            const cachedData = localStorage.getItem(cacheKey);
+            const cachedTime = localStorage.getItem(cacheTimeKey);
+
+            if (cachedData && cachedTime && (Date.now() - parseInt(cachedTime)) < cacheDuration) {
+                return JSON.parse(cachedData);
+            }
+
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${rangePagina2}?key=${apiKey}`;
             const resp = await fetch(url);
             const data = await resp.json();
-            return (data.values || []).map(row => {
-                const [nome, gols, assistencias, golsTomados, golsContra, notaADM, dataJogo, vitoriaRaw, time, resultado, jogoAconteceuRaw] = fixRow(row, 11);
-                if (!nome || !dataJogo || typeof dataJogo !== 'string' || !dataJogo.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-                    console.warn(`Partida ignorada: Nome=${nome}, Data=${dataJogo} (formato inválido ou ausente)`);
+            const partidas = (data.values || []).map(row => {
+                const [nomeRaw, gols, assistencias, golsTomados, golsContra, notaADM, dataJogo, vitoriaRaw, time, resultado, jogoAconteceuRaw] = fixRow(row, 11);
+                if (!nomeRaw || !dataJogo || typeof dataJogo !== 'string' || !dataJogo.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                    console.warn(`Partida ignorada: Nome=${nomeRaw}, Data=${dataJogo} (formato inválido ou ausente)`);
                     return null;
                 }
+                const nome = nomeRaw.replace(/\(GOL\)/gi, "").trim();
+                const isGoleiro = nomeRaw.toUpperCase().includes("(GOL)");
                 const vitoriaStatus = (typeof vitoriaRaw === "string" ? vitoriaRaw.trim().toLowerCase() : "");
                 const vitoria = vitoriaStatus === "sim" ? 1 : vitoriaStatus === "empate" ? 0.5 : 0;
                 const notaInfo = calcularNotaPartida({ gols, assistencias, golsTomados, golsContra, vitoria, notaADM });
                 return {
-                    nome: nome.trim(),
+                    nome: nome,
                     gols, assistencias, golsTomados, golsContra, dataJogo, vitoria, notaADM,
                     notaPartida: notaInfo.nota,
-                    isGoleiro: notaInfo.isGoleiro,
+                    isGoleiro: isGoleiro || notaInfo.isGoleiro,
                     time: time ? time.trim() : '',
                     resultado: resultado ? parseNum(resultado) : 0,
                     jogoAconteceu: (typeof jogoAconteceuRaw === "string" && jogoAconteceuRaw.trim().toLowerCase() === "sim")
                 };
             }).filter(x => x);
+
+            localStorage.setItem(cacheKey, JSON.stringify(partidas));
+            localStorage.setItem(cacheTimeKey, Date.now());
+            return partidas;
         }
 
         async function fetchJogadores() {
+            const cacheKey = 'jogadoresCache';
+            const cacheTimeKey = 'jogadoresCacheTime';
+            const cacheDuration = 60 * 60 * 1000; // 1 hora
+            const cachedData = localStorage.getItem(cacheKey);
+            const cachedTime = localStorage.getItem(cacheTimeKey);
+
+            if (cachedData && cachedTime && (Date.now() - parseInt(cachedTime)) < cacheDuration) {
+                return JSON.parse(cachedData);
+            }
+
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${rangePagina1}?key=${apiKey}`;
             const resp = await fetch(url);
             const data = await resp.json();
@@ -745,7 +921,6 @@
             const partidasPorJogador = {};
 
             partidas.forEach(p => {
-                if (!p.jogoAconteceu) return;
                 const nomeNorm = normalizaNome(p.nome);
                 if (!partidasPorJogador[nomeNorm]) partidasPorJogador[nomeNorm] = [];
                 partidasPorJogador[nomeNorm].push(p);
@@ -775,16 +950,20 @@
                     jogosGoleiro: 0,
                     jogosLinha: 0,
                     pontosMVP: 0,
-                    nivel: 'Iniciante'
+                    nivel: 'Iniciante',
+                    conquistas: []
                 });
             });
+
+            localStorage.setItem(cacheKey, JSON.stringify(jogadores));
+            localStorage.setItem(cacheTimeKey, Date.now());
             return jogadores;
         }
 
         function calcularNotasGerais(jogadores, partidas) {
             const notasPorJogador = {};
-            partidas.forEach(p => {
-                if (!p.jogoAconteceu) return;
+            const partidasRealizadas = partidas.filter(p => p.jogoAconteceu);
+            partidasRealizadas.forEach(p => {
                 const nomeNorm = normalizaNome(p.nome);
                 if (!notasPorJogador[nomeNorm]) notasPorJogador[nomeNorm] = { todas: [], goleiro: [], linha: [] };
                 notasPorJogador[nomeNorm].todas.push(p.notaPartida);
@@ -799,12 +978,93 @@
                 j.notaGeralLinha = notas.linha.length > 0 ? Math.round((notas.linha.reduce((a, b) => a + b, 0) / notas.linha.length) * 10) / 10 : 0;
                 j.jogosGoleiro = notas.goleiro.length;
                 j.jogosLinha = notas.linha.length;
-                j.pontosMVP = j.jogos > 0 ? Math.min(100, Math.round(j.gols * 2 + j.assistencias * 1 + j.vitorias * 1 - j.golsContra * 0.5 + j.notaGeral * 10)) : 0;
+                j.conquistas = calcularConquistas(j, partidasRealizadas.filter(p => normalizaNome(p.nome) === nomeNorm), partidasRealizadas);
+                const bonusConquistas = calcularBonusMVP(j.conquistas);
+                j.pontosMVP = j.jogos > 0 ? Math.min(100, Math.round(j.gols * 2 + j.assistencias * 1 + j.vitorias * 1 - j.golsContra * 0.5 + j.notaGeral * 10 + bonusConquistas)) : 0;
                 j.nivel = j.pontosMVP >= 90 ? 'Lenda' :
                           j.pontosMVP >= 70 ? 'Craque' :
                           j.pontosMVP >= 50 ? 'Diferenciado' :
                           j.pontosMVP >= 20 ? 'Esforçado' : 'Iniciante';
             });
+        }
+
+        function calcularBonusMVP(conquistas) {
+            let bonus = 0;
+            conquistas.forEach(c => {
+                switch (c.rarity) {
+                    case 'comum': bonus += 1; break;
+                    case 'raro': bonus += 2; break;
+                    case 'epico': bonus += 3; break;
+                    case 'lendario': bonus += 5; break;
+                    case 'mitico': bonus += 10; break;
+                }
+            });
+            return bonus;
+        }
+
+        function calcularConquistas(jogador, partidas, todasPartidas) {
+            const conquistas = [];
+            let maxGolsPartida = 0;
+            let maxAssistPartida = 0;
+            let maxNotaPartida = 0;
+            let vitoriasSeguidas = 0;
+            let maxVitoriasSeguidas = 0;
+            let melhoresPartidas = 0;
+
+            // Conquistas por partida
+            partidas.sort((a, b) => {
+                const dateA = a.dataJogo.split('/').reverse().join('-');
+                const dateB = b.dataJogo.split('/').reverse().join('-');
+                return dateA > dateB ? 1 : -1;
+            }).forEach(p => {
+                const gols = parseNum(p.gols);
+                const assist = parseNum(p.assistencias);
+                if (gols === 2) conquistas.push({ nome: 'Doblete', desc: `Marcou 2 gols em ${p.dataJogo}`, icon: '⚽⚽', rarity: 'comum' });
+                if (assist === 2) conquistas.push({ nome: '2 Assistências', desc: `2 assistências em ${p.dataJogo}`, icon: '🅰️🅰️', rarity: 'comum' });
+                if (gols >= 3) conquistas.push({ nome: 'Hat-Trick', desc: `Marcou 3 gols em ${p.dataJogo}`, icon: '⚽⚽⚽', rarity: 'raro' });
+                if (assist >= 3) conquistas.push({ nome: 'Hat-Trick de Assistências', desc: `3 assistências em ${p.dataJogo}`, icon: '🅰️🅰️🅰️', rarity: 'raro' });
+                if (gols >= 4) conquistas.push({ nome: 'Pôquer', desc: `Marcou 4 gols em ${p.dataJogo}`, icon: '⚽⚽⚽⚽', rarity: 'epico' });
+                if (assist >= 4) conquistas.push({ nome: '4 Assistências', desc: `4 assistências em ${p.dataJogo}`, icon: '🅰️🅰️🅰️🅰️', rarity: 'epico' });
+                if (gols >= 5) conquistas.push({ nome: 'Repoker', desc: `Marcou 5 gols em ${p.dataJogo}`, icon: '⚽⚽⚽⚽⚽', rarity: 'lendario' });
+                if (assist >= 5) conquistas.push({ nome: '5 Assistências', desc: `5 assistências em ${p.dataJogo}`, icon: '🅰️🅰️🅰️🅰️🅰️', rarity: 'lendario' });
+                if (gols >= 6) conquistas.push({ nome: '6+ Gols', desc: `Marcou ${gols} gols em ${p.dataJogo}`, icon: '🔥⚽', rarity: 'mitico' });
+                if (assist >= 6) conquistas.push({ nome: '6+ Assistências', desc: `${assist} assistências em ${p.dataJogo}`, icon: '🔥🅰️', rarity: 'mitico' });
+                if (gols > maxGolsPartida) maxGolsPartida = gols;
+                if (assist > maxAssistPartida) maxAssistPartida = assist;
+                if (p.notaPartida >= 9) conquistas.push({ nome: 'Partida Épica', desc: `Nota ${p.notaPartida} em ${p.dataJogo}`, icon: '🌟', rarity: 'epico' });
+                if (p.notaPartida > maxNotaPartida) maxNotaPartida = p.notaPartida;
+                if (p.vitoria === 1) {
+                    vitoriasSeguidas++;
+                    maxVitoriasSeguidas = Math.max(maxVitoriasSeguidas, vitoriasSeguidas);
+                } else {
+                    vitoriasSeguidas = 0;
+                }
+
+                // Verificar se foi melhor da partida
+                const partidasData = todasPartidas.filter(tp => tp.dataJogo === p.dataJogo);
+                const maxNotaData = Math.max(...partidasData.map(tp => tp.notaPartida));
+                if (p.notaPartida === maxNotaData) {
+                    melhoresPartidas++;
+                    conquistas.push({ nome: 'Melhor da Partida', desc: `Melhor nota em ${p.dataJogo}`, icon: '👑', rarity: 'raro' });
+                }
+            });
+
+            if (maxGolsPartida >= 5) conquistas.push({ nome: 'Goleada Histórica', desc: `Marcou ${maxGolsPartida} gols em uma partida`, icon: '🔥', rarity: 'lendario' });
+            if (maxNotaPartida >= 9.5) conquistas.push({ nome: 'Lenda do Jogo', desc: `Nota ${maxNotaPartida} em uma partida`, icon: '🏆', rarity: 'lendario' });
+            if (maxVitoriasSeguidas >= 3) conquistas.push({ nome: 'Invencível', desc: `Venceu ${maxVitoriasSeguidas} jogos consecutivos`, icon: '🥇', rarity: 'raro' });
+            if (jogador.jogos >= 25) conquistas.push({ nome: 'Veterano', desc: `Jogou ${jogador.jogos} partidas`, icon: '🛡️', rarity: 'raro' });
+            if (jogador.vitorias >= 10) conquistas.push({ nome: 'Campeão', desc: `Venceu ${jogador.vitorias} partidas`, icon: '🏅', rarity: 'epico' });
+            if (melhoresPartidas >= 2) conquistas.push({ nome: `${melhoresPartidas}x Melhor da Partida`, desc: `Foi o melhor em ${melhoresPartidas} partidas`, icon: '⭐', rarity: 'epico' });
+
+            // Conquistas de temporada (acumuladas gols)
+            const golsTotais = jogador.gols;
+            if (golsTotais >= 5) conquistas.push({ nome: '5 Gols na Temporada', desc: `Alcançou 5 gols no total`, icon: '⚽', rarity: 'comum' });
+            if (golsTotais >= 10) conquistas.push({ nome: '10 Gols na Temporada', desc: `Alcançou 10 gols no total`, icon: '⚽⚽', rarity: 'raro' });
+            for (let i = 20; i <= golsTotais; i += 10) {
+                conquistas.push({ nome: `${i} Gols na Temporada`, desc: `Alcançou ${i} gols no total`, icon: '⚽🔥', rarity: i >= 50 ? 'lendario' : 'epico' });
+            }
+
+            return conquistas;
         }
 
         function getMaiorDestaque(jogadores) {
@@ -831,10 +1091,25 @@
             return index < 3 ? `<span class="medal">${medalhas[index]}</span>` : '';
         }
 
+        const periodFilters = {
+            'all': () => true,
+            'last30': p => {
+                const date = new Date(p.dataJogo.split('/').reverse().join('-'));
+                const now = new Date();
+                return (now - date) / (1000 * 60 * 60 * 24) <= 30;
+            },
+            'last90': p => {
+                const date = new Date(p.dataJogo.split('/').reverse().join('-'));
+                const now = new Date();
+                return (now - date) / (1000 * 60 * 60 * 24) <= 90;
+            }
+        };
+
         function makeRankingCard(jogadores, tipo, titulo, filterFn = null, sufixo = "") {
             let arr = jogadores;
             if (filterFn) arr = arr.filter(filterFn);
             if (tipo === "jogos") arr = arr.filter(j => Number(j.jogos) > 0);
+            if (tipo === "golsTomados") arr = arr.filter(j => j.jogosGoleiro > 0);
             
             arr = [...arr].sort((a, b) => {
                 const valA = tipo === "golsTomados" ? a[tipo] : b[tipo];
@@ -961,24 +1236,28 @@
             }
             const partidas = window.__PARTIDAS__.filter(p => normalizaNome(p.nome) === normalizaNome(jogador.nome) && typeof p.dataJogo === 'string' && p.dataJogo.match(/^\d{2}\/\d{2}\/\d{4}$/));
             const mediaGols = window.__JOGADORES__.reduce((sum, j) => sum + j.gols, 0) / window.__JOGADORES__.length;
-            const partidasJogador = partidas.filter(p => p.jogoAconteceu);
-            const partidasValidas = partidasJogador.filter(p => typeof p.dataJogo === 'string' && p.dataJogo.match(/^\d{2}\/\d{2}\/\d{4}$/));
-            const partidasOrdenadas = partidasValidas.sort((a, b) => {
+            const mediaAssistencias = window.__JOGADORES__.reduce((sum, j) => sum + j.assistencias, 0) / window.__JOGADORES__.length;
+            const mediaNota = window.__JOGADORES__.reduce((sum, j) => sum + j.notaGeral, 0) / window.__JOGADORES__.length;
+            const ultimasNotas = partidas.filter(p => p.jogoAconteceu).slice(-3).map(p => p.notaPartida);
+            const tendenciaNota = ultimasNotas.length >= 2 ? ((ultimasNotas[ultimasNotas.length - 1] - ultimasNotas[0]) / ultimasNotas[0] * 100).toFixed(1) : 0;
+            const partidasOrdenadas = partidas.sort((a, b) => {
                 const dateA = a.dataJogo.split('/').reverse().join('-');
                 const dateB = b.dataJogo.split('/').reverse().join('-');
                 return dateA > dateB ? 1 : -1;
             });
             const datas = partidasOrdenadas.map(p => p.dataJogo);
-            const notas = partidasOrdenadas.map(p => p.notaPartida);
+            const notas = partidasOrdenadas.map(p => p.jogoAconteceu ? p.notaPartida : null);
             const tooltip = jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Diferenciado' ? 'Diferenciado: 50–69 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 20–49 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo';
-            let partidasHtml = partidas.length ? `<tr><th colspan="2">Histórico de Partidas</th></tr>` + 
-                partidas.slice(-5).reverse().map(p => `
+            const playerImage = normalizaNome(jogador.nome) === normalizaNome("Henrique Amaral") ? `<img src="https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Henrique.jpg" alt="Foto de ${jogador.nome}" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px; object-fit: cover; box-shadow: 0 2px 8px var(--shadow);" />` : "";
+            const conquistasHtml = jogador.conquistas.length ? `<tr><th colspan="2">Conquistas</th></tr>` + 
+                jogador.conquistas.map(c => `<tr><td colspan="2"><span class="badge badge-${c.rarity} animate">${c.icon} ${c.nome}</span>: ${c.desc}</td></tr>`).join('') : "";
+            const partidasHtml = partidas.length ? `<tr><th colspan="2">Histórico de Partidas (Últimas 5)</th></tr>` + 
+                partidas.filter(p => p.jogoAconteceu).slice(-5).reverse().map(p => `
                     <tr>
                         <td data-label="Data">${p.dataJogo}</td>
                         <td data-label="Detalhes">Nota: ${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (${p.isGoleiro ? 'Goleiro' : 'Linha'}, ${p.vitoria === 1 ? 'Vitória' : p.vitoria === 0.5 ? 'Empate' : 'Derrota'})</td>
                     </tr>
                 `).join('') : "";
-            const playerImage = normalizaNome(jogador.nome) === normalizaNome("Henrique Amaral") ? `<img src="https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Henrique.jpg" alt="Foto de ${jogador.nome}" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px; object-fit: cover; box-shadow: 0 2px 8px var(--shadow);" />` : "";
             const modalContent = document.getElementById('modalContent');
             modalContent.innerHTML = `
                 ${playerImage}
@@ -988,8 +1267,10 @@
                     <tr><th>Vitórias</th><td data-label="Vitórias">${jogador.vitorias}</td></tr>
                     <tr><th>Aproveitamento</th><td data-label="Aproveitamento"><div class="progress" style="width: ${jogador.aproveitamento}%"></div><span class="progress-text">${jogador.aproveitamento}%</span></td></tr>
                     <tr><th>Gols</th><td data-label="Gols">${jogador.gols} (Média grupo: ${mediaGols.toFixed(1)})</td></tr>
-                    <tr><th>Assistências</th><td data-label="Assistências">${jogador.assistencias}</td></tr>
-                    <tr><th>Nota Geral</th><td data-label="Nota Geral">${jogador.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td></tr>
+                    <tr><th>Assistências</th><td data-label="Assistências">${jogador.assistencias} (Média grupo: ${mediaAssistencias.toFixed(1)})</td></tr>
+                    <tr><th>Nota Geral</th><td data-label="Nota Geral">${jogador.notaGeral.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (Média grupo: ${mediaNota.toFixed(1)})</td></tr>
+                    <tr><th>Tendência</th><td data-label="Tendência">${tendenciaNota > 0 ? '+' : ''}${tendenciaNota}% nos últimos ${ultimasNotas.length} jogos</td></tr>
+                    ${conquistasHtml}
                     ${partidasHtml}
                 </table>
                 <div class="chart-container">
@@ -1012,7 +1293,8 @@
                 options: {
                     responsive: true,
                     plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, max: 10 } }
+                    scales: { y: { beginAtZero: true, max: 10 } },
+                    animation: { duration: 1000, easing: 'easeOutQuart' }
                 }
             });
         }
@@ -1103,23 +1385,65 @@
             }
         }
 
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                playClickSound();
+                document.getElementById('modalBg').classList.remove('active');
+            }
+            if (e.key === 'Enter' && document.activeElement === document.getElementById('searchInput')) {
+                filterRankings();
+            }
+            if (e.key === 't') document.getElementById('themeToggle').click();
+            if (e.key === 'v') document.getElementById('viewToggle').click();
+            if (e.key === '1') document.getElementById('navRankings').click();
+            if (e.key === '2') document.getElementById('navCharts').click();
+            if (e.key === '3') document.getElementById('navHall').click();
+        });
+
         window.filterRankings = function() {
+            playClickSound();
             const input = document.getElementById('searchInput').value.toUpperCase();
-            document.querySelectorAll('.ranking-table tbody tr').forEach(row => {
+            document.querySelectorAll('.ranking-table tbody tr, .compact-table tbody tr').forEach(row => {
                 const name = row.querySelector('td:nth-child(2)').textContent.toUpperCase();
                 row.style.display = name.includes(input) ? '' : 'none';
             });
         };
 
+        window.applyPeriodFilter = function() {
+            playClickSound();
+            const period = document.getElementById('periodFilter').value;
+            const filteredPartidas = window.__PARTIDAS__.filter(periodFilters[period]);
+            const filteredJogadores = JSON.parse(JSON.stringify(window.__JOGADORES__));
+            calcularNotasGerais(filteredJogadores, filteredPartidas);
+            renderDashboard(filteredJogadores, filteredPartidas);
+        };
+
         window.exportCSV = function() {
+            playClickSound();
             const csv = 'Nome,Gols,Assistencias,Vitorias,PontosMVP,Nivel\n' + 
                         window.__JOGADORES__.map(j => `${j.nome},${j.gols},${j.assistencias},${j.vitorias},${j.pontosMVP},${j.nivel}`).join('\n');
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = 'rankings.csv'; a.click();
+            URL.revokeObjectURL(url);
         };
 
-        function renderJogosLista(partidas) {
+        window.shareRankings = function() {
+            playClickSound();
+            const rankings = document.querySelector('.rankings, .compact-table');
+            html2canvas(rankings).then(canvas => {
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'rankings.png';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                });
+            });
+        };
+
+        window.renderJogosLista = function(partidas) {
             const datas = [...new Set(partidas.map(p => p.dataJogo))].sort((a, b) => {
                 const dA = a.split('/').reverse().join('-');
                 const dB = b.split('/').reverse().join('-');
@@ -1133,7 +1457,12 @@
                 const end = start + itemsPerPage;
                 const pageDatas = datas.slice(start, end);
                 const ul = document.getElementById('jogosListaUl');
-                ul.innerHTML = pageDatas.map(dataJogo => `<li onclick="showJogoModal('${dataJogo}')"><span class="date">${dataJogo}</span></li>`).join('');
+                ul.innerHTML = pageDatas.map(dataJogo => {
+                    const jogoAconteceu = partidas.find(p => p.dataJogo === dataJogo).jogoAconteceu;
+                    const className = jogoAconteceu ? '' : 'agendado';
+                    const text = jogoAconteceu ? '' : ' (Agendado)';
+                    return `<li onclick="showJogoModal('${dataJogo}')"><span class="date ${className}">${dataJogo}${text}</span></li>`;
+                }).join('');
                 const prevBtn = document.getElementById('prevPage');
                 const nextBtn = document.getElementById('nextPage');
                 if (prevBtn) prevBtn.disabled = page === 1;
@@ -1167,27 +1496,26 @@
             `;
         }
 
-        function renderCharts(jogadores, partidas) {
-            let topNotas = [...jogadores].sort((a,b) => b.notaGeral - a.notaGeral).slice(0,2);
-            let player1Default = topNotas[0] ? topNotas[0].nome : "";
-            let player2Default = topNotas[1] ? topNotas[1].nome : "";
-            let topGoleadores = [...jogadores].sort((a,b) => b.gols - a.gols).slice(0,10);
-            let nomesGoleadores = topGoleadores.map(j => j.nome);
-            let golsGoleadores = topGoleadores.map(j => j.gols);
-            let topAssistidores = [...jogadores].sort((a,b) => b.assistencias - a.assistencias).slice(0,10);
-            let nomesAssistidores = topAssistidores.map(j => j.nome);
-            let assistenciasAssistidores = topAssistidores.map(j => j.assistencias);
-            let topJogos = [...jogadores].sort((a,b) => b.jogos - a.jogos).slice(0,10);
-            let nomesJogos = topJogos.map(j => j.nome);
-            let jogosJogos = topJogos.map(j => j.jogos);
-            let topAproveitamento = [...jogadores].filter(j => j.jogos > 0).sort((a,b) => b.aproveitamento - a.aproveitamento).slice(0,10);
-            let nomesAproveitamento = topAproveitamento.map(j => j.nome);
-            let aproveitamentoVals = topAproveitamento.map(j => j.aproveitamento);
-            let topContribuicao = [...jogadores].sort((a,b) => (b.gols + b.assistencias) - (a.gols + a.assistencias)).slice(0,10);
-            let nomesContribuicao = topContribuicao.map(j => j.nome);
-            let contribuicaoVals = topContribuicao.map(j => j.gols + j.assistencias);
-            let totalGols = jogadores.reduce((a,b) => a + b.gols, 0);
-            const playerNames = jogadores.map(j => j.nome).sort();
+        window.renderCharts = function(jogadores, partidas) {
+            const topNotas = [...jogadores].sort((a,b) => b.notaGeral - a.notaGeral).slice(0,2);
+            const player1Default = topNotas[0] ? topNotas[0].nome : "";
+            const player2Default = topNotas[1] ? topNotas[1].nome : "";
+            const topGoleadores = [...jogadores].sort((a,b) => b.gols - a.gols).slice(0,10);
+            const nomesGoleadores = topGoleadores.map(j => j.nome);
+            const golsGoleadores = topGoleadores.map(j => j.gols);
+            const topAssistidores = [...jogadores].sort((a,b) => b.assistencias - a.assistencias).slice(0,10);
+            const nomesAssistidores = topAssistidores.map(j => j.nome);
+            const assistenciasAssistidores = topAssistidores.map(j => j.assistencias);
+            const topJogos = [...jogadores].sort((a,b) => b.jogos - a.jogos).slice(0,10);
+            const nomesJogos = topJogos.map(j => j.nome);
+            const jogosJogos = topJogos.map(j => j.jogos);
+            const topAproveitamento = [...jogadores].filter(j => j.jogos > 0).sort((a,b) => b.aproveitamento - a.aproveitamento).slice(0,10);
+            const nomesAproveitamento = topAproveitamento.map(j => j.nome);
+            const aproveitamentoVals = topAproveitamento.map(j => j.aproveitamento);
+            const topContribuicao = [...jogadores].sort((a,b) => (b.gols + b.assistencias) - (a.gols + a.assistencias)).slice(0,10);
+            const nomesContribuicao = topContribuicao.map(j => j.nome);
+            const contribuicaoVals = topContribuicao.map(j => j.gols + j.assistencias);
+            const totalGols = jogadores.reduce((a,b) => a + b.gols, 0);
             const ultimaData = [...new Set(partidas.map(p => p.dataJogo))].sort((a, b) => b.split('/').reverse().join('-') > a.split('/').reverse().join('-') ? 1 : -1)[0];
             const datesThisMonth = [...new Set(partidas.map(p => p.dataJogo))].filter(d => {
                 const [day, month, year] = d.split('/').map(Number);
@@ -1198,6 +1526,11 @@
                 const bestOfDate = partidas.filter(p => p.dataJogo === date).reduce((maxP, p) => p.notaPartida > maxP.nota ? { nome: p.nome, nota: p.notaPartida } : maxP, { nome: "", nota: -1 });
                 return bestOfDate.nota > max.nota ? bestOfDate : max;
             }, { nome: "", nota: -1 });
+            const meses = [...new Set(partidas.map(p => p.dataJogo.slice(3, 10)))].sort();
+            const golsPorMes = meses.map(m => {
+                const partidasMes = partidas.filter(p => p.dataJogo.includes(m));
+                return partidasMes.reduce((sum, p) => sum + parseNum(p.gols), 0);
+            });
 
             return `
                 <div class="charts-page">
@@ -1205,6 +1538,19 @@
                     <div class="highlight-star">
                         <span class="star-icon">⭐</span> Destaque do Mês: <span class="highlight-player">${destaqueMes.nome}</span>
                         <span class="highlight-note">${destaqueMes.nota.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</span>
+                    </div>
+                    <div class="comparison-section">
+                        <h2>Comparar Jogadores</h2>
+                        <select id="player1">
+                            <option value="">Selecione Jogador 1</option>
+                            ${jogadores.map(j => `<option value="${j.nome}">${j.nome}</option>`).join('')}
+                        </select>
+                        <select id="player2">
+                            <option value="">Selecione Jogador 2</option>
+                            ${jogadores.map(j => `<option value="${j.nome}">${j.nome}</option>`).join('')}
+                        </select>
+                        <button onclick="comparePlayers()">Comparar</button>
+                        <div id="comparisonResult"></div>
                     </div>
                     <div class="chart-container">
                         <canvas id="chartGoleadores"></canvas>
@@ -1226,87 +1572,15 @@
                         <canvas id="chartContribuicao"></canvas>
                         <div class="chart-legend">Top 10 Contribuição (Gols + Assistências)</div>
                     </div>
+                    <div class="chart-container">
+                        <canvas id="chartEvolucaoGrupo"></canvas>
+                        <div class="chart-legend">Evolução de Gols por Mês</div>
+                    </div>
                     <div style="margin-top:20px; font-size:1.1em; color:var(--primary);">
                         <b>Gols totais no grupo:</b> <span style="color:var(--accent)">${totalGols}</span>
                     </div>
-                    <div class="comparison-section">
-                        <h2>Comparar Jogadores</h2>
-                        <select id="player1">
-                            <option value="">Selecione Jogador 1</option>
-                            ${playerNames.map(name => `<option value="${name}" ${name === player1Default ? 'selected' : ''}>${name}</option>`).join('')}
-                        </select>
-                        <select id="player2">
-                            <option value="">Selecione Jogador 2</option>
-                            ${playerNames.map(name => `<option value="${name}" ${name === player2Default ? 'selected' : ''}>${name}</option>`).join('')}
-                        </select>
-                        <button onclick="comparePlayers()">Comparar</button>
-                        <div id="comparisonResult"></div>
-                    </div>
                 </div>
             `;
-        }
-
-        function drawCharts(jogadores, partidas) {
-            let topGoleadores = [...jogadores].sort((a,b) => b.gols - a.gols).slice(0,10);
-            let nomesGoleadores = topGoleadores.map(j => j.nome);
-            let golsGoleadores = topGoleadores.map(j => j.gols);
-            let topAssistidores = [...jogadores].sort((a,b) => b.assistencias - a.assistencias).slice(0,10);
-            let nomesAssistidores = topAssistidores.map(j => j.nome);
-            let assistenciasAssistidores = topAssistidores.map(j => j.assistencias);
-            let topJogos = [...jogadores].sort((a,b) => b.jogos - a.jogos).slice(0,10);
-            let nomesJogos = topJogos.map(j => j.nome);
-            let jogosJogos = topJogos.map(j => j.jogos);
-            let topAproveitamento = [...jogadores].filter(j => j.jogos > 0).sort((a,b) => b.aproveitamento - a.aproveitamento).slice(0,10);
-            let nomesAproveitamento = topAproveitamento.map(j => j.nome);
-            let aproveitamentoVals = topAproveitamento.map(j => j.aproveitamento);
-            let topContribuicao = [...jogadores].sort((a,b) => (b.gols + b.assistencias) - (a.gols + a.assistencias)).slice(0,10);
-            let nomesContribuicao = topContribuicao.map(j => j.nome);
-            let contribuicaoVals = topContribuicao.map(j => j.gols + j.assistencias);
-
-            new Chart(document.getElementById('chartGoleadores'), {
-                type: 'bar',
-                data: {
-                    labels: nomesGoleadores,
-                    datasets: [{ label: 'Gols', data: golsGoleadores, backgroundColor: 'var(--accent)' }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-            });
-
-            new Chart(document.getElementById('chartAssistidores'), {
-                type: 'bar',
-                data: {
-                    labels: nomesAssistidores,
-                    datasets: [{ label: 'Assistências', data: assistenciasAssistidores, backgroundColor: '#4caf50' }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-            });
-
-            new Chart(document.getElementById('chartParticipacao'), {
-                type: 'bar',
-                data: {
-                    labels: nomesJogos,
-                    datasets: [{ label: 'Jogos', data: jogosJogos, backgroundColor: 'var(--primary)' }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-            });
-
-            new Chart(document.getElementById('chartAproveitamento'), {
-                type: 'bar',
-                data: {
-                    labels: nomesAproveitamento,
-                    datasets: [{ label: 'Aproveitamento (%)', data: aproveitamentoVals, backgroundColor: 'var(--accent)' }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-            });
-
-            new Chart(document.getElementById('chartContribuicao'), {
-                type: 'bar',
-                data: {
-                    labels: nomesContribuicao,
-                    datasets: [{ label: 'Gols + Assistências', data: contribuicaoVals, backgroundColor: 'var(--primary)' }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-            });
         }
 
         window.comparePlayers = function() {
@@ -1320,7 +1594,7 @@
             const player1 = window.__JOGADORES__.find(j => j.nome === player1Name);
             const player2 = window.__JOGADORES__.find(j => j.nome === player2Name);
             if (!player1 || !player2) return;
-            const totalJogosGrupo = window.__JOGADORES__.reduce((sum, j) => sum + j.jogos, 0);
+
             const derrotas1 = player1.jogos - player1.vitorias - player1.empates;
             const derrotas2 = player2.jogos - player2.vitorias - player2.empates;
             const totalGolsGrupo = window.__JOGADORES__.reduce((sum, j) => sum + j.gols, 0);
@@ -1357,85 +1631,262 @@
             document.getElementById('comparisonResult').innerHTML = comparisonHtml;
         }
 
-        document.getElementById('navRankings').onclick = function() {
-            playClickSound();
-            document.getElementById('navRankings').classList.add('active');
-            document.getElementById('navCharts').classList.remove('active');
-            renderDashboard(window.__JOGADORES__, window.__PARTIDAS__);
+        function drawCharts(jogadores, partidas) {
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const chartId = entry.target.id;
+                        let config;
+                        if (chartId === 'chartGoleadores') {
+                            config = {
+                                type: 'bar',
+                                data: {
+                                    labels: [...jogadores].sort((a,b) => b.gols - a.gols).slice(0,10).map(j => j.nome),
+                                    datasets: [{ label: 'Gols', data: [...jogadores].sort((a,b) => b.gols - a.gols).slice(0,10).map(j => j.gols), backgroundColor: 'var(--accent)' }]
+                                },
+                                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } }, animation: { duration: 1000, easing: 'easeOutQuart' } }
+                            };
+                        } else if (chartId === 'chartAssistidores') {
+                            config = {
+                                type: 'bar',
+                                data: {
+                                    labels: [...jogadores].sort((a,b) => b.assistencias - a.assistencias).slice(0,10).map(j => j.nome),
+                                    datasets: [{ label: 'Assistências', data: [...jogadores].sort((a,b) => b.assistencias - a.assistencias).slice(0,10).map(j => j.assistencias), backgroundColor: '#4caf50' }]
+                                },
+                                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } }, animation: { duration: 1000, easing: 'easeOutQuart' } }
+                            };
+                        } else if (chartId === 'chartParticipacao') {
+                            config = {
+                                type: 'bar',
+                                data: {
+                                    labels: [...jogadores].sort((a,b) => b.jogos - a.jogos).slice(0,10).map(j => j.nome),
+                                    datasets: [{ label: 'Jogos', data: [...jogadores].sort((a,b) => b.jogos - a.jogos).slice(0,10).map(j => j.jogos), backgroundColor: 'var(--primary)' }]
+                                },
+                                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } }, animation: { duration: 1000, easing: 'easeOutQuart' } }
+                            };
+                        } else if (chartId === 'chartAproveitamento') {
+                            config = {
+                                type: 'bar',
+                                data: {
+                                    labels: [...jogadores].filter(j => j.jogos > 0).sort((a,b) => b.aproveitamento - a.aproveitamento).slice(0,10).map(j => j.nome),
+                                    datasets: [{ label: 'Aproveitamento (%)', data: [...jogadores].filter(j => j.jogos > 0).sort((a,b) => b.aproveitamento - a.aproveitamento).slice(0,10).map(j => j.aproveitamento), backgroundColor: '#ff9800' }]
+                                },
+                                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100 } }, animation: { duration: 1000, easing: 'easeOutQuart' } }
+                            };
+                        } else if (chartId === 'chartContribuicao') {
+                            config = {
+                                type: 'bar',
+                                data: {
+                                    labels: [...jogadores].sort((a,b) => (b.gols + b.assistencias) - (a.gols + a.assistencias)).slice(0,10).map(j => j.nome),
+                                    datasets: [{ label: 'Contribuição (Gols + Assistências)', data: [...jogadores].sort((a,b) => (b.gols + b.assistencias) - (a.gols + a.assistencias)).slice(0,10).map(j => j.gols + j.assistencias), backgroundColor: '#e91e63' }]
+                                },
+                                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } }, animation: { duration: 1000, easing: 'easeOutQuart' } }
+                            };
+                        } else if (chartId === 'chartEvolucaoGrupo') {
+                            config = {
+                                type: 'line',
+                                data: {
+                                    labels: [...new Set(partidas.map(p => p.dataJogo.slice(3, 10)))].sort(),
+                                    datasets: [{
+                                        label: 'Gols por Mês',
+                                        data: [...new Set(partidas.map(p => p.dataJogo.slice(3, 10)))].sort().map(m => {
+                                            const partidasMes = partidas.filter(p => p.dataJogo.includes(m));
+                                            return partidasMes.reduce((sum, p) => sum + parseNum(p.gols), 0);
+                                        }),
+                                        borderColor: 'var(--accent)',
+                                        fill: false
+                                    }]
+                                },
+                                options: { responsive: true, plugins: { legend: { display: false } } , scales: { y: { beginAtZero: true } }, animation: { duration: 1000, easing: 'easeOutQuart' } }
+                            };
+                        }
+                        new Chart(document.getElementById(chartId), config);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            ['chartGoleadores', 'chartAssistidores', 'chartParticipacao', 'chartAproveitamento', 'chartContribuicao', 'chartEvolucaoGrupo'].forEach(id => {
+                const canvas = document.getElementById(id);
+                if (canvas) observer.observe(canvas);
+            });
         }
 
-        document.getElementById('navCharts').onclick = function() {
-            playClickSound();
-            document.getElementById('navRankings').classList.remove('active');
-            document.getElementById('navCharts').classList.add('active');
-            renderChartsPage(window.__JOGADORES__, window.__PARTIDAS__);
+        window.renderHallFama = function(jogadores, partidas) {
+            const conquistasPorJogador = {};
+            jogadores.forEach(j => {
+                const nomeNorm = normalizaNome(j.nome);
+                conquistasPorJogador[nomeNorm] = j.conquistas;
+            });
+            const jogadoresComConquistas = Object.keys(conquistasPorJogador).filter(nome => conquistasPorJogador[nome].length > 0);
+            const hallContent = jogadoresComConquistas.map(nomeNorm => {
+                const jogador = jogadores.find(j => normalizaNome(j.nome) === nomeNorm);
+                const conquistas = conquistasPorJogador[nomeNorm];
+                return `
+                    <div class="hall-card">
+                        <h3>${jogador.nome}</h3>
+                        <ul>
+                            ${conquistas.map(c => `<li><span class="badge badge-${c.rarity} animate">${c.icon} ${c.nome}</span>: ${c.desc}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="hall-page">
+                    <div class="hall-title">Hall da Fama</div>
+                    ${hallContent || '<div style="text-align: center; color: var(--primary);">Nenhuma conquista registrada ainda.</div>'}
+                </div>
+            `;
+        }
+
+        window.renderDashboard = function(jogadores, partidas) {
+            const isCompact = document.body.classList.contains('compact');
+            const mainContent = document.getElementById('mainContent');
+            window.__RANKING_DATA__ = {
+                gols: [...jogadores].sort((a,b) => b.gols - a.gols),
+                assistencias: [...jogadores].sort((a,b) => b.assistencias - a.assistencias),
+                vitorias: [...jogadores].sort((a,b) => b.vitorias - a.vitorias),
+                jogos: [...jogadores].sort((a,b) => b.jogos - a.jogos),
+                golsTomados: [...jogadores].sort((a,b) => a.golsTomados - b.golsTomados),
+                aproveitamento: [...jogadores].filter(j => j.jogos > 0).sort((a,b) => b.aproveitamento - a.aproveitamento),
+                notaGeral: [...jogadores].sort((a,b) => b.notaGeral - a.notaGeral),
+                pontosMVP: [...jogadores].sort((a,b) => b.pontosMVP - a.pontosMVP)
+            };
+
+            if (isCompact) {
+                const tableRows = window.__RANKING_DATA__.pontosMVP.map((jogador, i) => {
+                    const pos = i + 1;
+                    const tooltip = jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Diferenciado' ? 'Diferenciado: 50–69 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 20–49 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo';
+                    return `
+                        <tr${i === 0 ? ' class="top-player"' : ''}>
+                            <td data-label="Posição">${pos}</td>
+                            <td data-label="Nome" onclick="showModal('${encodeURIComponent(jogador.nome)}')">${medalhaHTML(i)}${jogador.nome} <span class="badge badge-${jogador.nivel.toLowerCase()}" data-tooltip="${tooltip}">${jogador.nivel}</span></td>
+                            <td data-label="Pontos MVP">${jogador.pontosMVP.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td>
+                            <td data-label="Jogos">${jogador.jogos}</td>
+                            <td data-label="Gols">${jogador.gols}</td>
+                            <td data-label="Assistências">${jogador.assistencias}</td>
+                            <td data-label="Aproveitamento"><div class="progress" style="width: ${jogador.aproveitamento}%"></div><span class="progress-text">${jogador.aproveitamento}%</span></td>
+                        </tr>
+                    `;
+                }).join('');
+                mainContent.innerHTML = `
+                    <div class="compact-table">
+                        <div class="ranking-title">Ranking Geral (Pontos MVP)</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Pos</th>
+                                    <th>Nome</th>
+                                    <th>Pontos MVP</th>
+                                    <th>Jogos</th>
+                                    <th>Gols</th>
+                                    <th>Assistências</th>
+                                    <th>Aproveitamento</th>
+                                </tr>
+                            </thead>
+                            <tbody>${tableRows}</tbody>
+                        </table>
+                    </div>
+                    ${renderJogosLista(partidas)}
+                `;
+                window.renderPage(1);
+            } else {
+                mainContent.innerHTML = `
+                    <div class="rankings">
+                        ${makeRankingCard(jogadores, 'pontosMVP', 'Pontos MVP')}
+                        ${makeRankingCard(jogadores, 'gols', 'Gols Marcados')}
+                        ${makeRankingCard(jogadores, 'assistencias', 'Assistências')}
+                        ${makeRankingCard(jogadores, 'vitorias', 'Vitórias')}
+                        ${makeRankingCard(jogadores, 'jogos', 'Participações')}
+                        ${makeRankingCard(jogadores, 'golsTomados', 'Menos Gols Tomados')}
+                        ${makeRankingCard(jogadores, 'aproveitamento', 'Aproveitamento', j => j.jogos > 0, '%')}
+                        ${makeRankingCard(jogadores, 'notaGeral', 'Nota Geral')}
+                    </div>
+                    ${renderJogosLista(partidas)}
+                `;
+                window.renderPage(1);
+            }
+            showMaiorDestaque(jogadores);
+        }
+
+        async function init() {
+            try {
+                window.__JOGADORES__ = await fetchJogadores();
+                window.__PARTIDAS__ = await fetchPartidas();
+                calcularNotasGerais(window.__JOGADORES__, window.__PARTIDAS__);
+                window.__PARTIDAS__ = window.__PARTIDAS__.filter(p => typeof p.dataJogo === 'string' && p.dataJogo.match(/^\d{2}\/\d{2}\/\d{4}$/)); // Manter jogos futuros
+                window.renderDashboard(window.__JOGADORES__, window.__PARTIDAS__);
+            } catch (e) {
+                console.error('Erro ao carregar dados:', e);
+                document.getElementById('mainContent').innerHTML = '<div style="text-align: center; color: var(--primary);">Erro ao carregar os dados. Tente novamente mais tarde.</div>';
+            }
+        }
+
+        window.clearCache = function() {
+            localStorage.removeItem('partidasCache');
+            localStorage.removeItem('partidasCacheTime');
+            localStorage.removeItem('jogadoresCache');
+            localStorage.removeItem('jogadoresCacheTime');
+            location.reload();
         }
 
         document.getElementById('themeToggle').onclick = function() {
             playClickSound();
             document.body.classList.toggle('dark');
-            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+            document.getElementById('themeToggle').textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
         };
 
-        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+        document.getElementById('themeSelector').onchange = function() {
+            playClickSound();
+            document.body.classList.remove('theme-boca', 'theme-river');
+            if (this.value !== 'default') document.body.classList.add(`theme-${this.value}`);
+        };
 
-        async function mainLoader() {
-            const main = document.getElementById("mainContent");
-            main.innerHTML = `<div class="loading">Carregando dados...</div>`;
-            try {
-                const [partidas, jogadores] = await Promise.all([fetchPartidas(), fetchJogadores()]);
-                calcularNotasGerais(jogadores, partidas);
-                window.__JOGADORES__ = jogadores;
-                window.__PARTIDAS__ = partidas;
-                showMaiorDestaque(jogadores);
-                renderDashboard(jogadores, partidas);
-            } catch (e) {
-                console.error("Erro ao carregar dados:", e);
-                main.innerHTML = `<div class="loading">Erro: ${e.message || "Falha ao carregar dados. Verifique sua conexão ou a planilha."}</div>`;
+        document.getElementById('viewToggle').onclick = function() {
+            playClickSound();
+            document.body.classList.toggle('compact');
+            renderDashboard(window.__JOGADORES__, window.__PARTIDAS__);
+        };
+
+        document.getElementById('navRankings').onclick = function() {
+            playClickSound();
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            renderDashboard(window.__JOGADORES__, window.__PARTIDAS__);
+        };
+
+        document.getElementById('navCharts').onclick = function() {
+            playClickSound();
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('mainContent').innerHTML = renderCharts(window.__JOGADORES__, window.__PARTIDAS__);
+            drawCharts(window.__JOGADORES__, window.__PARTIDAS__);
+        };
+
+        document.getElementById('navHall').onclick = function() {
+            playClickSound();
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('mainContent').innerHTML = renderHallFama(window.__JOGADORES__, window.__PARTIDAS__);
+        };
+
+        window.onscroll = function() {
+            const backToTop = document.getElementById('backToTop');
+            if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+                backToTop.style.display = 'block';
+            } else {
+                backToTop.style.display = 'none';
             }
-        }
+        };
 
-        function renderDashboard(jogadores, partidas) {
-            const main = document.getElementById("mainContent");
-            window.__RANKING_DATA__ = {
-                gols: [...jogadores].sort((a,b) => b.gols - a.gols),
-                assistencias: [...jogadores].sort((a,b) => b.assistencias - a.assistencias),
-                vitorias: [...jogadores].sort((a,b) => b.vitorias - a.vitorias),
-                jogos: [...jogadores].filter(j => Number(j.jogos) > 0).sort((a,b) => b.jogos - a.jogos),
-                aproveitamento: [...jogadores].filter(j => j.jogos > 0).sort((a,b) => b.aproveitamento - a.aproveitamento),
-                notaGeral: [...jogadores].sort((a,b) => b.notaGeral - a.notaGeral),
-                golsTomados: [...jogadores].filter(j => j.golsTomados > 0).sort((a,b) => a.golsTomados - b.golsTomados),
-                pontosMVP: [...jogadores].sort((a,b) => b.pontosMVP - a.pontosMVP)
-            };
-            main.innerHTML = `
-                <div class="rankings">
-                    ${makeRankingCard(jogadores, "pontosMVP", "MVP Geral")}
-                    ${makeRankingCard(jogadores, "gols", "Gols")}
-                    ${makeRankingCard(jogadores, "assistencias", "Assistências")}
-                    ${makeRankingCard(jogadores, "vitorias", "Vitórias")}
-                    ${makeRankingCard(jogadores, "jogos", "Participação")}
-                    ${makeRankingCard(jogadores, "aproveitamento", "Aproveitamento", j => j.jogos > 0, " (%)")}
-                    ${makeRankingCard(jogadores, "notaGeral", "Nota Geral")}
-                    ${makeRankingCard(jogadores, "golsTomados", "Menos Gols Tomados", j => j.golsTomados > 0)}
-                </div>
-                ${renderJogosLista(partidas)}
-                <div class="instruction-card">
-                    Clique no nome do jogador para ver detalhes!<br>
-                    Clique na data do jogo para ver o resumo da partida!
-                </div>
-            `;
-            if (document.getElementById('jogosListaUl')) {
-                window.renderPage(1);
-            }
-        }
+        document.getElementById('backToTop').onclick = function() {
+            playClickSound();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
 
-        function renderChartsPage(jogadores, partidas) {
-            const main = document.getElementById("mainContent");
-            main.innerHTML = renderCharts(jogadores, partidas);
-            setTimeout(() => drawCharts(jogadores, partidas), 150);
-        }
-
-        mainLoader();
+        init();
     </script>
 </body>
 </html>
+```
