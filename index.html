@@ -1,3 +1,4 @@
+```html
 <html lang="pt">
 <head>
     <meta charset="UTF-8"/>
@@ -1338,7 +1339,27 @@
             const datas = partidasOrdenadas.map(p => p.dataJogo);
             const notas = partidasOrdenadas.map(p => p.jogoAconteceu ? p.notaPartida : null);
             const tooltip = jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Diferenciado' ? 'Diferenciado: 50–69 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 20–49 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo';
-            const playerImage = normalizaNome(jogador.nome) === normalizaNome("Henrique Amaral") ? `<img src="https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Henrique.jpg" alt="Foto de ${jogador.nome}" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px; object-fit: cover; box-shadow: 0 2px 8px var(--shadow);" />` : "";
+            const playerPhotos = {
+                "HENRIQUE AMARAL": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Henrique.jpg",
+                "VITOR": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Vitor%20gol.jpg",
+                "MARCO DAITX": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Marco.jpg",
+                "BRUNO GUIMARAES": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Bruno.jpg",
+                "EDUARDO DUDU": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Eduardo.jpg",
+                "WILIAN SILVA": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Wiliam%20Silva.jpg",
+                "DOUGLAS DAITX": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Douglas.jpg",
+                "GUSTAVO": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Gustavo.jpg",
+                "ADEMIR": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Ademir.jpg",
+                "DAVI": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Davi%20Mattos.jpg",
+                "VICTOR MATHEUS": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Victor%20Matheus.jpg",
+                "ANDRE": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/main/Andre.jpg",
+                "MAICON": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Maicon.jpg",
+                "CRISTIANO": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Cristiano.jpg",
+                "CLAUDIO SCHNEIRDER": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Claudio.jpg",
+                "WILIAN": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/main/Wiliam.jpg"
+            };
+            const nomeNorm = normalizaNome(jogador.nome);
+            const photoUrl = playerPhotos[nomeNorm];
+            const playerImage = photoUrl ? `<img src="${photoUrl}" alt="Foto de ${jogador.nome}" style="width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px; object-fit: cover; box-shadow: 0 2px 8px var(--shadow);" />` : "";
             
             const conquistasPorRaridade = {
                 mitico: [],
@@ -2030,3 +2051,4 @@
     </script>
 </body>
 </html>
+```
