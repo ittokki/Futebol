@@ -1435,39 +1435,27 @@ function sugestaoParaSubir(j) {
 
 
 // ---------- Novas funções: desafios dinâmicos, evolução e popups ----------
+
 function gerarDesafios(j) {
-  // Desafios semanais, personalizados por nível
-  // Níveis: Iniciante, Esforçado, Diferenciado, Craque, Lenda
-  const nivel = j.nivel;
-  const desafios = [];
-  let title, desc, reward;
-
-  // Um desafio principal por semana, baseado no nível e stats
-  if (nivel === 'Iniciante') {
-    title = 'Primeiro Passo';
-    desc = j.jogos < 1 ? 'Participe de 1 jogo esta semana' : 'Marque 1 gol ou dê 1 assistência esta semana';
-    reward = 'Ganhe um badge Comum e +2 pontos MVP';
-  } else if (nivel === 'Esforçado') {
-    title = 'Consistência';
-    desc = j.notaGeral < 6 ? 'Alcance nota 6+ em um jogo esta semana' : 'Contribua com 1 vitória sem gols contra';
-    reward = 'Ganhe um badge Raro e +3 pontos MVP';
-  } else if (nivel === 'Diferenciado') {
-    title = 'Impacto no Jogo';
-    desc = j.assistencias < j.gols ? 'Dê pelo menos 1 assistência esta semana' : 'Marque 2 gols em um jogo';
-    reward = 'Ganhe um badge Épico e +4 pontos MVP';
-  } else if (nivel === 'Craque') {
-    title = 'Líder do Time';
-    desc = 'Ajude um jogador iniciante/esforçado com 1 assistência e garanta uma vitória';
-    reward = 'Ganhe um badge Lendário e +5 pontos MVP';
-  } else if (nivel === 'Lenda') {
-    title = 'Mestre do Campo';
-    desc = 'Mantenha nota 8+ e ajude o time a não tomar gols esta semana';
-    reward = 'Ganhe um badge Mítico e +10 pontos MVP';
-  }
-
-  desafios.push({ title, desc, reward });
-  return desafios;
+  // Gera um resumo curto de desafios garantindo que sejam mensuráveis localmente:
+  // - Não usam objetivos impossíveis de anotar (ex.: "assistência para jogador específico" ou "garanta uma vitória para outro jogador")
+  // - Permanecem atribuídos ao jogador até a próxima partida registrada (ou até serem completados)
+  if (!j) return [];
+  const nivel = j.nivel || 'Iniciante';
+  // usamos a versão por nível que tem condições baseadas apenas nas estatísticas do próprio jogador e no resultado do time
+  const pool = gerarDesafiosPorNivel(nivel).map(d => {
+    // sanitize descriptions: evitar referências a "jogador X"
+    if (d.desc) {
+      d.desc = d.desc.replace(/ajude um jogador iniciante\/esforçado/gi, 'contribua com o time');
+      d.desc = d.desc.replace(/garanta uma vitória/gi, 'contribua para uma vitória do time (se o time vencer, o requisito é atendido)');
+      d.desc = d.desc.replace(/\bDê\b/gi, 'Registre');
+    }
+    return d;
+  });
+  // escolher primeiro item do pool (ou sorteio simples)
+  return [ pool[Math.floor(Math.random() * pool.length)] ];
 }
+
 
 function abrirDesafiosNoModal(j) {
   const desafios = gerarDesafios(j);
@@ -2332,6 +2320,203 @@ window.showModal = function(playerName) {
         };
 
         init();
-    </script>
+    
+
+/* --- Início: OVERRIDE DEFINITIVO DE DESAFIOS SEMANAIS (persistência até próxima partida) --- */
+
+function gerarDesafiosPorNivel(nivel) {
+  // Retorna um pool de desafios mensuráveis, sem referências a jogadores específicos ou ações impossíveis de anotar.
+  if (!nivel) nivel = 'Iniciante';
+  if (nivel === 'Iniciante') {
+    return [
+      { title: 'Primeira Finalização', desc: 'Marque 1 gol em qualquer partida registrada.', reward: 'Badge Comum +2 MVP', raridade: 'comum' },
+      { title: 'Apoio Inicial', desc: 'Registre 1 assistência em qualquer partida registrada.', reward: 'Badge Comum +2 MVP', raridade: 'comum' },
+      { title: 'Nota Sólida', desc: 'Alcance nota ≥ 6.0 em uma partida.', reward: 'Badge Raro +3 MVP', raridade: 'raro' },
+      { title: 'Ganhador Novato', desc: 'Participe de uma vitória do time (se o time vencer na partida registrada).', reward: 'Badge Raro +3 MVP', raridade: 'raro' },
+      { title: 'Presença Marcada', desc: 'Jogue e obtenha nota ≥ 5.5.', reward: 'Badge Comum +2 MVP', raridade: 'comum' }
+    ];
+  } else if (nivel === 'Esforçado') {
+    return [
+      { title: 'Consistência Básica', desc: 'Alcance nota ≥ 6.5 em uma partida.', reward: 'Badge Raro +3 MVP', raridade: 'raro' },
+      { title: 'Assistente em Ação', desc: 'Registre 1 assistência em uma partida.', reward: 'Badge Raro +3 MVP', raridade: 'raro' },
+      { title: 'Goleador Esforçado', desc: 'Marque 1 gol em uma partida.', reward: 'Badge Raro +3 MVP', raridade: 'raro' },
+      { title: 'Impacto Simples', desc: 'Registre 1 gol ou 1 assistência em uma partida vencida pelo time.', reward: 'Badge Épico +4 MVP', raridade: 'épico' },
+      { title: 'Nota de Progresso', desc: 'Alcance nota ≥ 7.0 em uma partida.', reward: 'Badge Épico +4 MVP', raridade: 'épico' }
+    ];
+  } else if (nivel === 'Diferenciado') {
+    return [
+      { title: 'Dupla Contribuição', desc: 'Registre 1 gol + 1 assistência na mesma partida.', reward: 'Badge Épico +5 MVP', raridade: 'épico' },
+      { title: 'Nota de Qualidade', desc: 'Alcance nota ≥ 7.5 em uma partida.', reward: 'Badge Épico +5 MVP', raridade: 'épico' },
+      { title: 'Artilheiro Diferenciado', desc: 'Marque 2 gols em uma partida.', reward: 'Badge Épico +4 MVP', raridade: 'épico' },
+      { title: 'Assistente Chave', desc: 'Registre 2 assistências em uma partida.', reward: 'Badge Épico +5 MVP', raridade: 'épico' },
+      { title: 'Protagonista', desc: '2 gols ou 2 assistências em uma partida vencida pelo time.', reward: 'Badge Lendário +6 MVP', raridade: 'lendário' }
+    ];
+  } else if (nivel === 'Craque') {
+    return [
+      { title: 'Artilheiro Protagonista', desc: 'Marque 3 gols em uma partida.', reward: 'Badge Lendário +7 MVP', raridade: 'lendário' },
+      { title: 'Maestro do Jogo', desc: 'Registre 3 assistências em uma partida.', reward: 'Badge Lendário +7 MVP', raridade: 'lendário' },
+      { title: 'Nota de Elite', desc: 'Alcance nota ≥ 8.0 em uma partida.', reward: 'Badge Lendário +7 MVP', raridade: 'lendário' },
+      { title: 'Líder do Time (versão segura)', desc: 'Registre 1 assistência em uma partida e seu time vença essa partida (apenas estatísticas próprias são consideradas).', reward: 'Badge Lendário +5 MVP', raridade: 'lendário' },
+      { title: 'Estrela da Partida', desc: 'Alcance nota ≥ 8.5 em uma partida.', reward: 'Badge Lendário +8 MVP', raridade: 'lendário' }
+    ];
+  } else if (nivel === 'Lenda') {
+    return [
+      { title: 'Lenda em Campo', desc: 'Alcance nota ≥ 9.0 em uma partida.', reward: 'Badge Mítico +12 MVP', raridade: 'mítico' },
+      { title: 'Dominador Absoluto', desc: 'Registre 4 contribuições (gols+assistências) em uma partida.', reward: 'Badge Mítico +12 MVP', raridade: 'mítico' },
+      { title: 'Herói Ofensivo', desc: 'Marque 2 gols + 1 assistência em uma partida.', reward: 'Badge Mítico +12 MVP', raridade: 'mítico' },
+      { title: 'Melhor do Jogo', desc: 'Obtenha a maior nota do time em uma partida registrada.', reward: 'Badge Mítico +15 MVP', raridade: 'mítico' },
+      { title: 'Show de Bola', desc: 'Alcance nota ≥ 9.0 e marque 1 gol na mesma partida.', reward: 'Badge Mítico +15 MVP', raridade: 'mítico' }
+    ];
+  }
+  return [];
+}
+
+function gerarDesafiosGoleiro() {
+  return [
+    { title: 'Muralha Relativa', desc: 'Alcance nota ≥ 7.0 como goleiro em uma partida registrada.', reward: 'Badge Épico +5 MVP', raridade: 'épico' },
+    { title: 'Goleiro Assistente', desc: 'Registre 1 assistência atuando como goleiro em uma partida registrada.', reward: 'Badge Lendário +7 MVP', raridade: 'lendário' },
+    { title: 'Herói Defensivo', desc: 'Seja o jogador com maior nota do time atuando como goleiro em uma partida registrada.', reward: 'Badge Mítico +10 MVP', raridade: 'mítico' },
+    { title: 'Vitória Segura', desc: 'Alcance nota ≥ 6.5 como goleiro em uma partida vencida pelo time.', reward: 'Badge Épico +5 MVP', raridade: 'épico' },
+    { title: 'Goleiro Protagonista', desc: 'Alcance nota ≥ 8.0 como goleiro em uma partida vencida pelo time.', reward: 'Badge Lendário +7 MVP', raridade: 'lendário' }
+  ];
+}
+
+function _nextMatchDateForPlayer(jogador) {
+  // Retorna a data da próxima partida futura (formato 'DD/MM/YYYY') para o jogador, ou null.
+  try {
+    const nomeNorm = normalizaNome(jogador.nome);
+    const partidas = window.__PARTIDAS__ || [];
+    const hoje = new Date();
+    let next = null;
+    partidas.forEach(p => {
+      if (normalizaNome(p.nome) === nomeNorm) {
+        // transformar data
+        if (typeof p.dataJogo === 'string' && p.dataJogo.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+          const d = new Date(p.dataJogo.split('/').reverse().join('-') + 'T00:00:00');
+          if (!p.jogoAconteceu && d >= hoje) {
+            if (!next || d < next) next = d;
+          }
+        }
+      }
+    });
+    if (!next) return null;
+    // retornar em DD/MM/YYYY
+    const dd = String(next.getDate()).padStart(2,'0');
+    const mm = String(next.getMonth()+1).padStart(2,'0');
+    const yyyy = next.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  } catch(e) { return null; }
+}
+
+function _isMatchOccurredForDateAndPlayer(dateStr, jogador) {
+  if (!dateStr) return false;
+  const partidas = window.__PARTIDAS__ || [];
+  return partidas.some(p => p.dataJogo === dateStr && normalizaNome(p.nome) === normalizaNome(jogador.nome) && !!p.jogoAconteceu);
+}
+
+function checkDesafioCompleto(jogador, desafio) {
+  // verifica se o jogador já cumpriu o desafio em alguma partida realizada
+  const partidas = (window.__PARTIDAS__ || []).filter(p => normalizaNome(p.nome) === normalizaNome(jogador.nome) && !!p.jogoAconteceu);
+  if (!partidas.length) return false;
+  const d = (desafio && desafio.title) ? desafio.title.toLowerCase() : '';
+  for (let p of partidas) {
+    const gols = parseNum(p.gols);
+    const assist = parseNum(p.assistencias);
+    const nota = parseNum(p.notaPartida);
+    const vitoria = p.vitoria === 1;
+    if (d.includes('marque 3 gols') && gols >= 3) return true;
+    if (d.includes('marque 2 gols') && gols >= 2) return true;
+    if (d.includes('marque 1 gol') && gols >= 1) return true;
+    if (d.includes('registre 3 assistências') && assist >= 3) return true;
+    if (d.includes('registre 2 assistências') && assist >= 2) return true;
+    if (d.includes('registre 1 assistência') && assist >= 1) return true;
+    if (d.includes('nota ≥ 9') && nota >= 9) return true;
+    if (d.includes('nota ≥ 8.5') && nota >= 8.5) return true;
+    if (d.includes('nota ≥ 8.0') && nota >= 8.0) return true;
+    if (d.includes('nota ≥ 7.5') && nota >= 7.5) return true;
+    if (d.includes('nota ≥ 7.0') && nota >= 7.0) return true;
+    if (d.includes('partida vencida') && vitoria) return true;
+    if (d.includes('maior nota do time') ) {
+      // considerar 'melhor do time' se nota igualar max daquela data entre jogadores do time
+      const partidasMesmaData = (window.__PARTIDAS__ || []).filter(tp => tp.dataJogo === p.dataJogo);
+      const maxNota = Math.max(...partidasMesmaData.map(tp=>parseNum(tp.notaPartida)||0));
+      if (parseNum(p.notaPartida) >= maxNota) return true;
+    }
+    if (d.includes('4 contribuições') && (gols + assist) >= 4) return true;
+    if (d.includes('2 gols + 1 assistência') && gols >=2 && assist >=1) return true;
+    if (d.includes('nota ≥ 9.0 e marque 1 gol') && nota >=9 && gols >=1) return true;
+  }
+  return false;
+}
+
+function sortearDesafioSemanal(jogador) {
+  const nomeNorm = jogador && jogador.nome ? normalizaNome(jogador.nome) : 'PLAYER';
+  const persistKey = 'desafio_persist_' + nomeNorm;
+  try {
+    const salvoStr = localStorage.getItem(persistKey);
+    if (salvoStr) {
+      const salvo = JSON.parse(salvoStr);
+      // Se já foi completado, apagar e seguir para nova escolha
+      if (salvo.completed) {
+        localStorage.removeItem(persistKey);
+      } else {
+        // Se existe uma nextMatchDate e essa partida já ocorreu, consideramos reavaliar (liberar)
+        if (salvo.nextMatchDate && _isMatchOccurredForDateAndPlayer(salvo.nextMatchDate, jogador)) {
+          // manter o desafio como histórico (marcar completed se cumprido), senão liberar para novo
+          if (checkDesafioCompleto(jogador, salvo.desafio)) {
+            salvo.completed = true;
+            localStorage.setItem(persistKey, JSON.stringify(salvo));
+            return salvo.desafio;
+          } else {
+            // liberar para novo desafio (remove)
+            localStorage.removeItem(persistKey);
+          }
+        } else {
+          // manter o desafio atual até que a partida bloqueadora ocorra ou até que seja completado
+          return salvo.desafio;
+        }
+      }
+    }
+  } catch(e) {
+    console.warn('Erro lendo desafio persistente:', e);
+  }
+
+  // Se não existe desafio persistente, sorteamos um novo do pool apropriado e persistimos.
+  const isGoleiro = jogador && jogador.nome && /\(GOL\)/i.test(jogador.nome);
+  const pool = isGoleiro ? gerarDesafiosGoleiro() : gerarDesafiosPorNivel(jogador && jogador.nivel ? jogador.nivel : 'Iniciante');
+  const escolhido = pool[Math.floor(Math.random() * pool.length)];
+
+  // determinar nextMatchDate (próxima partida não realizada)
+  const nextDate = _nextMatchDateForPlayer(jogador); // formato DD/MM/YYYY ou null
+
+  const payload = { desafio: escolhido, assignedAt: (new Date()).toISOString(), nextMatchDate: nextDate, completed: false };
+  try { localStorage.setItem(persistKey, JSON.stringify(payload)); } catch(e) { console.warn('localStorage set failed:', e); }
+  return escolhido;
+}
+
+function abrirDesafiosNoModal(jogador) {
+  // Usa a versão persistente para mostrar ao usuário
+  const desafio = sortearDesafioSemanal(jogador);
+  const classe = (desafio && (desafio.raridade || desafio.rarity)) ? (desafio.raridade || desafio.rarity) : 'comum';
+  return `
+    <div class="challenge-card ${classe}">
+      <strong>Desafio Atribuído</strong>
+      <ul style="margin:6px 0 0 16px;">
+        <li>
+          <span class="badge badge-${classe} animate">${desafio.title}</span><br>
+          <small style="color:#666;">${desafio.desc}</small><br>
+          <em>Recompensa: ${desafio.reward}</em>
+        </li>
+      </ul>
+      <div style="margin-top:8px; font-size:0.9em; color:#444;">
+        <em>Este desafio permanecerá atribuído até a próxima partida registrada do jogador (ou até ser cumprido).</em>
+      </div>
+    </div>
+  `;
+}
+
+/* --- Fim: OVERRIDE DEFINITIVO DE DESAFIOS SEMANAIS --- */
+
+</script>
 </body>
 </html>
