@@ -2616,6 +2616,9 @@ installBtn.addEventListener("click", () => {
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js");
 }
+
+// backward compatibility: showPopup -> queuePopup
+window.showPopup = function(html, soundId){ queuePopup(html, soundId); };
 </script>
 </body>
 
