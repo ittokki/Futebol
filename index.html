@@ -3,18 +3,94 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Ranking dos Inimigos da Bola</title>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-WKVNPFFGZB"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-WKVNPFFGZB">
+function showJogoModal(html) {
+  document.getElementById('jogoModalContent').innerHTML = html;
+  document.getElementById('jogoModalBg').classList.add('active');
+}
+function closeJogoModal() {
+  document.getElementById('jogoModalBg').classList.remove('active');
+}
+function showJogadorModal(nome) {
+  // aproveita a função showModal já existente para gerar conteúdo
+  showModal(nome);
+  const modalHtml = document.getElementById('modalContent').innerHTML;
+  document.getElementById('jogadorModalContent').innerHTML = modalHtml;
+  document.getElementById('jogadorModalBg').classList.add('active');
+}
+function closeJogadorModal() {
+  document.getElementById('jogadorModalBg').classList.remove('active');
+}
+
+</script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-WKVNPFFGZB');
-    </script>
+    
+function showJogoModal(html) {
+  document.getElementById('jogoModalContent').innerHTML = html;
+  document.getElementById('jogoModalBg').classList.add('active');
+}
+function closeJogoModal() {
+  document.getElementById('jogoModalBg').classList.remove('active');
+}
+function showJogadorModal(nome) {
+  // aproveita a função showModal já existente para gerar conteúdo
+  showModal(nome);
+  const modalHtml = document.getElementById('modalContent').innerHTML;
+  document.getElementById('jogadorModalContent').innerHTML = modalHtml;
+  document.getElementById('jogadorModalBg').classList.add('active');
+}
+function closeJogadorModal() {
+  document.getElementById('jogadorModalBg').classList.remove('active');
+}
+
+</script>
     <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" href="https://raw.githubusercontent.com/ittokki/Futebol/ba59ab86cf2095d4e9214bd5e24e21ac8aeaf33a/inimigos%20da%20bola.jpg"/>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+function showJogoModal(html) {
+  document.getElementById('jogoModalContent').innerHTML = html;
+  document.getElementById('jogoModalBg').classList.add('active');
+}
+function closeJogoModal() {
+  document.getElementById('jogoModalBg').classList.remove('active');
+}
+function showJogadorModal(nome) {
+  // aproveita a função showModal já existente para gerar conteúdo
+  showModal(nome);
+  const modalHtml = document.getElementById('modalContent').innerHTML;
+  document.getElementById('jogadorModalContent').innerHTML = modalHtml;
+  document.getElementById('jogadorModalBg').classList.add('active');
+}
+function closeJogadorModal() {
+  document.getElementById('jogadorModalBg').classList.remove('active');
+}
+
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js">
+function showJogoModal(html) {
+  document.getElementById('jogoModalContent').innerHTML = html;
+  document.getElementById('jogoModalBg').classList.add('active');
+}
+function closeJogoModal() {
+  document.getElementById('jogoModalBg').classList.remove('active');
+}
+function showJogadorModal(nome) {
+  // aproveita a função showModal já existente para gerar conteúdo
+  showModal(nome);
+  const modalHtml = document.getElementById('modalContent').innerHTML;
+  document.getElementById('jogadorModalContent').innerHTML = modalHtml;
+  document.getElementById('jogadorModalBg').classList.add('active');
+}
+function closeJogadorModal() {
+  document.getElementById('jogadorModalBg').classList.remove('active');
+}
+
+</script>
     <style>
         :root {
             --primary: #333333;
@@ -927,6 +1003,21 @@
     <div id="mainContent">
         <div class="loading">Carregando dados...</div>
     </div>
+    <div class="modal-bg" id="jogoModalBg">
+        <div class="modal" id="jogoModal">
+            <button class="close-btn" onclick="closeJogoModal()">&times;</button>
+            <div id="jogoModalContent"></div>
+        </div>
+    </div>
+
+    <div class="modal-bg" id="jogadorModalBg">
+        <div class="modal" id="jogadorModal">
+            <button class="close-btn" onclick="closeJogadorModal()">&times;</button>
+            <div id="jogadorModalContent"></div>
+        </div>
+    </div>
+
+    <!-- Modal antigo mantido para compatibilidade -->
     <div class="modal-bg" id="modalBg">
         <div class="modal" id="modal">
             <button class="close-btn" id="modalClose">&times;</button>
@@ -1727,7 +1818,7 @@ window.showModal = function(playerName) {
                             <tbody>
                                 ${jogadores.map(p => `
                                     <tr>
-                                        <td data-label="Nome" onclick="showModal(\'${p.nome}\')" style="cursor:pointer; color:var(--accent);">${p.nome}</td>
+                                        <td data-label="Nome" onclick="showJogadorModal(\'${p.nome}\')" style="cursor:pointer; color:var(--primary);">${p.nome}</td>
                                         <td data-label="Gols" class="stat">${parseNum(p.gols)}</td>
                                         <td data-label="Assistências" class="stat">${parseNum(p.assistencias)}</td>
                                         <td data-label="Nota" class="stat">${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (${p.isGoleiro ? 'Goleiro' : 'Linha'})</td>
@@ -2534,6 +2625,25 @@ function abrirDesafiosNoModal(jogador) {
 }
 
 /* --- Fim: OVERRIDE DEFINITIVO DE DESAFIOS SEMANAIS --- */
+
+
+function showJogoModal(html) {
+  document.getElementById('jogoModalContent').innerHTML = html;
+  document.getElementById('jogoModalBg').classList.add('active');
+}
+function closeJogoModal() {
+  document.getElementById('jogoModalBg').classList.remove('active');
+}
+function showJogadorModal(nome) {
+  // aproveita a função showModal já existente para gerar conteúdo
+  showModal(nome);
+  const modalHtml = document.getElementById('modalContent').innerHTML;
+  document.getElementById('jogadorModalContent').innerHTML = modalHtml;
+  document.getElementById('jogadorModalBg').classList.add('active');
+}
+function closeJogadorModal() {
+  document.getElementById('jogadorModalBg').classList.remove('active');
+}
 
 </script>
 </body>
