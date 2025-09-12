@@ -1137,17 +1137,30 @@
                 // nivel será atribuído após normalização
             });
 
-        // Normalização dos pontos MVP para 0–100
-        const maxPontos = Math.max(...jogadores.map(j => j._pontosBrutos));
-        jogadores.forEach(j => {
-          j.pontosMVP = maxPontos > 0 ? Math.round((j._pontosBrutos / maxPontos) * 100) : 0;
-          j.nivel = j.pontosMVP >= 90 ? 'Lenda' :
-                    j.pontosMVP >= 70 ? 'Craque' :
-                    j.pontosMVP >= 50 ? 'Diferenciado' :
-                    j.pontosMVP >= 20 ? 'Esforçado' : 'Iniciante';
-        });
+        // Normalização dinâmica com decaimento (últimos 5 jogos têm mais peso)
+const maxPontos = Math.max(...jogadores.map(j => j._pontosBrutos));
+jogadores.forEach(j => {
+  const partidasJogador = partidas.filter(p => normalizaNome(p.nome) === normalizaNome(j.nome));
+  let pontosRecentes = 0;
+  let pesoTotal = 0;
 
-        // Detectar mudanças de nível e novas conquistas para notificar o usuário
+  partidasJogador.slice(-5).forEach((p, idx) => {
+    const peso = (idx + 1); // jogo mais recente vale mais
+    const pb = parseNum(p.gols)*2 + parseNum(p.assistencias) + (p.vitoria === 1 ? 1 : p.vitoria === 0.5 ? 0.5 : 0) - parseNum(p.golsContra)*0.5 + p.notaPartida*10;
+    pontosRecentes += pb * peso;
+    pesoTotal += peso;
+  });
+
+  const mediaRecente = pesoTotal > 0 ? pontosRecentes / pesoTotal : j._pontosBrutos;
+  const combinado = (j._pontosBrutos * 0.7) + (mediaRecente * 0.3);
+
+  j.pontosMVP = maxPontos > 0 ? Math.round((combinado / maxPontos) * 100) : 0;
+
+  j.nivel = j.pontosMVP >= 90 ? 'Lenda' :
+            j.pontosMVP >= 70 ? 'Craque' :
+            j.pontosMVP >= 50 ? 'Diferenciado' :
+            j.pontosMVP >= 20 ? 'Esforçado' : 'Iniciante';
+});// Detectar mudanças de nível e novas conquistas para notificar o usuário
         jogadores.forEach(j => {
           const chaveNivel = 'nivel_' + normalizaNome(j.nome);
           const chaveConq = 'conq_' + normalizaNome(j.nome);
