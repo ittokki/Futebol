@@ -3,8 +3,6 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Ranking dos Inimigos da Bola</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00A1D6">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-WKVNPFFGZB"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -880,36 +878,7 @@
             .desc { font-size: 0.9em; }
             .search-bar, .filter-bar { max-width: 100%; }
         }
-    
-/* ----------- Mobile View extra ----------- */
-body.mobile-view {
-  font-size: 15px;
-  background: #fff;
-}
-body.mobile-view .navbar {
-  position: fixed;
-  bottom: 0;
-  top: auto;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background: var(--bg-light);
-  border-top: 2px solid var(--accent);
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  z-index: 1000;
-}
-body.mobile-view .nav-btn {
-  font-size: 1.4em;
-  margin: 0;
-  border: none;
-}
-body.mobile-view #mainContent {
-  padding-bottom: 80px;
-}
-</style>
-
+    </style>
 </head>
 <body>
     <div class="navbar">
@@ -919,8 +888,6 @@ body.mobile-view #mainContent {
         <div class="menu-container">
             <button class="menu-btn" id="menuBtn">☰</button>
             <div class="menu-dropdown" id="menuDropdown">
-                <div class="menu-item"><button id="mobileViewToggle">📱 Versão Mobile</button></div>
-                <div class="menu-item"><button id="installBtn" style="display:none;">📲 Instalar App</button></div>
                 <div class="menu-item">
                     <button id="themeToggle">🌙 Tema Claro/Escuro</button>
                 </div>
@@ -971,6 +938,8 @@ body.mobile-view #mainContent {
         <small>Dashboard esportivo feito para o grupo! <button onclick="exportCSV()">Exportar Rankings</button> <button class="share-btn" onclick="shareRankings()">Compartilhar Rankings</button></small>
     </footer>
     <audio id="clickSound" src="https://raw.githubusercontent.com/ittokki/Futebol/5cc70b08d51f09dae0341672e52b2a435a276c05/PES%202013%20Select%20Game%20Main%20Menu%20Sound%20Effect%20(mp3cut.net).mp3"></audio>
+    <audio id="levelUpSound" src="https://cdn.jsdelivr.net/gh/ttsco/static-audio/level-up-1.mp3"></audio>
+    <audio id="conquistaSound" src="https://cdn.jsdelivr.net/gh/ttsco/static-audio/achievement-1.mp3"></audio>
 
     <script>
         const apiKey = "AIzaSyCL19ds6YqVOv5vV-zygBjeC-byy-rDPfM";
@@ -1556,33 +1525,13 @@ function renderEvolucaoChart(jogadores, partidas) {
 }
 
 // Popups visuais e sonoros
-let popupQueue = [];
-let isShowingPopup = false;
-
-function queuePopup(html, soundId='conquistaSound') {
-  popupQueue.push({html, soundId});
-  if (!isShowingPopup) showNextPopup();
-}
-
-function showNextPopup() {
-  if (popupQueue.length === 0) {
-    isShowingPopup = false;
-    return;
-  }
-  isShowingPopup = true;
-  const {html, soundId} = popupQueue.shift();
-  const popup = document.createElement('div');
-  popup.className = 'popup-notif';
-  popup.innerHTML = `<div class="icon">🏆</div><div>${html}</div>`;
-  document.body.appendChild(popup);
-  setTimeout(()=> popup.classList.add('show'), 50);
-  const snd = document.getElementById(soundId);
-  if (snd) { snd.currentTime=0; snd.play().catch(()=>{}); }
-  setTimeout(()=>{
-    popup.classList.remove('show');
-    setTimeout(()=> { popup.remove(); showNextPopup(); }, 400);
-  }, 2000);
-}
+function showPopup(html, soundId='conquistaSound') {
+  const existing = document.createElement('div');
+  existing.className = 'popup-notif';
+  existing.innerHTML = `<div class="icon">🏆</div><div>${html}</div>`;
+  document.body.appendChild(existing);
+  setTimeout(()=> existing.classList.add('show'), 50);
+  const snd = document.getElementById(soundId); if (snd) { snd.currentTime=0; snd.play().catch(()=>{}); }
   setTimeout(()=> { existing.classList.remove('show'); setTimeout(()=> existing.remove(), 400); }, 4000);
 }
 
@@ -2587,53 +2536,5 @@ function abrirDesafiosNoModal(jogador) {
 /* --- Fim: OVERRIDE DEFINITIVO DE DESAFIOS SEMANAIS --- */
 
 </script>
-
-<script>
-// ----------- Modo Mobile -----------
-document.getElementById("mobileViewToggle").addEventListener("click", () => {
-  document.body.classList.toggle("mobile-view");
-});
-
-// ----------- PWA Instalação -----------
-let deferredPrompt;
-const installBtn = document.getElementById("installBtn");
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  installBtn.style.display = "block";
-});
-installBtn.addEventListener("click", () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => {
-      deferredPrompt = null;
-      installBtn.style.display = "none";
-    });
-  }
-});
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js");
-}
-
-// backward compatibility: showPopup -> queuePopup
-window.showPopup = function(html, soundId){ queuePopup(html, soundId); };
-</script>
-
-<script>
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    const btn = document.getElementById('installBtn');
-    if (btn) btn.style.display = 'block';
-});
-document.getElementById('installBtn')?.addEventListener('click', () => {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(() => deferredPrompt = null);
-    }
-});
-</script>
 </body>
-
 </html>
