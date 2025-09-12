@@ -1727,7 +1727,7 @@ window.showModal = function(playerName) {
                             <tbody>
                                 ${jogadores.map(p => `
                                     <tr>
-                                        <td data-label="Nome">${p.nome}</td>
+                                        <td data-label="Nome" onclick="showModal(\'${p.nome}\')" style="cursor:pointer; color:var(--accent);">${p.nome}</td>
                                         <td data-label="Gols" class="stat">${parseNum(p.gols)}</td>
                                         <td data-label="Assistências" class="stat">${parseNum(p.assistencias)}</td>
                                         <td data-label="Nota" class="stat">${p.notaPartida.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} (${p.isGoleiro ? 'Goleiro' : 'Linha'})</td>
