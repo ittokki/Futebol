@@ -552,7 +552,7 @@ function closeJogadorModal() {
             display: flex;
         }
 
-        .modal {
+        .modal { position: relative;
             background: var(--bg-light);
             color: var(--primary);
             border-radius: 16px;
@@ -954,6 +954,13 @@ function closeJogadorModal() {
             .desc { font-size: 0.9em; }
             .search-bar, .filter-bar { max-width: 100%; }
         }
+    
+        /* Garantir empilhamento correto dos modais para que o botão de fechar seja clicável no modal correto */
+        #modalBg { z-index: 9300; }
+        #jogoModalBg { z-index: 9400; }
+        #jogadorModalBg { z-index: 9500; }
+        .modal .close-btn { z-index: 20; }
+
     </style>
 </head>
 <body>
@@ -1222,6 +1229,7 @@ function closeJogadorModal() {
                 j.notaGeralLinha = notas.linha.length > 0 ? Math.round((notas.linha.reduce((a, b) => a + b, 0) / notas.linha.length) * 10) / 10 : 0;
                 j.jogosGoleiro = notas.goleiro.length;
                 j.jogosLinha = notas.linha.length;
+        j.mediaGolsSofridos = j.jogosGoleiro > 0 ? Math.round((j.golsTomados / j.jogosGoleiro) * 100) / 100 : 0;
                 j.conquistas = calcularConquistas(j, partidasRealizadas.filter(p => normalizaNome(p.nome) === nomeNorm), partidasRealizadas);
                 const bonusConquistas = calcularBonusMVP(j.conquistas);
                 j._pontosBrutos = j.jogos > 0 ? (j.gols * 2 + j.assistencias * 1 + j.vitorias * 1 - j.golsContra * 0.5 + j.notaGeral * 10 + bonusConquistas) : 0;
@@ -1243,7 +1251,8 @@ jogadores.forEach(j => {
   });
 
   const mediaRecente = pesoTotal > 0 ? pontosRecentes / pesoTotal : j._pontosBrutos;
-  const combinado = (j._pontosBrutos * 0.7) + (mediaRecente * 0.3);
+  const combinadoBase = (j._pontosBrutos * 0.7) + (mediaRecente * 0.3);
+  const combinado = j.jogosGoleiro > 0 ? combinadoBase * 1.2 : combinadoBase;
 
   j.pontosMVP = maxPontos > 0 ? Math.round((combinado / maxPontos) * 100) : 0;
 
@@ -1394,15 +1403,62 @@ jogadores.forEach(j => {
             }
         };
 
-        function makeRankingCard(jogadores, tipo, titulo, filterFn = null, sufixo = "") {
+        function makeRankingGoleiros(jogadores) {
+    let arr = jogadores.filter(j => j.jogosGoleiro > 0);
+    arr = arr.sort((a,b) => a.mediaGolsSofridos - b.mediaGolsSofridos || b.notaGeralGoleiro - a.notaGeralGoleiro);
+
+    const maxDefault = 10;
+    const tableId = "table_goleiros";
+    const btnId = "btn_goleiros";
+
+    function buildRows(limit) {
+        let rows = '';
+        arr.slice(0, limit).forEach((jogador, i) => {
+            rows += `
+                <tr${i === 0 ? ' class="top-player"' : ''}>
+                    <td data-label="Posição">${i+1}</td>
+                    <td data-label="Nome" onclick="showJogadorModal('${encodeURIComponent(jogador.nome)}')">
+                        ${medalhaHTML(i)}${jogador.nome}
+                    </td>
+                    <td data-label="Média Gols Sofridos">${jogador.mediaGolsSofridos.toFixed(2)}</td>
+                    <td data-label="Nota Goleiro">${jogador.notaGeralGoleiro.toFixed(1)}</td>
+                </tr>
+            `;
+        });
+        return rows;
+    }
+
+    let btnHtml = arr.length > maxDefault ? `<button class="see-more-btn" id="${btnId}" onclick="toggleTable('${tableId}','${btnId}',${arr.length},${maxDefault})">Ver Mais</button>` : "";
+    return `
+        <div class="ranking-card">
+            <div class="ranking-title"><i class="fas fa-shield-alt"></i> Ranking de Goleiros</div>
+            <table class="ranking-table" id="${tableId}">
+                <thead>
+                    <tr>
+                        <th>Pos</th>
+                        <th>Nome</th>
+                        <th>Média Gols Sofridos</th>
+                        <th>Nota Goleiro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${buildRows(maxDefault)}
+                </tbody>
+            </table>
+            ${btnHtml}
+        </div>
+    `;
+}
+
+function makeRankingCard(jogadores, tipo, titulo, filterFn = null, sufixo = "") {
             let arr = jogadores;
             if (filterFn) arr = arr.filter(filterFn);
             if (tipo === "jogos") arr = arr.filter(j => Number(j.jogos) > 0);
-            if (tipo === "golsTomados") arr = arr.filter(j => j.jogosGoleiro > 0);
+            if (tipo === "mediaGolsSofridos") arr = arr.filter(j => j.jogosGoleiro > 0);
             
             arr = [...arr].sort((a, b) => {
-                const valA = tipo === "golsTomados" ? a[tipo] : b[tipo];
-                const valB = tipo === "golsTomados" ? b[tipo] : a[tipo];
+                const valA = tipo === "mediaGolsSofridos" ? a[tipo] : b[tipo];
+                const valB = tipo === "mediaGolsSofridos" ? b[tipo] : a[tipo];
                 if (valA !== valB) return valA - valB;
                 if (a.jogos !== b.jogos) return a.jogos - b.jogos;
                 return a.nome.localeCompare(b.nome);
@@ -1417,14 +1473,14 @@ jogadores.forEach(j => {
                 let currentPos = 1;
                 let prevValue = null;
                 arr.slice(0, limit).forEach((jogador, i) => {
-                    const value = tipo === "golsTomados" ? jogador[tipo] : jogador[tipo];
+                    const value = tipo === "mediaGolsSofridos" ? jogador[tipo] : jogador[tipo];
                     if (i > 0 && value !== prevValue) currentPos++;
                     prevValue = value;
                     const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Diferenciado' ? 'Diferenciado: 50–69 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 20–49 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo') : '';
                     rows += `
                         <tr${i === 0 ? ' class="top-player"' : ''}>
                             <td data-label="Posição">${currentPos}</td>
-                            <td data-label="Nome" onclick="showModal('${encodeURIComponent(jogador.nome)}')">
+                            <td data-label="Nome" onclick="showJogadorModal('${encodeURIComponent(jogador.nome)}')">
                                 ${medalhaHTML(currentPos - 1)}${jogador.nome}${tipo === "pontosMVP" ? ` <span class="badge badge-${jogador.nivel.toLowerCase()}" data-tooltip="${tooltip}">${jogador.nivel}</span>` : ''}
                             </td>
                             <td data-label="${titulo}">${tipo === "aproveitamento" ? `<div class="progress" style="width: ${Math.min(jogador[tipo], 100)}%;"></div><span class="progress-text">${jogador[tipo]}%</span>` : 
@@ -1469,14 +1525,14 @@ jogadores.forEach(j => {
                 let currentPos = 1;
                 let prevValue = null;
                 arr.forEach((jogador, i) => {
-                    const value = tipo === "golsTomados" ? jogador[tipo] : jogador[tipo];
+                    const value = tipo === "mediaGolsSofridos" ? jogador[tipo] : jogador[tipo];
                     if (i > 0 && value !== prevValue) currentPos++;
                     prevValue = value;
                     const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Diferenciado' ? 'Diferenciado: 50–69 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 20–49 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo') : '';
                     rowsHtml += `
                         <tr${i === 0 ? ' class="top-player"' : ''}>
                             <td data-label="Posição">${currentPos}</td>
-                            <td data-label="Nome" onclick="showModal('${encodeURIComponent(jogador.nome)}')">
+                            <td data-label="Nome" onclick="showJogadorModal('${encodeURIComponent(jogador.nome)}')">
                                 ${medalhaHTML(currentPos - 1)}${jogador.nome}${tipo === "pontosMVP" ? ` <span class="badge badge-${jogador.nivel.toLowerCase()}" data-tooltip="${tooltip}">${jogador.nivel}</span>` : ''}
                             </td>
                             <td data-label="${tipo === "aproveitamento" ? 'Aproveitamento' : tipo === "notaGeral" ? 'Nota Geral' : tipo === "pontosMVP" ? 'Pontos MVP' : tipo}">
@@ -1492,14 +1548,14 @@ jogadores.forEach(j => {
                 let currentPos = 1;
                 let prevValue = null;
                 arr.slice(0, limit).forEach((jogador, i) => {
-                    const value = tipo === "golsTomados" ? jogador[tipo] : jogador[tipo];
+                    const value = tipo === "mediaGolsSofridos" ? jogador[tipo] : jogador[tipo];
                     if (i > 0 && value !== prevValue) currentPos++;
                     prevValue = value;
                     const tooltip = tipo === "pontosMVP" ? (jogador.nivel === 'Lenda' ? 'Lenda: ≥90 pontos/jogo' : jogador.nivel === 'Craque' ? 'Craque: 70–89 pontos/jogo' : jogador.nivel === 'Diferenciado' ? 'Diferenciado: 50–69 pontos/jogo' : jogador.nivel === 'Esforçado' ? 'Esforçado: 20–49 pontos/jogo' : 'Iniciante: 0–19 pontos/jogo') : '';
                     rowsHtml += `
                         <tr${i === 0 ? ' class="top-player"' : ''}>
                             <td data-label="Posição">${currentPos}</td>
-                            <td data-label="Nome" onclick="showModal('${encodeURIComponent(jogador.nome)}')">
+                            <td data-label="Nome" onclick="showJogadorModal('${encodeURIComponent(jogador.nome)}')">
                                 ${medalhaHTML(currentPos - 1)}${jogador.nome}${tipo === "pontosMVP" ? ` <span class="badge badge-${jogador.nivel.toLowerCase()}" data-tooltip="${tooltip}">${jogador.nivel}</span>` : ''}
                             </td>
                             <td data-label="${tipo === "aproveitamento" ? 'Aproveitamento' : tipo === "notaGeral" ? 'Nota Geral' : tipo === "pontosMVP" ? 'Pontos MVP' : tipo}">
@@ -2267,7 +2323,7 @@ window.showModal = function(playerName) {
                 assistencias: [...jogadores].sort((a,b) => b.assistencias - a.assistencias),
                 vitorias: [...jogadores].sort((a,b) => b.vitorias - a.vitorias),
                 jogos: [...jogadores].sort((a,b) => b.jogos - a.jogos),
-                golsTomados: [...jogadores].sort((a,b) => a.golsTomados - b.golsTomados),
+                goleiros: [...jogadores].filter(j => j.jogosGoleiro > 0).sort((a,b) => a.mediaGolsSofridos - b.mediaGolsSofridos || b.notaGeralGoleiro - a.notaGeralGoleiro),
                 aproveitamento: [...jogadores].filter(j => j.jogos > 0).sort((a,b) => b.aproveitamento - a.aproveitamento),
                 notaGeral: [...jogadores].sort((a,b) => b.notaGeral - a.notaGeral),
                 pontosMVP: [...jogadores].sort((a,b) => b.pontosMVP - a.pontosMVP)
@@ -2280,7 +2336,7 @@ window.showModal = function(playerName) {
                     return `
                         <tr${i === 0 ? ' class="top-player"' : ''}>
                             <td data-label="Posição">${pos}</td>
-                            <td data-label="Nome" onclick="showModal('${encodeURIComponent(jogador.nome)}')">${medalhaHTML(i)}${jogador.nome} <span class="badge badge-${jogador.nivel.toLowerCase()}" data-tooltip="${tooltip}">${jogador.nivel}</span></td>
+                            <td data-label="Nome" onclick="showJogadorModal('${encodeURIComponent(jogador.nome)}')">${medalhaHTML(i)}${jogador.nome} <span class="badge badge-${jogador.nivel.toLowerCase()}" data-tooltip="${tooltip}">${jogador.nivel}</span></td>
                             <td data-label="Pontos MVP">${jogador.pontosMVP.toLocaleString('pt-BR', { minimumFractionDigits: 1 })}</td>
                             <td data-label="Jogos">${jogador.jogos}</td>
                             <td data-label="Gols">${jogador.gols}</td>
@@ -2318,7 +2374,7 @@ window.showModal = function(playerName) {
                         ${makeRankingCard(jogadores, 'assistencias', 'Assistências')}
                         ${makeRankingCard(jogadores, 'vitorias', 'Vitórias')}
                         ${makeRankingCard(jogadores, 'jogos', 'Participações')}
-                        ${makeRankingCard(jogadores, 'golsTomados', 'Menos Gols Tomados')}
+                        ${makeRankingGoleiros(jogadores)}
                         ${makeRankingCard(jogadores, 'aproveitamento', 'Aproveitamento', j => j.jogos > 0, '%')}
                         ${makeRankingCard(jogadores, 'notaGeral', 'Nota Geral')}
                     </div>
@@ -2646,5 +2702,18 @@ function closeJogadorModal() {
 }
 
 </script>
+
+    <script>
+        // Fechar apenas o modal correspondente quando clicar no fundo (background)
+        (function() {
+            const jb = document.getElementById('jogoModalBg');
+            if (jb) jb.onclick = function(e) { if (e.target === this) { closeJogoModal(); } };
+            const jb2 = document.getElementById('jogadorModalBg');
+            if (jb2) jb2.onclick = function(e) { if (e.target === this) { closeJogadorModal(); } };
+            const mb = document.getElementById('modalBg');
+            if (mb) mb.onclick = function(e) { if (e.target === this) { document.getElementById('modalBg').classList.remove('active'); } };
+        })();
+    </script>
+
 </body>
 </html>
