@@ -364,7 +364,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return { partidas, jogadores };
     }
     
-    // --- FUNÇÃO CORRIGIDA ---
     function calcularNotaPartida(dados) {
         const isGoleiro = dados.isGoleiro;
         const PESO_ADM = 5;
@@ -374,17 +373,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const PESO_GOLS_CONTRA = -0.7;
         const NOTA_BASE = 6.0;
 
-        // 1. Calcula a nota técnica baseada em performance individual
         const notaTecnica = NOTA_BASE + (dados.gols * PESO_GOLS) + (dados.assistencias * PESO_ASSIST) + (dados.golsTomados * PESO_GOLS_TOMADOS) + (dados.golsContra * PESO_GOLS_CONTRA);
         
-        // 2. Faz a média da nota técnica com a nota do ADM
         let notaPonderada = (notaTecnica + (dados.notaADM * PESO_ADM)) / (1 + PESO_ADM);
 
-        // 3. Adiciona o bônus de resultado (vitória/empate) à nota já ponderada
         const bonusResultado = dados.vitoria === 1 ? 0.3 : dados.vitoria === 0.5 ? 0.15 : 0;
         let notaFinal = notaPonderada + bonusResultado;
         
-        // 4. Garante que a nota final esteja entre 0 e 10 e arredonda
         notaFinal = Math.max(0, Math.min(10, Math.round(notaFinal * 10) / 10));
         return notaFinal;
     }
@@ -1038,9 +1033,60 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.sqrt(array.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n);
     }
 
+    // --- FUNÇÃO DE CURIOSIDADES ATUALIZADA ---
     function generateFunFacts(players, matches) {
+        let selectedFacts = [];
+
+        // 1. FATO DE PRIORIDADE: Feitos de Goleiros
+        const parseDateString = (ds) => {
+            if (!ds) return null;
+            const parts = ds.split('/');
+            if (parts.length !== 3) return null;
+            return new Date(parts[2], parts[1] - 1, parts[0]);
+        };
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const twoWeeksAgo = new Date(today);
+        twoWeeksAgo.setDate(today.getDate() - 14);
+
+        const recentMatches = matches.filter(m => {
+            const matchDate = parseDateString(m.dataJogo);
+            return matchDate && m.jogoAconteceu && matchDate >= twoWeeksAgo && matchDate <= today;
+        });
+
+        const goalkeeperFeats = recentMatches.filter(m => m.isGoleiro && (m.gols > 0 || m.assistencias > 0));
+
+        if (goalkeeperFeats.length > 0) {
+            const featsByGoalkeeper = {};
+            goalkeeperFeats.forEach(feat => {
+                if (!featsByGoalkeeper[feat.nome]) {
+                    featsByGoalkeeper[feat.nome] = { nome: feat.nome, gols: 0, assistencias: 0 };
+                }
+                featsByGoalkeeper[feat.nome].gols += feat.gols;
+                featsByGoalkeeper[feat.nome].assistencias += feat.assistencias;
+            });
+
+            for (const gkNome in featsByGoalkeeper) {
+                const gkData = featsByGoalkeeper[gkNome];
+                const playerInfo = players.find(p => p.nome === gkNome);
+                const originalName = playerInfo ? playerInfo.nomeOriginal : gkNome;
+                
+                let text = `Feito incrível! O goleiro <b>${originalName}</b> `;
+                if (gkData.gols > 0 && gkData.assistencias > 0) {
+                    text += `marcou ${gkData.gols} gol(s) e deu ${gkData.assistencias} assistência(s)`;
+                } else if (gkData.gols > 0) {
+                    text += `marcou ${gkData.gols} gol(s)`;
+                } else {
+                    text += `deu ${gkData.assistencias} assistência(s)`;
+                }
+                text += ` nas últimas duas semanas!`;
+
+                selectedFacts.push({ icon: '🧤', text: text, type: 'goalkeeper_feat' });
+            }
+        }
+        
+        // 2. FATOS ALEATÓRIOS
         const factFunctions = [
-            // Curiosidades existentes
             (p, m) => {
                 const bocaMatches = m.filter(match => match.time.toUpperCase() === 'BOCA' && match.jogoAconteceu);
                 if (bocaMatches.length === 0) return null;
@@ -1120,117 +1166,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const mrConsistency = eligiblePlayers.sort((a,b) => a.stdDev - b.stdDev)[0];
                 return { icon: '⚖️', text: `O "Sr. Consistência" (performance mais regular, min. ${minGames} jogos) é <b>${mrConsistency.nomeOriginal}</b>, com um desvio padrão de apenas <b>${mrConsistency.stdDev.toFixed(2)}</b> em suas notas.`};
             },
-            // Novas Curiosidades
-            (p, m) => {
-                const minGames = 5;
-                const eligiblePlayers = p.filter(player => player.jogos >= minGames);
-                if (eligiblePlayers.length < 1) return null;
-                const versatilePlayer = eligiblePlayers.map(player => ({...player, contributionRate: (player.gols + player.assistencias) / player.jogos }))
-                                                     .sort((a, b) => b.contributionRate - a.contributionRate)[0];
-                return { icon: '✨', text: `O jogador mais versátil (gols+assist./partida, min. ${minGames} jogos) é <b>${versatilePlayer.nomeOriginal}</b> com média de <b>${versatilePlayer.contributionRate.toFixed(2)}</b> contribuições.` };
-            },
-            (p, m) => {
-                const matchesByDate = m.filter(match => match.jogoAconteceu).reduce((acc, match) => { (acc[match.dataJogo] = acc[match.dataJogo] || []).push(match); return acc; }, {});
-                let balancedMatch = { date: null, diff: Infinity, score: '' };
-                for (const date in matchesByDate) {
-                    const matches = matchesByDate[date];
-                    const scoreA = matches.filter(match => match.time.toUpperCase() === 'BOCA').reduce((sum, match) => sum + match.gols, 0);
-                    const scoreB = matches.filter(match => match.time.toUpperCase() === 'RIVER').reduce((sum, match) => sum + match.gols, 0);
-                    const diff = Math.abs(scoreA - scoreB);
-                    if (diff < balancedMatch.diff) { balancedMatch = { date, diff, score: `${scoreA}x${scoreB}` }; }
-                }
-                if (!balancedMatch.date) return null;
-                return { icon: '🤝', text: `A partida mais equilibrada foi a de <b>${balancedMatch.date}</b>, com um placar de <b>${balancedMatch.score}</b>.` };
-            },
-            (p, m) => {
-                const matchesByDate = m.filter(match => match.jogoAconteceu).reduce((acc, match) => { (acc[match.dataJogo] = acc[match.dataJogo] || []).push(match); return acc; }, {});
-                let topMatch = { date: null, avgNote: -1 };
-                for (const date in matchesByDate) {
-                    const notes = matchesByDate[date].map(match => match.notaPartida);
-                    if (notes.length === 0) continue;
-                    const avgNote = notes.reduce((sum, note) => sum + note, 0) / notes.length;
-                    if (avgNote > topMatch.avgNote) { topMatch = { date, avgNote }; }
-                }
-                if (!topMatch.date) return null;
-                return { icon: '🌟', text: `O jogo de mais alto nível técnico foi em <b>${topMatch.date}</b>, com média de nota <b>${topMatch.avgNote.toFixed(2)}</b>.` };
-            },
-            (p, m) => {
-                const matchesByDate = m.filter(match => match.jogoAconteceu).reduce((acc, match) => { (acc[match.dataJogo] = acc[match.dataJogo] || []).push(match); return acc; }, {});
-                let blowoutMatch = { date: null, diff: -1, score: '' };
-                for (const date in matchesByDate) {
-                    const matches = matchesByDate[date];
-                    const scoreA = matches.filter(match => match.time.toUpperCase() === 'BOCA').reduce((sum, match) => sum + match.gols, 0);
-                    const scoreB = matches.filter(match => match.time.toUpperCase() === 'RIVER').reduce((sum, match) => sum + match.gols, 0);
-                    const diff = Math.abs(scoreA - scoreB);
-                    if (diff > blowoutMatch.diff) { blowoutMatch = { date, diff, score: `${Math.max(scoreA, scoreB)}x${Math.min(scoreA, scoreB)}` }; }
-                }
-                if (!blowoutMatch.date || blowoutMatch.diff <= 2) return null;
-                return { icon: '💥', text: `A maior goleada registrada foi em <b>${blowoutMatch.date}</b>, com um placar de <b>${blowoutMatch.score}</b>.` };
-            },
-            (p, m) => {
-                const uniqueDates = [...new Set(m.map(match => match.dataJogo))].sort((a, b) => new Date(a.split('/').reverse().join('-')) - new Date(b.split('/').reverse().join('-')));
-                let streaks = {};
-                p.forEach(player => { streaks[player.nome] = { current: 0, max: 0 }; });
-                uniqueDates.forEach(date => {
-                    const playersOnDate = m.filter(match => match.dataJogo === date).map(match => match.nome);
-                    for (const playerName in streaks) {
-                        if (playersOnDate.includes(playerName)) { streaks[playerName].current++; } 
-                        else { streaks[playerName].max = Math.max(streaks[playerName].max, streaks[playerName].current); streaks[playerName].current = 0; }
-                    }
-                });
-                let maxStreak = { nome: null, count: 0 };
-                for (const playerName in streaks) {
-                    streaks[playerName].max = Math.max(streaks[playerName].max, streaks[playerName].current);
-                    if (streaks[playerName].max > maxStreak.count) { maxStreak = { nome: playerName, count: streaks[playerName].max }; }
-                }
-                if (!maxStreak.nome || maxStreak.count < 3) return null;
-                const marathoner = p.find(player => player.nome === maxStreak.nome);
-                return { icon: '🏃‍♂️', text: `O "Maratonista" é <b>${marathoner.nomeOriginal}</b>, que jogou <b>${maxStreak.count}</b> partidas consecutivas.` };
-            },
-            (p, m) => {
-                let bestDebut = { nome: null, nota: -1, data: null };
-                p.forEach(player => {
-                    const playerMatches = m.filter(match => match.nome === player.nome && match.jogoAconteceu)
-                                         .sort((a, b) => new Date(a.dataJogo.split('/').reverse().join('-')) - new Date(b.dataJogo.split('/').reverse().join('-')));
-                    if (playerMatches.length > 0) {
-                        const firstMatch = playerMatches[0];
-                        if ((firstMatch.gols > 0 || firstMatch.assistencias > 0) && firstMatch.notaPartida > bestDebut.nota) {
-                            bestDebut = { nome: player.nomeOriginal, nota: firstMatch.notaPartida, data: firstMatch.dataJogo };
-                        }
-                    }
-                });
-                if (!bestDebut.nome) return null;
-                return { icon: '🥇', text: `O "Estreante de Ouro" foi <b>${bestDebut.nome}</b>, que na sua 1ª partida em <b>${bestDebut.data}</b> já impactou e tirou nota <b>${bestDebut.nota.toFixed(1)}</b>.` };
-            },
-            (p, m) => {
-                const goalkeepersPerformances = m.filter(match => match.isGoleiro && match.jogoAconteceu).sort((a, b) => b.notaPartida - a.notaPartida);
-                if (goalkeepersPerformances.length === 0) return null;
-                const bestPerformance = goalkeepersPerformances[0];
-                const player = p.find(pl => pl.nome === bestPerformance.nome);
-                return { icon: '🧤', text: `A melhor atuação de um goleiro foi de <b>${player?.nomeOriginal || bestPerformance.nome}</b> em <b>${bestPerformance.dataJogo}</b>, com nota <b>${bestPerformance.notaPartida.toFixed(1)}</b>, sofrendo <b>${bestPerformance.golsTomados}</b> gols.`};
-            },
-            (p, m) => {
-                const hatTricks = m.filter(match => match.gols >= 3 && match.jogoAconteceu).sort((a, b) => new Date(a.dataJogo.split('/').reverse().join('-')) - new Date(b.dataJogo.split('/').reverse().join('-')));
-                if (hatTricks.length === 0) return null;
-                const firstHatTrick = hatTricks[0];
-                const player = p.find(pl => pl.nome === firstHatTrick.nome);
-                return { icon: '🕒', text: `O primeiro hat-trick registrado foi de <b>${player?.nomeOriginal || firstHatTrick.nome}</b> na partida de <b>${firstHatTrick.dataJogo}</b>.`};
-            },
-            (p, m) => {
-                const assistsByDate = m.reduce((acc, match) => { if(match.jogoAconteceu) { acc[match.dataJogo] = (acc[match.dataJogo] || 0) + match.assistencias; } return acc; }, {});
-                const topDate = Object.keys(assistsByDate).sort((a,b) => assistsByDate[b] - assistsByDate[a])[0];
-                if (!topDate || assistsByDate[topDate] === 0) return null;
-                return { icon: '🤝', text: `O jogo com mais assistências foi em <b>${topDate}</b>, com um total de <b>${assistsByDate[topDate]}</b> passes para gol.`};
-            }
         ];
         
         const shuffled = factFunctions.sort(() => 0.5 - Math.random());
-        let selectedFacts = [];
-        for (const func of shuffled) {
-            if (selectedFacts.length >= 3) break;
+        
+        let i = 0;
+        while(selectedFacts.length < 3 && i < shuffled.length) {
+            const func = shuffled[i];
             const fact = func(players, matches);
-            if (fact) selectedFacts.push(fact);
+            if (fact && !selectedFacts.some(existingFact => existingFact.text === fact.text)) {
+                selectedFacts.push(fact);
+            }
+            i++;
         }
+        
         return selectedFacts;
     }
     
