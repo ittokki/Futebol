@@ -501,7 +501,9 @@ document.addEventListener('DOMContentLoaded', () => {
             j.notaGeralLinha = j.notasLinha.length > 0 ? j.notasLinha.reduce((a, b) => a + b, 0) / j.notasLinha.length : 0;
             j.jogosGoleiro = j.notasGoleiro.length;
             j.mediaGolsSofridos = j.jogosGoleiro > 0 ? (j.golsTomados / j.jogosGoleiro) : 0;
-            j.aproveitamento = j.jogos > 0 ? ((j.vitorias + j.empates * 0.5) / j.jogos) * 100 : 0;
+            
+            // --- ALTERAÇÃO APLICADA AQUI ---
+            j.aproveitamento = j.jogos >= 3 ? ((j.vitorias + j.empates * 0.5) / j.jogos) * 100 : 0;
             
             j.conquistas = calcularConquistas(j, j.partidas, matchesPlayed);
             const bonusConquistas = calcularBonusMVP(j.conquistas);
@@ -1033,7 +1035,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.sqrt(array.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / n);
     }
 
-    // --- FUNÇÃO DE CURIOSIDADES ATUALIZADA ---
     function generateFunFacts(players, matches) {
         let selectedFacts = [];
 
@@ -1081,7 +1082,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 text += ` nas últimas duas semanas!`;
 
-                selectedFacts.push({ icon: '🧤', text: text, type: 'goalkeeper_feat' });
+                selectedFacts.push({ icon: '🧤', text: text });
             }
         }
         
