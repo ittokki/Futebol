@@ -228,13 +228,13 @@
 
             <div id="curiosidades" class="tab-pane hidden">
                 <div class="flex justify-between items-center mb-6">
-                       <h2 class="text-2xl font-bold">Fatos Curiosos</h2>
-                       <button id="new-facts-button" class="px-4 py-2 text-sm font-medium card rounded-md hover:bg-blue-500 hover:text-white transition-colors">
-                           <i class="fas fa-sync-alt mr-2"></i>Gerar Novas
-                       </button>
+                      <h2 class="text-2xl font-bold">Fatos Curiosos</h2>
+                      <button id="new-facts-button" class="px-4 py-2 text-sm font-medium card rounded-md hover:bg-blue-500 hover:text-white transition-colors">
+                          <i class="fas fa-sync-alt mr-2"></i>Gerar Novas
+                      </button>
                 </div>
                 <div id="curiosidades-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -295,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'Lenda': '#f59e0b',       // Dourado
         'Craque': '#9ca3af',      // Cinza/Prata
         'Diferenciado': '#3b82f6', // Azul
-        'Esforçado': '#10b981',    // Verde
+        'Esforçado': '#10b981',   // Verde
         'Iniciante': '#6b7280'     // Cinza
     };
 
@@ -364,6 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return { partidas, jogadores };
     }
     
+    // --- FUNÇÃO CORRIGIDA ---
     function calcularNotaPartida(dados) {
         const isGoleiro = dados.isGoleiro;
         const PESO_ADM = 5;
@@ -371,11 +372,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const PESO_ASSIST = 0.6;
         const PESO_GOLS_TOMADOS = isGoleiro ? -0.15 : 0;
         const PESO_GOLS_CONTRA = -0.7;
-        const PESO_VITORIA = dados.vitoria === 1 ? 0.3 : dados.vitoria === 0.5 ? 0.15 : 0;
         const NOTA_BASE = 6.0;
 
-        const notaTecnica = NOTA_BASE + (dados.gols * PESO_GOLS) + (dados.assistencias * PESO_ASSIST) + (dados.golsTomados * PESO_GOLS_TOMADOS) + (dados.golsContra * PESO_GOLS_CONTRA) + PESO_VITORIA;
-        let notaFinal = (notaTecnica + (dados.notaADM * PESO_ADM)) / (1 + PESO_ADM);
+        // 1. Calcula a nota técnica baseada em performance individual
+        const notaTecnica = NOTA_BASE + (dados.gols * PESO_GOLS) + (dados.assistencias * PESO_ASSIST) + (dados.golsTomados * PESO_GOLS_TOMADOS) + (dados.golsContra * PESO_GOLS_CONTRA);
+        
+        // 2. Faz a média da nota técnica com a nota do ADM
+        let notaPonderada = (notaTecnica + (dados.notaADM * PESO_ADM)) / (1 + PESO_ADM);
+
+        // 3. Adiciona o bônus de resultado (vitória/empate) à nota já ponderada
+        const bonusResultado = dados.vitoria === 1 ? 0.3 : dados.vitoria === 0.5 ? 0.15 : 0;
+        let notaFinal = notaPonderada + bonusResultado;
+        
+        // 4. Garante que a nota final esteja entre 0 e 10 e arredonda
         notaFinal = Math.max(0, Math.min(10, Math.round(notaFinal * 10) / 10));
         return notaFinal;
     }
@@ -585,10 +594,10 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
         } else {
              container.innerHTML = `
-              <div class="card p-5 rounded-lg">
-                  <h3 class="text-xl font-bold mb-2">Destaque de ${monthLabel}</h3>
-                  <p class="text-gray-500">Nenhum jogador com partidas registradas neste mês.</p>
-              </div>`;
+             <div class="card p-5 rounded-lg">
+                 <h3 class="text-xl font-bold mb-2">Destaque de ${monthLabel}</h3>
+                 <p class="text-gray-500">Nenhum jogador com partidas registradas neste mês.</p>
+             </div>`;
         }
     }
 
@@ -686,7 +695,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // --- INÍCIO DA ALTERAÇÃO ---
         const ultimasPartidasHtml = player.partidas.filter(p => p.jogoAconteceu).slice(-5).reverse().map(p => {
             let resultadoHtml = '';
             if (p.vitoria === 1) {
@@ -709,7 +717,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>`;
         }).join('') || '<p>Nenhuma partida registrada.</p>';
-        // --- FIM DA ALTERAÇÃO ---
 
         modalContentEl.innerHTML = `
             <div class="flex flex-col md:flex-row items-center md:items-start mb-6">
@@ -926,12 +933,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if(typeof p1[stat.key] === 'number' && typeof p2[stat.key] === 'number') {
                 if (stat.higherIsBetter !== undefined) {
                      if (stat.higherIsBetter) {
-                         if(p1[stat.key] > p2[stat.key]) p1Class = 'font-bold text-green-500';
-                         if(p2[stat.key] > p1[stat.key]) p2Class = 'font-bold text-green-500';
-                    } else {
-                         if(p1[stat.key] < p2[stat.key]) p1Class = 'font-bold text-green-500';
-                         if(p2[stat.key] < p1[stat.key]) p2Class = 'font-bold text-green-500';
-                    }
+                          if(p1[stat.key] > p2[stat.key]) p1Class = 'font-bold text-green-500';
+                          if(p2[stat.key] > p1[stat.key]) p2Class = 'font-bold text-green-500';
+                     } else {
+                          if(p1[stat.key] < p2[stat.key]) p1Class = 'font-bold text-green-500';
+                          if(p2[stat.key] < p1[stat.key]) p2Class = 'font-bold text-green-500';
+                     }
                 }
             }
 
@@ -1119,7 +1126,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const eligiblePlayers = p.filter(player => player.jogos >= minGames);
                 if (eligiblePlayers.length < 1) return null;
                 const versatilePlayer = eligiblePlayers.map(player => ({...player, contributionRate: (player.gols + player.assistencias) / player.jogos }))
-                                                       .sort((a, b) => b.contributionRate - a.contributionRate)[0];
+                                                     .sort((a, b) => b.contributionRate - a.contributionRate)[0];
                 return { icon: '✨', text: `O jogador mais versátil (gols+assist./partida, min. ${minGames} jogos) é <b>${versatilePlayer.nomeOriginal}</b> com média de <b>${versatilePlayer.contributionRate.toFixed(2)}</b> contribuições.` };
             },
             (p, m) => {
@@ -1184,7 +1191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let bestDebut = { nome: null, nota: -1, data: null };
                 p.forEach(player => {
                     const playerMatches = m.filter(match => match.nome === player.nome && match.jogoAconteceu)
-                                           .sort((a, b) => new Date(a.dataJogo.split('/').reverse().join('-')) - new Date(b.dataJogo.split('/').reverse().join('-')));
+                                         .sort((a, b) => new Date(a.dataJogo.split('/').reverse().join('-')) - new Date(b.dataJogo.split('/').reverse().join('-')));
                     if (playerMatches.length > 0) {
                         const firstMatch = playerMatches[0];
                         if ((firstMatch.gols > 0 || firstMatch.assistencias > 0) && firstMatch.notaPartida > bestDebut.nota) {
