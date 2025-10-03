@@ -228,10 +228,10 @@
 
             <div id="curiosidades" class="tab-pane hidden">
                 <div class="flex justify-between items-center mb-6">
-                      <h2 class="text-2xl font-bold">Fatos Curiosos</h2>
-                      <button id="new-facts-button" class="px-4 py-2 text-sm font-medium card rounded-md hover:bg-blue-500 hover:text-white transition-colors">
-                          <i class="fas fa-sync-alt mr-2"></i>Gerar Novas
-                      </button>
+                        <h2 class="text-2xl font-bold">Fatos Curiosos</h2>
+                        <button id="new-facts-button" class="px-4 py-2 text-sm font-medium card rounded-md hover:bg-blue-500 hover:text-white transition-colors">
+                            <i class="fas fa-sync-alt mr-2"></i>Gerar Novas
+                        </button>
                 </div>
                 <div id="curiosidades-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 </div>
@@ -283,11 +283,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const apiKey = "AIzaSyCL19ds6YqVOv5vV-zygBjeC-byy-rDPfM";
     const spreadsheetId = "1TvrVT8ksYYMlpw8gkKIFvpnnCf02J8uYTkhHc5c0vdo";
     const rangePagina1 = "Página1!A2:H100";
-    const rangePagina2 = "Página2!A2:K300";
+    const rangePagina2 = "Página2!A2:L300"; // Aumentado para coluna L (Posição)
     
     // Mapa de fotos dos jogadores
     const playerPhotos = {
-        "HENRIQUE AMARAL": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Henrique.jpg", "VITOR": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Vitor%20gol.jpg", "MARCO DAITX": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Marco.jpg", "EDUARDO DUDU": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Eduardo.jpg", "WILIAN SILVA": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Wiliam%20Silva.jpg", "DOUGLAS DAITX": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Douglas.jpg", "GUSTAVO": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Gustavo.jpg", "ADEMIR": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Ademir.jpg", "DAVI": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Davi%20Mattos.jpg", "VICTOR MATHEUS": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Victor%20Matheus.jpg", "ANDRE": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/main/Andre.jpg", "MAICON": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Maicon.jpg", "CRISTIANO": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Cristiano.jpg", "CLAUDIO SCHNEIRDER": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Claudio.jpg", "WILIAN": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/main/Wiliam.jpg", "IAGO NUNES": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Iago%20Nunes.jpg", "WILLY": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/WILLY.jpg", "ZECA": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/ZECA.jpg", "FRANCISCO CHICO": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/FRANCISCO%20CHICO.jpg", "PEDRALLI": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/PEDRALLI.jpg", "THALES RAMOS": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Thales%20Ramos.jpg", "BRUNO GUIMARAES": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Bruno.jpg", "EVERTON": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Everton.jpg", "JUAREZ CARDOSO": "https://github.com/ittokki/Fotos-jogadores/blob/main/juarez.jpg?raw=true", "CARLOS ALEXANDRE": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Carlos%20alexandre.jpg"
+        "HENRIQUE AMARAL": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/henrique.jpg", "VITOR": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Vitor%20gol.jpg", "MARCO DAITX": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Marco.jpg", "EDUARDO DUDU": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Eduardo.jpg", "WILIAN SILVA": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Wilian%20Silva.jpg", "DOUGLAS DAITX": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Douglas.jpg", "GUSTAVO": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Gustavo.jpg", "ADEMIR": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Ademir.jpg", "DAVI": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Davi%20Mattos.jpg", "VICTOR MATHEUS": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/matheus.jpg", "ANDRE": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/main/Andre.jpg", "MAICON": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Maicon.jpg", "CRISTIANO": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Cristiano.jpg", "CLAUDIO SCHNEIRDER": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Claudio.jpg", "WILIAN": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/main/Wiliam.jpg", "IAGO NUNES": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Iago%20Nunes.jpg", "WILLY": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/WILLY.jpg", "ZECA": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/ZECA.jpg", "FRANCISCO CHICO": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/FRANCISCO%20CHICO.jpg", "PEDRALLI": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/PEDRALLI.jpg", "THALES RAMOS": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Thales%20Ramos.jpg", "BRUNO GUIMARAES": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Bruno.jpg", "EVERTON": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Everton.jpg", "JUAREZ CARDOSO": "https://github.com/ittokki/Fotos-jogadores/blob/main/juarez.jpg?raw=true", "CARLOS ALEXANDRE": "https://raw.githubusercontent.com/ittokki/Fotos-jogadores/refs/heads/main/Carlos%20alexandre.jpg"
     };
     
     // Mapeamento de cores para borda da foto de acordo com o nível
@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'Craque': '#9ca3af',      // Cinza/Prata
         'Diferenciado': '#3b82f6', // Azul
         'Esforçado': '#10b981',   // Verde
-        'Iniciante': '#6b7280'     // Cinza
+        'Iniciante': '#6b7280'    // Cinza
     };
 
     let allPlayersData = [];
@@ -426,9 +426,26 @@ document.addEventListener('DOMContentLoaded', () => {
         return conquistas;
     }
 
-    function calcularBonusMVP(conquistas) {
+    function calculateMatchBonus(gols, assistencias, notaPartida) {
+        let bonus = 0;
         const pontos = { comum: 1, raro: 2, epico: 3, lendario: 5, mitico: 10 };
-        return conquistas.reduce((acc, c) => acc + (pontos[c.rarity] || 0), 0);
+
+        if (gols >= 6) bonus += pontos.mitico;
+        else if (gols >= 5) bonus += pontos.lendario;
+        else if (gols >= 4) bonus += pontos.epico;
+        else if (gols >= 3) bonus += pontos.raro;
+        else if (gols >= 2) bonus += pontos.comum;
+
+        if (assistencias >= 6) bonus += pontos.mitico;
+        else if (assistencias >= 5) bonus += pontos.lendario;
+        else if (assistencias >= 4) bonus += pontos.epico;
+        else if (assistencias >= 3) bonus += pontos.raro;
+        else if (assistencias >= 2) bonus += pontos.comum;
+        
+        if (notaPartida >= 9.5) bonus += pontos.lendario;
+        else if (notaPartida >= 9) bonus += pontos.epico;
+
+        return bonus;
     }
 
     function processarDados(partidasRaw, jogadoresRaw) {
@@ -452,7 +469,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 vitoria: vitoriaStatus === 'sim' ? 1 : vitoriaStatus === 'empate' ? 0.5 : 0,
                 time: row[8] || 'N/A',
                 jogoAconteceu: (row[10] || "").toLowerCase() === 'sim',
-                isGoleiro: isGoleiro
+                isGoleiro: isGoleiro,
+                posicao: row[11] || 'N/A'
             };
         }).filter(p => p.nome && dateRegex.test(p.dataJogo));
 
@@ -460,7 +478,45 @@ document.addEventListener('DOMContentLoaded', () => {
             p.notaPartida = p.jogoAconteceu ? calcularNotaPartida(p) : 0;
         });
 
-        allPlayersData = recalculateStatsForPeriod(Array.from(jogadoresMap.values()), allMatchesData);
+        // NOVO: Calcula quantas vezes cada jogador entrou no time ideal
+        const timeIdealCounts = new Map();
+        const groupedMatches = allMatchesData.reduce((acc, p) => {
+            if (p.jogoAconteceu) {
+                (acc[p.dataJogo] = acc[p.dataJogo] || []).push(p);
+            }
+            return acc;
+        }, {});
+
+        Object.values(groupedMatches).forEach(partidasDoDia => {
+            const getBestPlayers = (pos, count) => {
+                return partidasDoDia
+                    .filter(p => p.posicao && p.posicao.toLowerCase() === pos.toLowerCase())
+                    .sort((a, b) => b.notaPartida - a.notaPartida)
+                    .slice(0, count);
+            };
+
+            const idealTeam = [
+                ...getBestPlayers('ata', 2),
+                ...getBestPlayers('mei', 2),
+                ...getBestPlayers('ala', 2),
+                ...getBestPlayers('zag', 1),
+                ...getBestPlayers('gol', 1),
+            ];
+
+            idealTeam.forEach(player => {
+                if (player) {
+                    timeIdealCounts.set(player.nome, (timeIdealCounts.get(player.nome) || 0) + 1);
+                }
+            });
+        });
+
+        const basePlayers = Array.from(jogadoresMap.values());
+        allPlayersData = recalculateStatsForPeriod(basePlayers, allMatchesData);
+
+        // Adiciona a contagem de time ideal aos dados gerais de cada jogador
+        allPlayersData.forEach(player => {
+            player.timeIdealCount = timeIdealCounts.get(player.nome) || 0;
+        });
         
         return allPlayersData;
     }
@@ -468,11 +524,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function recalculateStatsForPeriod(basePlayers, periodMatches) {
         const periodPlayersMap = new Map();
         basePlayers.forEach(p => {
-             periodPlayersMap.set(p.nome, {
-                 ...p, jogos: 0, vitorias: 0, empates: 0,
-                 gols: 0, assistencias: 0, golsContra: 0, golsTomados: 0,
-                 partidas: [], notasGeral: [], notasGoleiro: [], notasLinha: []
-             });
+                 periodPlayersMap.set(p.nome, {
+                    ...p, jogos: 0, vitorias: 0, empates: 0,
+                    gols: 0, assistencias: 0, golsContra: 0, golsTomados: 0,
+                    partidas: [], notasGeral: [], notasGoleiro: [], notasLinha: []
+                 });
         });
 
         const matchesPlayed = periodMatches.filter(p => p.jogoAconteceu);
@@ -495,41 +551,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const players = Array.from(periodPlayersMap.values()).filter(p => p.jogos > 0);
         
+        // ================== NOVA LÓGICA DE MVP BASEADA EM MÉDIA POR JOGO ==================
+        const mvpBenchmark = 25; // Define que uma média de 25 pontos por jogo é o nível Lenda (100 MVP).
+
         players.forEach(j => {
+            // Primeiro, calculamos as médias gerais que ainda são úteis para exibição
             j.notaGeral = j.notasGeral.length > 0 ? j.notasGeral.reduce((a, b) => a + b, 0) / j.notasGeral.length : 0;
-            j.notaGeralGoleiro = j.notasGoleiro.length > 0 ? j.notasGoleiro.reduce((a, b) => a + b, 0) / j.notasGoleiro.length : 0;
-            j.notaGeralLinha = j.notasLinha.length > 0 ? j.notasLinha.reduce((a, b) => a + b, 0) / j.notasLinha.length : 0;
             j.jogosGoleiro = j.notasGoleiro.length;
             j.mediaGolsSofridos = j.jogosGoleiro > 0 ? (j.golsTomados / j.jogosGoleiro) : 0;
-            
-            // --- ALTERAÇÃO APLICADA AQUI ---
             j.aproveitamento = j.jogos >= 3 ? ((j.vitorias + j.empates * 0.5) / j.jogos) * 100 : 0;
             
+            // Calculamos as conquistas totais para o Hall da Fama e perfil
             j.conquistas = calcularConquistas(j, j.partidas, matchesPlayed);
-            const bonusConquistas = calcularBonusMVP(j.conquistas);
-            
-            j._pontosBrutos = (j.gols * 2) + j.assistencias + j.vitorias - (j.golsContra * 0.5) + (j.notaGeral * 10) + bonusConquistas;
-            j.partidas.sort((a,b) => new Date(a.dataJogo.split('/').reverse().join('-')) - new Date(b.dataJogo.split('/').reverse().join('-')));
-        });
-        
-        const maxPontosBrutos = Math.max(...players.map(j => j._pontosBrutos || 0));
 
-        players.forEach(j => {
-            let pontosRecentes = 0, pesoTotal = 0;
-            j.partidas.slice(-5).forEach((p, idx) => {
-                const peso = (idx + 1);
-                const pb = p.gols*2 + p.assistencias + (p.vitoria === 1 ? 1 : p.vitoria === 0.5 ? 0.5 : 0) - p.golsContra*0.5 + p.notaPartida*10;
-                pontosRecentes += pb * peso;
-                pesoTotal += peso;
+            // Agora, o cálculo de pontos por partida
+            let totalMatchPoints = 0;
+            j.partidas.forEach(p => {
+                if(p.jogoAconteceu) {
+                    const matchBonus = calculateMatchBonus(p.gols, p.assistencias, p.notaPartida);
+                    // A pontuação de uma partida é baseada em Gols, Assistências, Vitória (1 ponto), Empate (0.5), a Nota e o Bônus de conquistas da partida
+                    const matchScore = (p.gols * 2) + p.assistencias + p.vitoria + p.notaPartida + matchBonus;
+                    totalMatchPoints += matchScore;
+                }
             });
-            const mediaRecente = pesoTotal > 0 ? pontosRecentes / pesoTotal : j._pontosBrutos;
+
+            const averageMatchPoints = j.jogos > 0 ? totalMatchPoints / j.jogos : 0;
             
-            const combinadoBase = (j._pontosBrutos * 0.7) + (mediaRecente * 0.3);
-            const combinado = j.jogosGoleiro > 0 ? combinadoBase * 1.2 : combinadoBase;
+            // Goleiros recebem um pequeno bônus por terem menos chances de pontuar com gols/assistências
+            const finalAverage = j.jogosGoleiro > 0 ? averageMatchPoints * 1.15 : averageMatchPoints;
+
+            j.pontosMVP = (finalAverage / mvpBenchmark) * 100;
             
-            j.pontosMVP = maxPontosBrutos > 0 ? Math.round((combinado / maxPontosBrutos) * 100) : 0;
+            // Garante que a pontuação não passe de 100 e arredonda.
+            j.pontosMVP = Math.min(100, Math.round(j.pontosMVP));
 
             j.nivel = j.pontosMVP >= 90 ? 'Lenda' : j.pontosMVP >= 70 ? 'Craque' : j.pontosMVP >= 50 ? 'Diferenciado' : j.pontosMVP >= 20 ? 'Esforçado' : 'Iniciante';
+            
+            // Ordena as partidas para exibição no perfil do jogador
+            j.partidas.sort((a,b) => new Date(a.dataJogo.split('/').reverse().join('-')) - new Date(b.dataJogo.split('/').reverse().join('-')));
         });
 
         return players;
@@ -577,31 +636,41 @@ document.addEventListener('DOMContentLoaded', () => {
          const container = document.getElementById('destaque-mes-container');
          const bestPlayer = [...players].filter(p => p.jogos > 0).sort((a,b) => b.notaGeral - a.notaGeral)[0];
          if(bestPlayer) {
-            const photoUrl = playerPhotos[bestPlayer.nome] || `https://ui-avatars.com/api/?name=${bestPlayer.nome.replace(' ', '+')}&background=random`;
-            container.innerHTML = `
-            <div class="card p-5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg">
-                <h3 class="text-xl font-bold mb-3"><i class="fas fa-crown mr-2 text-yellow-300"></i>Destaque de ${monthLabel}</h3>
-                <div class="flex items-center space-x-4 cursor-pointer" data-player-name="${bestPlayer.nomeOriginal}">
-                    <img src="${photoUrl}" class="w-20 h-20 rounded-full object-cover border-4 border-yellow-300" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${bestPlayer.nome.replace(' ', '+')}&background=random';">
-                    <div>
-                        <p class="text-2xl font-bold">${bestPlayer.nomeOriginal}</p>
-                        <p class="text-lg">Nota Média: <span class="font-bold text-yellow-300">${bestPlayer.notaGeral.toFixed(1)}</span></p>
-                    </div>
-                </div>
-            </div>`;
-        } else {
+             const photoUrl = playerPhotos[bestPlayer.nome] || `https://ui-avatars.com/api/?name=${bestPlayer.nome.replace(' ', '+')}&background=random`;
              container.innerHTML = `
-             <div class="card p-5 rounded-lg">
-                 <h3 class="text-xl font-bold mb-2">Destaque de ${monthLabel}</h3>
-                 <p class="text-gray-500">Nenhum jogador com partidas registradas neste mês.</p>
+             <div class="card p-5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg">
+                 <h3 class="text-xl font-bold mb-3"><i class="fas fa-crown mr-2 text-yellow-300"></i>Destaque de ${monthLabel}</h3>
+                 <div class="flex items-center space-x-4 cursor-pointer" data-player-name="${bestPlayer.nomeOriginal}">
+                     <img src="${photoUrl}" class="w-20 h-20 rounded-full object-cover border-4 border-yellow-300" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${bestPlayer.nome.replace(' ', '+')}&background=random';">
+                     <div>
+                         <p class="text-2xl font-bold">${bestPlayer.nomeOriginal}</p>
+                         <p class="text-lg">Nota Média: <span class="font-bold text-yellow-300">${bestPlayer.notaGeral.toFixed(1)}</span></p>
+                     </div>
+                 </div>
              </div>`;
-        }
+         } else {
+              container.innerHTML = `
+               <div class="card p-5 rounded-lg">
+                   <h3 class="text-xl font-bold mb-2">Destaque de ${monthLabel}</h3>
+                   <p class="text-gray-500">Nenhum jogador com partidas registradas neste mês.</p>
+               </div>`;
+         }
     }
 
     function renderRankings(players) {
         const container = document.getElementById('rankings-grid');
         container.innerHTML = '';
-        const cards = [{ title: 'Pontos MVP', key: 'pontosMVP' },{ title: 'Gols', key: 'gols' },{ title: 'Assistências', key: 'assistencias' },{ title: 'Vitórias', key: 'vitorias' },{ title: 'Jogos', key: 'jogos' },{ title: 'Ranking Goleiros (Média Gols Sofridos)', key: 'mediaGolsSofridos', higherIsBetter: false },{ title: 'Aproveitamento', key: 'aproveitamento', unit: '%' },{ title: 'Nota Geral', key: 'notaGeral' }];
+        const cards = [
+            { title: 'Pontos MVP', key: 'pontosMVP' },
+            { title: 'TIME IDEAL', key: 'timeIdealCount' },
+            { title: 'Gols', key: 'gols' },
+            { title: 'Assistências', key: 'assistencias' },
+            { title: 'Vitórias', key: 'vitorias' },
+            { title: 'Jogos', key: 'jogos' },
+            { title: 'Ranking Goleiros (Média Gols Sofridos)', key: 'mediaGolsSofridos', higherIsBetter: false },
+            { title: 'Aproveitamento', key: 'aproveitamento', unit: '%' },
+            { title: 'Nota Geral', key: 'notaGeral' }
+        ];
         cards.forEach(card => {
             const data = (card.key === 'mediaGolsSofridos') ? players.filter(p => p.jogosGoleiro > 0) : players;
             container.innerHTML += createRankingCard(card.title, data, card.key, card.unit, card.higherIsBetter);
@@ -664,6 +733,96 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         });
+    }
+
+    function renderTeamOfTheRound(partidasDoDia) {
+        if (!partidasDoDia || partidasDoDia.length === 0) return '';
+        const jogoRealizado = partidasDoDia.some(p => p.jogoAconteceu);
+        if (!jogoRealizado) return ''; // Só mostra se o jogo aconteceu
+
+        const getBestPlayers = (pos, count) => {
+            return partidasDoDia
+                .filter(p => p.posicao && p.posicao.toLowerCase() === pos.toLowerCase())
+                .sort((a, b) => b.notaPartida - a.notaPartida)
+                .slice(0, count);
+        };
+
+        const team = {
+            ata: getBestPlayers('ATA', 2),
+            mei: getBestPlayers('MEI', 2),
+            ala: getBestPlayers('ALA', 2),
+            zag: getBestPlayers('ZAG', 1),
+            gol: getBestPlayers('GOL', 1),
+        };
+        
+        const melhorDaPartida = [...partidasDoDia].sort((a,b) => b.notaPartida - a.notaPartida)[0];
+
+        const renderPlayer = (player) => {
+            if (!player) return '<div class="w-24 h-28"></div>'; // Placeholder for empty slot
+
+            const photoUrl = playerPhotos[normalizaNome(player.nomeRaw)] || `https://ui-avatars.com/api/?name=${normalizaNome(player.nomeRaw).replace(' ', '+')}&background=random`;
+            
+            const isMvp = melhorDaPartida && melhorDaPartida.nomeRaw === player.nomeRaw;
+
+            return `
+                <div class="relative flex flex-col items-center text-center text-white w-24 mx-1">
+                    <div class="relative">
+                        <img src="${photoUrl}" class="w-16 h-16 rounded-full object-cover border-2 border-gray-400" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${normalizaNome(player.nomeRaw).replace(' ', '+')}&background=random';">
+                        ${isMvp ? '<i class="fas fa-star text-yellow-300 absolute -top-1 -right-1 text-xl transform rotate-12"></i>' : ''}
+                    </div>
+                    <p class="text-xs font-semibold mt-1 truncate w-full">${player.nomeRaw.split(' ')[0]}</p>
+                    <p class="text-sm font-bold">${player.notaPartida.toFixed(1)}</p>
+                </div>
+            `;
+        };
+
+        // Garante que existam placeholders se uma posição não for preenchida
+        while(team.ata.length < 2) team.ata.push(null);
+        while(team.mei.length < 2) team.mei.push(null);
+        while(team.ala.length < 2) team.ala.push(null);
+        while(team.zag.length < 1) team.zag.push(null);
+        while(team.gol.length < 1) team.gol.push(null);
+
+        return `
+            <div class="mt-8">
+                <h3 class="font-bold text-xl text-center mb-4">Time Destaque da Partida</h3>
+                <div class="bg-blue-900/50 dark:bg-gray-900 p-4 rounded-lg relative overflow-hidden" 
+                     style="background: linear-gradient(to bottom, #061e3c, #0d3b66, #061e3c); border: 2px solid #ffffff30;">
+                    <!-- Campo com linhas -->
+                    <div class="absolute inset-0 z-0">
+                        <div class="absolute top-1/2 left-4 right-4 h-px bg-white/20"></div>
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-2 border-white/20 rounded-full"></div>
+                        <div class="absolute top-0 left-4 right-4 h-48 border-x-2 border-white/20">
+                            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-16 border-2 border-white/20 rounded-b-2xl border-t-0"></div>
+                        </div>
+                         <div class="absolute bottom-0 left-4 right-4 h-48 border-x-2 border-white/20">
+                             <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-16 border-2 border-white/20 rounded-t-2xl border-b-0"></div>
+                        </div>
+                    </div>
+
+                    <div class="relative z-10 flex flex-col justify-between h-full space-y-4 py-4 min-h-[500px]">
+                        <!-- Atacantes -->
+                        <div class="flex justify-center w-full">
+                            ${team.ata.map(renderPlayer).join('')}
+                        </div>
+                        <!-- Meias -->
+                        <div class="flex justify-center w-full">
+                            ${team.mei.map(renderPlayer).join('')}
+                        </div>
+                        <!-- Defensores -->
+                        <div class="flex justify-center w-full items-center">
+                            ${renderPlayer(team.ala[0])}
+                            ${renderPlayer(team.zag[0])}
+                            ${renderPlayer(team.ala[1])}
+                        </div>
+                        <!-- Goleiro -->
+                        <div class="flex justify-center w-full">
+                             ${renderPlayer(team.gol[0])}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
     
     function showPlayerModal(playerName) {
@@ -758,7 +917,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const partidasDoDia = allMatchesData.filter(p => p.dataJogo === date);
         const jogoRealizado = partidasDoDia.some(p => p.jogoAconteceu);
 
-        modalContainer.className = 'card rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-scale-in';
+        modalContainer.className = 'card rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto relative animate-scale-in';
 
         let modalHtml = '';
         const timeA = partidasDoDia.filter(p => p.time.toUpperCase() === 'BOCA');
@@ -788,13 +947,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h2 class="text-3xl font-bold">BOCA ${scoreA} x ${scoreB} RIVER</h2>
                     <p class="text-amber-500 font-semibold mt-1"><i class="fas fa-star mr-1"></i> Melhor da Partida: ${melhorJogador.nomeRaw} (${melhorJogador.notaPartida.toFixed(1)})</p>
                 </div>
-                <div class="mb-4">
-                    <h3 class="font-bold text-xl text-center p-2 bg-blue-600 text-white rounded-t-md">BOCA</h3>
-                    ${renderTeamTable(timeA, true)}
-                </div>
-                <div>
-                    <h3 class="font-bold text-xl text-center p-2 bg-red-600 text-white rounded-t-md">RIVER</h3>
-                    ${renderTeamTable(timeB, true)}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-bold text-xl text-center p-2 bg-blue-600 text-white rounded-t-md">BOCA</h3>
+                        ${renderTeamTable(timeA, true)}
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl text-center p-2 bg-red-600 text-white rounded-t-md">RIVER</h3>
+                        ${renderTeamTable(timeB, true)}
+                    </div>
                 </div>
             `;
         } else {
@@ -803,15 +964,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h2 class="text-3xl font-bold">Jogo Agendado</h2>
                     <p class="text-gray-500">${date}</p>
                 </div>
-                <div class="mb-4">
-                    <h3 class="font-bold text-xl text-center p-2 bg-blue-600 text-white rounded-t-md">BOCA (Escalação)</h3>
-                    ${renderTeamTable(timeA, false)}
-                </div>
-                <div>
-                    <h3 class="font-bold text-xl text-center p-2 bg-red-600 text-white rounded-t-md">RIVER (Escalação)</h3>
-                    ${renderTeamTable(timeB, false)}
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-bold text-xl text-center p-2 bg-blue-600 text-white rounded-t-md">BOCA (Escalação)</h3>
+                        ${renderTeamTable(timeA, false)}
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl text-center p-2 bg-red-600 text-white rounded-t-md">RIVER (Escalação)</h3>
+                        ${renderTeamTable(timeB, false)}
+                    </div>
                 </div>
             `;
+        }
+
+        if (jogoRealizado) {
+            modalHtml += renderTeamOfTheRound(partidasDoDia);
         }
 
         modalContentEl.innerHTML = modalHtml;
@@ -929,13 +1096,13 @@ document.addEventListener('DOMContentLoaded', () => {
             let p1Class = '', p2Class = '';
             if(typeof p1[stat.key] === 'number' && typeof p2[stat.key] === 'number') {
                 if (stat.higherIsBetter !== undefined) {
-                     if (stat.higherIsBetter) {
-                          if(p1[stat.key] > p2[stat.key]) p1Class = 'font-bold text-green-500';
-                          if(p2[stat.key] > p1[stat.key]) p2Class = 'font-bold text-green-500';
-                     } else {
-                          if(p1[stat.key] < p2[stat.key]) p1Class = 'font-bold text-green-500';
-                          if(p2[stat.key] < p1[stat.key]) p2Class = 'font-bold text-green-500';
-                     }
+                      if (stat.higherIsBetter) {
+                           if(p1[stat.key] > p2[stat.key]) p1Class = 'font-bold text-green-500';
+                           if(p2[stat.key] > p1[stat.key]) p2Class = 'font-bold text-green-500';
+                      } else {
+                           if(p1[stat.key] < p2[stat.key]) p1Class = 'font-bold text-green-500';
+                           if(p2[stat.key] < p1[stat.key]) p2Class = 'font-bold text-green-500';
+                      }
                 }
             }
 
@@ -975,14 +1142,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let playersForPeriod;
         let monthLabel;
+        let periodMatches;
 
         if (selectedMonth === 'Geral') {
-            playersForPeriod = allPlayersData;
+            periodMatches = allMatchesData;
+            playersForPeriod = allPlayersData; // Already calculated with all matches
             const date = new Date();
             const currentMonthName = date.toLocaleString('default', { month: 'long' });
             monthLabel = currentMonthName.charAt(0).toUpperCase() + currentMonthName.slice(1);
         } else {
-            const periodMatches = allMatchesData.filter(p => p.dataJogo.slice(3) === selectedMonth);
+            periodMatches = allMatchesData.filter(p => p.dataJogo.slice(3) === selectedMonth);
+            // Use allPlayersData as base to ensure all players are considered, even if they didn't play in the month
             playersForPeriod = recalculateStatsForPeriod(allPlayersData, periodMatches);
             const [m, y] = selectedMonth.split('/');
             monthLabel = new Date(y, m - 1).toLocaleString('default', { month: 'long', year: 'numeric'});
@@ -1393,3 +1563,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
+
+
+
