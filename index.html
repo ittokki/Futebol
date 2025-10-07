@@ -554,6 +554,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         allPlayersData.forEach(player => {
             player.timeDaSemanaCount = timeDaSemanaCounts.get(player.nome) || 0;
+            if (player.timeDaSemanaCount > 0) {
+                const isPlural = player.timeDaSemanaCount > 1;
+                player.conquistas.unshift({
+                    nome: `${player.timeDaSemanaCount}x Seleção da Semana`,
+                    desc: `Eleito para a seleção da semana ${player.timeDaSemanaCount} ${isPlural ? 'vezes' : 'vez'}.`,
+                    icon: "fa-solid fa-award",
+                    rarity: "raro"
+                });
+            }
         });
         
         return allPlayersData;
@@ -672,10 +681,10 @@ document.addEventListener('DOMContentLoaded', () => {
              </div>`;
          } else {
               container.innerHTML = `
-               <div class="card p-5 rounded-lg">
-                   <h3 class="text-xl font-bold mb-2">Destaque de ${monthLabel}</h3>
-                   <p class="text-gray-500">Nenhum jogador com partidas registradas neste mês.</p>
-               </div>`;
+                 <div class="card p-5 rounded-lg">
+                     <h3 class="text-xl font-bold mb-2">Destaque de ${monthLabel}</h3>
+                     <p class="text-gray-500">Nenhum jogador com partidas registradas neste mês.</p>
+                 </div>`;
          }
     }
 
@@ -853,7 +862,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                          <div class="absolute bottom-0 left-4 right-4 h-48 border-x-2 border-white/20">
                              <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-16 border-2 border-white/20 rounded-t-2xl border-b-0"></div>
-                        </div>
+                         </div>
                     </div>
 
                     <div class="relative z-10 flex flex-col justify-between h-full space-y-4 py-4 min-h-[500px]">
@@ -949,11 +958,12 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center mb-6">
+                    <div class="grid grid-cols-2 ${player.timeDaSemanaCount > 0 ? 'sm:grid-cols-5' : 'sm:grid-cols-4'} gap-4 text-center mb-6">
                         <div><p class="text-2xl font-bold">${player.jogos}</p><p class="text-sm text-gray-500">Jogos</p></div>
                         <div><p class="text-2xl font-bold">${player.gols}</p><p class="text-sm text-gray-500">Gols</p></div>
                         <div><p class="text-2xl font-bold">${player.assistencias}</p><p class="text-sm text-gray-500">Assistências</p></div>
                         <div><p class="text-2xl font-bold">${player.vitorias}</p><p class="text-sm text-gray-500">Vitórias</p></div>
+                        ${player.timeDaSemanaCount > 0 ? `<div><p class="text-2xl font-bold">${player.timeDaSemanaCount}</p><p class="text-sm text-gray-500">Seleção Sem.</p></div>` : ''}
                     </div>
                     <h4 class="font-bold text-lg mb-3">Últimas 5 Partidas Jogadas <span class="trend-arrow ml-2">${trendIcon}</span></h4>
                     <div class="space-y-2">${ultimasPartidasHtml}</div>
@@ -1627,4 +1637,5 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
