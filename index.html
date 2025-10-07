@@ -136,6 +136,7 @@
             <div class="border-b border-gray-200 dark:border-gray-700">
                 <div class="flex -mb-px space-x-2 sm:space-x-6" id="tabs">
                     <button data-tab="rankings" class="tab-button active text-sm sm:text-base whitespace-nowrap py-4 px-1 border-b-2 font-medium"><i class="fas fa-trophy mr-2"></i>Rankings</button>
+                    <button data-tab="selecao-mes" class="tab-button text-sm sm:text-base whitespace-nowrap py-4 px-1 border-b-2 font-medium"><i class="fas fa-calendar-alt mr-2"></i>Seleção do Mês</button>
                     <button data-tab="graficos" class="tab-button text-sm sm:text-base whitespace-nowrap py-4 px-1 border-b-2 font-medium"><i class="fas fa-chart-line mr-2"></i>Gráficos</button>
                     <button data-tab="hall-da-fama" class="tab-button text-sm sm:text-base whitespace-nowrap py-4 px-1 border-b-2 font-medium"><i class="fas fa-star mr-2"></i>Hall da Fama</button>
                     <button data-tab="partidas" class="tab-button text-sm sm:text-base whitespace-nowrap py-4 px-1 border-b-2 font-medium"><i class="fas fa-history mr-2"></i>Partidas</button>
@@ -160,6 +161,16 @@
                 </div>
                 <div id="destaque-mes-container" class="mb-6"></div>
                 <div id="rankings-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                </div>
+            </div>
+
+            <div id="selecao-mes" class="tab-pane hidden">
+                <div class="card p-4 rounded-lg mb-6 max-w-sm mx-auto">
+                    <label for="selecao-month-filter" class="font-semibold block text-center mb-2">Selecione o Mês:</label>
+                    <select id="selecao-month-filter" class="w-full p-2 rounded-md card"></select>
+                </div>
+                <div id="selecao-mes-display">
+                    <!-- The football field will be rendered here -->
                 </div>
             </div>
 
@@ -302,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allPlayersData = [];
     let allMatchesData = [];
     let chartInstances = {};
+    let selecaoMesFilterInitialized = false;
 
     const loadingEl = document.getElementById('loading');
     const appContainerEl = document.getElementById('app-container');
@@ -1216,17 +1228,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let playersForPeriod;
         let monthLabel;
-        let periodMatches;
-
+        
         if (selectedMonth === 'Geral') {
-            periodMatches = allMatchesData;
-            playersForPeriod = allPlayersData; // Already calculated with all matches
+            playersForPeriod = allPlayersData;
             const date = new Date();
             const currentMonthName = date.toLocaleString('default', { month: 'long' });
             monthLabel = currentMonthName.charAt(0).toUpperCase() + currentMonthName.slice(1);
         } else {
-            periodMatches = allMatchesData.filter(p => p.dataJogo.slice(3) === selectedMonth);
-            // Use allPlayersData as base to ensure all players are considered, even if they didn't play in the month
+            const periodMatches = allMatchesData.filter(p => p.dataJogo.slice(3) === selectedMonth);
             playersForPeriod = recalculateStatsForPeriod(allPlayersData, periodMatches);
             const [m, y] = selectedMonth.split('/');
             monthLabel = new Date(y, m - 1).toLocaleString('default', { month: 'long', year: 'numeric'});
@@ -1332,6 +1341,55 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // 2. FATOS ALEATÓRIOS
         const factFunctions = [
+             (p, m) => {
+                const minGames = 5;
+                const eligiblePlayers = p.filter(player => player.jogos >= minGames);
+                if (eligiblePlayers.length < 1) return null;
+                const garcom = eligiblePlayers.sort((a,b) => (b.assistencias / b.jogos) - (a.assistencias / a.jogos))[0];
+                if (garcom.assistencias === 0) return null;
+                const apg = (garcom.assistencias / garcom.jogos).toFixed(2);
+                return { icon: '🧑‍🍳', text: `O "Garçom" do time (melhor média de assistências com min. ${minGames} jogos) é <b>${garcom.nomeOriginal}</b>, com <b>${apg}</b> assistências por partida.` };
+            },
+            (p, m) => {
+                const minGamesGoleiro = 3;
+                const eligibleGKs = p.filter(player => player.jogosGoleiro >= minGamesGoleiro);
+                if (eligibleGKs.length < 1) return null;
+                const muralha = eligibleGKs.sort((a,b) => a.mediaGolsSofridos - b.mediaGolsSofridos)[0];
+                return { icon: '🧱', text: `A "Muralha" (melhor média de gols sofridos com min. ${minGamesGoleiro} jogos de Goleiro) é <b>${muralha.nomeOriginal}</b>, sofrendo apenas <b>${muralha.mediaGolsSofridos.toFixed(2)}</b> gols por jogo.`};
+            },
+            (p, m) => {
+                const ownGoals = p.filter(player => player.golsContra > 0).sort((a,b) => b.golsContra - a.golsContra);
+                if (ownGoals.length === 0) return null;
+                const azarado = ownGoals[0];
+                return { icon: '🤦‍♂️', text: `O jogador com mais gols contra é <b>${azarado.nomeOriginal}</b>, com <b>${azarado.golsContra}</b> gol(s) contra o próprio time.`};
+            },
+             (p, m) => {
+                const matchesByDate = m.reduce((acc, match) => {
+                    if(match.jogoAconteceu) {
+                        (acc[match.dataJogo] = acc[match.dataJogo] || []).push(match);
+                    }
+                    return acc;
+                }, {});
+                
+                let biggestWin = { diff: 0, date: null, score: '' };
+
+                for (const date in matchesByDate) {
+                    const matches = matchesByDate[date];
+                    const scoreBoca = matches.filter(match => match.time.toUpperCase() === 'BOCA').reduce((sum, match) => sum + match.gols, 0);
+                    const scoreRiver = matches.filter(match => match.time.toUpperCase() === 'RIVER').reduce((sum, match) => sum + match.gols, 0);
+                    const diff = Math.abs(scoreBoca - scoreRiver);
+                    
+                    if (diff > biggestWin.diff) {
+                        biggestWin = {
+                            diff: diff,
+                            date: date,
+                            score: `${Math.max(scoreBoca, scoreRiver)} a ${Math.min(scoreBoca, scoreRiver)}`
+                        };
+                    }
+                }
+                if (biggestWin.diff === 0) return null;
+                return { icon: '💥', text: `A maior goleada registrada foi em <b>${biggestWin.date}</b>, com um placar de <b>${biggestWin.score}</b>.`};
+            },
             (p, m) => {
                 const bocaMatches = m.filter(match => match.time.toUpperCase() === 'BOCA' && match.jogoAconteceu);
                 if (bocaMatches.length === 0) return null;
@@ -1455,6 +1513,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (button.dataset.tab === 'curiosidades') {
                     renderCuriosidades();
                 }
+                if (button.dataset.tab === 'selecao-mes' && !selecaoMesFilterInitialized) {
+                    setupSelecaoMesFilter();
+                    selecaoMesFilterInitialized = true;
+                }
             }
         });
         
@@ -1507,6 +1569,153 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('export-csv-button').addEventListener('click', exportVisibleDataToCSV);
         document.getElementById('share-button').addEventListener('click', shareDashboard);
+    }
+    
+    function setupSelecaoMesFilter() {
+        const filter = document.getElementById('selecao-month-filter');
+        const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        const uniqueMonths = [...new Set(allMatchesData.map(p => p.dataJogo.slice(3)))].sort((a, b) => {
+            const [ma, ya] = a.split('/'); const [mb, yb] = b.split('/');
+            return new Date(yb, mb - 1) - new Date(ya, ma - 1);
+        });
+        
+        filter.innerHTML = ''; 
+        if (uniqueMonths.length === 0) {
+            filter.innerHTML = '<option>Nenhum mês disponível</option>';
+            document.getElementById('selecao-mes-display').innerHTML = '<p class="text-center text-gray-500">Não há dados de partidas para exibir.</p>';
+            return;
+        }
+
+        uniqueMonths.forEach(monthYear => {
+            const [month, year] = monthYear.split('/');
+            const monthName = monthNames[parseInt(month, 10) - 1];
+            filter.innerHTML += `<option value="${monthYear}">${monthName} de ${year}</option>`;
+        });
+
+        filter.removeEventListener('change', renderSelecaoMesTab);
+        filter.addEventListener('change', renderSelecaoMesTab);
+        
+        renderSelecaoMesTab();
+    }
+    
+    function renderSelecaoMesTab() {
+        const container = document.getElementById('selecao-mes-display');
+        const selectedMonth = document.getElementById('selecao-month-filter').value;
+        
+        if (!selectedMonth) {
+            container.innerHTML = '<p class="text-center card p-4 text-gray-500">Selecione um mês para ver a seleção.</p>';
+            return;
+        }
+
+        const monthLabel = document.getElementById('selecao-month-filter').options[document.getElementById('selecao-month-filter').selectedIndex].text;
+        const periodMatches = allMatchesData.filter(p => p.dataJogo.slice(3) === selectedMonth && p.jogoAconteceu);
+
+        // 1. Calculate total match days in the selected month
+        const totalMatchDaysInMonth = new Set(periodMatches.map(p => p.dataJogo)).size;
+        
+        const monthlyPlayerStats = new Map();
+        periodMatches.forEach(p => {
+            if (!p.posicao || p.posicao === 'N/A') return;
+            if (!monthlyPlayerStats.has(p.nome)) {
+                monthlyPlayerStats.set(p.nome, {
+                    nome: p.nome,
+                    nomeOriginal: allPlayersData.find(ap => ap.nome === p.nome)?.nomeOriginal || p.nomeRaw,
+                    positions: {},
+                    totalGames: 0
+                });
+            }
+            const playerStats = monthlyPlayerStats.get(p.nome);
+            playerStats.totalGames++; // Increment total games for the player
+            const posKey = p.posicao.toLowerCase();
+            if (!playerStats.positions[posKey]) {
+                playerStats.positions[posKey] = { notes: [] };
+            }
+            playerStats.positions[posKey].notes.push(p.notaPartida);
+        });
+
+        const allPositionPerformances = [];
+        for (const stats of monthlyPlayerStats.values()) {
+            // Apply filter here: Must have played in >39% of the month's games
+            if ((stats.totalGames / totalMatchDaysInMonth) <= 0.39) {
+                continue; // Skip player if they don't meet the criteria
+            }
+
+            for (const pos in stats.positions) {
+                const avgNota = stats.positions[pos].notes.reduce((a, b) => a + b, 0) / stats.positions[pos].notes.length;
+                allPositionPerformances.push({
+                    nome: stats.nome,
+                    nomeOriginal: stats.nomeOriginal,
+                    posicao: pos,
+                    avgNota: avgNota
+                });
+            }
+        }
+
+        const getBestMonthlyPlayers = (position, count) => {
+            return allPositionPerformances
+                .filter(p => p.posicao === position)
+                .sort((a, b) => b.avgNota - a.avgNota)
+                .slice(0, count);
+        };
+
+        const team = {
+            ata: getBestMonthlyPlayers('ata', 2),
+            mei: getBestMonthlyPlayers('mei', 2),
+            ala: getBestMonthlyPlayers('ala', 2),
+            zag: getBestMonthlyPlayers('zag', 1),
+            gol: getBestMonthlyPlayers('gol', 1),
+        };
+
+        const totalPlayersInTeam = Object.values(team).flat().length;
+        if (totalPlayersInTeam === 0) {
+            container.innerHTML = `<div class="card p-4 rounded-lg text-center text-gray-500">Nenhum jogador encontrado com dados suficientes para a Seleção de ${monthLabel}.</div>`;
+            return;
+        }
+
+        const renderPlayer = (player) => {
+            if (!player) return '<div class="w-24 h-28"></div>'; 
+            const photoUrl = playerPhotos[player.nome] || `https://ui-avatars.com/api/?name=${player.nome.replace(' ', '+')}&background=random`;
+            return `
+                <div class="relative flex flex-col items-center text-center text-white w-24 mx-1">
+                    <img src="${photoUrl}" class="w-16 h-16 rounded-full object-cover border-2 border-yellow-300" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${player.nome.replace(' ', '+')}&background=random';">
+                    <p class="text-xs font-semibold mt-1 truncate w-full">${player.nomeOriginal.split(' ')[0]}</p>
+                    <p class="text-sm font-bold">${player.avgNota.toFixed(1)}</p>
+                </div>
+            `;
+        };
+
+        while(team.ata.length < 2) team.ata.push(null);
+        while(team.mei.length < 2) team.mei.push(null);
+        while(team.ala.length < 2) team.ala.push(null);
+        while(team.zag.length < 1) team.zag.push(null);
+        while(team.gol.length < 1) team.gol.push(null);
+
+        container.innerHTML = `
+            <h3 class="font-bold text-xl text-center mb-4">Seleção de ${monthLabel}</h3>
+            <div class="bg-blue-900/50 dark:bg-gray-900 p-4 rounded-lg relative overflow-hidden" 
+                 style="background: linear-gradient(to bottom, #061e3c, #0d3b66, #061e3c); border: 2px solid #ffffff30;">
+                <div class="absolute inset-0 z-0">
+                    <div class="absolute top-1/2 left-4 right-4 h-px bg-white/20"></div>
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-2 border-white/20 rounded-full"></div>
+                    <div class="absolute top-0 left-4 right-4 h-48 border-x-2 border-white/20">
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-16 border-2 border-white/20 rounded-b-2xl border-t-0"></div>
+                    </div>
+                     <div class="absolute bottom-0 left-4 right-4 h-48 border-x-2 border-white/20">
+                         <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-16 border-2 border-white/20 rounded-t-2xl border-b-0"></div>
+                     </div>
+                </div>
+                <div class="relative z-10 flex flex-col justify-between h-full space-y-4 py-4 min-h-[500px]">
+                    <div class="flex justify-center w-full space-x-8">${team.ata.map(renderPlayer).join('')}</div>
+                    <div class="flex justify-center w-full space-x-8">${team.mei.map(renderPlayer).join('')}</div>
+                    <div class="flex justify-center w-full items-center space-x-4">
+                        ${renderPlayer(team.ala[0])}
+                        ${renderPlayer(team.zag[0])}
+                        ${renderPlayer(team.ala[1])}
+                    </div>
+                    <div class="flex justify-center w-full">${team.gol.map(renderPlayer).join('')}</div>
+                </div>
+            </div>
+        `;
     }
 
     function showFullRankingInModal(title, sortedData, key, unit) {
@@ -1637,5 +1846,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
+
 
 
