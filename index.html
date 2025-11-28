@@ -92,13 +92,107 @@
         .rank-pos { width: 24px; font-weight: bold; color: #64748b; font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; }
         .rank-1 { color: #fbbf24; } .rank-2 { color: #e2e8f0; } .rank-3 { color: #b45309; }
 
-        /* === MODO PRINT (Snapshot Mode) === */
+        /* === MODO PRINT (Snapshot Mode - Partida) === */
         #match-modal.print-active { padding: 0 !important; background: #0f172a !important; align-items: flex-start !important; }
         #match-modal.print-active #match-content-box { height: 100vh !important; max-width: 100% !important; border: none !important; border-radius: 0 !important; box-shadow: none !important; }
         #match-modal.print-active #match-header { padding: 10px !important; }
         #match-modal.print-active #match-body { overflow: hidden !important; padding: 10px 20px !important; }
         #match-modal.print-active #list-boca, #match-modal.print-active #list-river { max-height: none !important; overflow: visible !important; }
         #match-modal.print-active .football-pitch { border-width: 2px !important; }
+
+        /* === MODO PRINT (Snapshot Mode - Jogador/Instagram - CORRIGIDO) === */
+        #player-modal.print-active {
+            padding: 0 !important;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            overflow: hidden !important;
+        }
+
+        #player-modal.print-active .max-w-6xl {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 100vh !important;
+            /* Truque de escala para caber sempre na tela, sem cortar */
+            transform: scale(0.9); 
+            transform-origin: center center;
+            
+            flex-direction: column !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Ajustes responsivos da escala */
+        @media (max-height: 800px) {
+            #player-modal.print-active .max-w-6xl { transform: scale(0.75); }
+        }
+        @media (max-height: 600px) {
+            #player-modal.print-active .max-w-6xl { transform: scale(0.6); }
+        }
+
+        #player-modal.print-active #modal-card-container {
+            margin: 0 auto 1.5rem auto !important;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6) !important;
+        }
+
+        /* Área de detalhes no print */
+        #player-modal.print-active .flex-1 {
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            text-align: center !important;
+            width: 100% !important;
+            max-width: 400px !important; /* Limita a largura dos stats */
+        }
+
+        #player-modal.print-active #detail-name {
+            font-size: 3rem !important;
+            text-align: center !important;
+            justify-content: center !important;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            margin-bottom: 0.5rem !important;
+        }
+        
+        #player-modal.print-active #detail-level {
+            display: inline-block !important;
+            margin-bottom: 1.5rem !important;
+            font-size: 1.2rem !important;
+            padding: 0.5rem 1.5rem !important;
+        }
+
+        #player-modal.print-active .flex.items-end {
+            flex-direction: column !important;
+            align-items: center !important;
+            border-bottom: none !important;
+            margin-bottom: 0 !important;
+        }
+
+        /* Grid de stats 2x2 mais bonito */
+        #player-modal.print-active .grid-cols-4 {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 1rem !important;
+            margin-bottom: 2rem !important;
+        }
+        
+        #player-modal.print-active .grid-cols-4 > div {
+            background: rgba(255,255,255,0.05) !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Ocultar elementos desnecessários no print do jogador */
+        #player-modal.print-active #player-evo-chart, 
+        #player-modal.print-active .glass-panel:has(#player-evo-chart),
+        #player-modal.print-active #detail-history-container { display: none !important; }
+        
+        #player-modal.print-active #detail-badges {
+            justify-content: center !important;
+            transform: scale(1.2); /* Aumenta um pouco os badges */
+        }
     </style>
 </head>
 <body class="flex h-screen font-sans text-gray-100 selection:bg-blue-500 selection:text-white">
@@ -321,7 +415,11 @@
 
     <!-- MODAL JOGADOR -->
     <div id="player-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[10050] hidden items-center justify-center p-4 transition-opacity duration-300 overflow-y-auto">
-        <button id="close-player-modal" class="absolute top-4 right-4 text-white/50 hover:text-white text-3xl transition-colors z-[10060] bg-black/50 rounded-full w-10 h-10 flex items-center justify-center">&times;</button>
+        <div class="absolute top-4 right-4 z-50 flex gap-2">
+            <button id="print-player-btn" class="bg-blue-600 hover:bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all" title="Modo Instagram"><i class="fas fa-camera"></i></button>
+            <button id="close-player-modal" class="bg-black/50 hover:bg-white text-white/50 hover:text-black w-10 h-10 rounded-full flex items-center justify-center transition-colors">&times;</button>
+        </div>
+        
         <div class="flex flex-col md:flex-row gap-6 md:gap-10 items-center justify-center max-w-6xl w-full my-auto">
             <div class="flex-shrink-0 transform md:hover:scale-105 transition-transform duration-500 mt-8 md:mt-0">
                 <div id="modal-card-container" class="fut-card-container relative group">
@@ -378,7 +476,7 @@
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Troféus</h3>
                     <div id="detail-badges" class="flex flex-wrap gap-2"></div>
                 </div>
-                <div>
+                <div id="detail-history-container">
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Recente</h3>
                     <div class="space-y-1 md:space-y-2" id="detail-history"></div>
                 </div>
@@ -770,11 +868,28 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('clear-all').onclick = () => { document.querySelectorAll('.draft-chk').forEach(c => { c.checked = false; c.closest('div').classList.remove('bg-blue-500/20'); }); };
         document.getElementById('generate-teams').onclick = generateTeams;
         
-        // --- LÓGICA DO BOTÃO PRINT (SNAPSHOT) ---
+        // --- LÓGICA DO BOTÃO PRINT (SNAPSHOT - PARTIDA) ---
         document.getElementById('print-btn').onclick = () => {
             const modal = document.getElementById('match-modal');
             modal.classList.toggle('print-active');
             const btn = document.getElementById('print-btn');
+            const icon = btn.querySelector('i');
+            if (modal.classList.contains('print-active')) {
+                btn.classList.remove('bg-blue-600'); 
+                btn.classList.add('bg-green-600'); 
+                icon.className = 'fas fa-check';
+            } else {
+                btn.classList.remove('bg-green-600'); 
+                btn.classList.add('bg-blue-600'); 
+                icon.className = 'fas fa-camera';
+            }
+        };
+
+        // --- LÓGICA DO BOTÃO PRINT (INSTAGRAM - JOGADOR) ---
+        document.getElementById('print-player-btn').onclick = () => {
+            const modal = document.getElementById('player-modal');
+            modal.classList.toggle('print-active');
+            const btn = document.getElementById('print-player-btn');
             const icon = btn.querySelector('i');
             if (modal.classList.contains('print-active')) {
                 btn.classList.remove('bg-blue-600'); 
@@ -949,6 +1064,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!p) return;
         const stats = p.fifa;
         const container = document.getElementById('modal-card-container');
+        
+        // Reset player print mode
+        const modal = document.getElementById('player-modal');
+        modal.classList.remove('print-active');
+        const btn = document.getElementById('print-player-btn');
+        btn.classList.remove('bg-green-600'); btn.classList.add('bg-blue-600'); btn.querySelector('i').className = 'fas fa-camera';
+
         container.className = 'fut-card-container relative group';
         container.classList.add(stats.cssClass); 
         document.getElementById('card-ovr').innerText = stats.ovr;
@@ -973,7 +1095,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const matches = p.partidas.slice(-10);
             chartInstances['playerEvo'] = new Chart(ctx, { type: 'line', data: { labels: matches.map(m => m.dataJogo.substring(0, 5)), datasets: [{ label: 'Nota', data: matches.map(m => m.notaPartida), borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 2, pointRadius: 3, fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 4, max: 10, grid: { color: 'rgba(255,255,255,0.05)' }, ticks:{ color:'#aaa' } }, x: { display: false } } } });
         }
-        const modal = document.getElementById('player-modal');
+        
         modal.classList.remove('hidden'); modal.classList.add('flex');
     };
 
