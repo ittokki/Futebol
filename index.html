@@ -3,16 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Inimigos da Bola - Ultimate Dashboard</title>
-    
-    <!-- Bibliotecas Externas -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Inimigos da Bola - Ultimate Dashboard 2026</title>
+    <link rel="icon" href="data:,"> <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 
-    <!-- Configurações Tailwind -->
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -82,6 +79,9 @@
         .badge-gol { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
         .badge-ass { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
         .badge-gk { background: rgba(148, 163, 184, 0.2); color: #e2e8f0; border: 1px solid rgba(148, 163, 184, 0.3); }
+        /* NOVO BADGE DEF */
+        .badge-def { background: rgba(249, 115, 22, 0.2); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); }
+
         .achievement-badge { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; border: 1px solid rgba(255,255,255,0.1); margin-right: 4px; margin-bottom: 4px; background: rgba(0,0,0,0.4); }
         
         @keyframes shine { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
@@ -100,7 +100,7 @@
         #match-modal.print-active #list-boca, #match-modal.print-active #list-river { max-height: none !important; overflow: visible !important; }
         #match-modal.print-active .football-pitch { border-width: 2px !important; }
 
-        /* === MODO PRINT (Snapshot Mode - Jogador/Instagram - CORRIGIDO) === */
+        /* === MODO PRINT (Snapshot Mode - Jogador/Instagram) === */
         #player-modal.print-active {
             padding: 0 !important;
             background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%) !important;
@@ -114,10 +114,8 @@
             width: 100% !important;
             height: auto !important;
             max-height: 100vh !important;
-            /* Truque de escala para caber sempre na tela, sem cortar */
             transform: scale(0.9); 
             transform-origin: center center;
-            
             flex-direction: column !important;
             margin: 0 !important;
             padding: 0 !important;
@@ -126,7 +124,6 @@
             box-shadow: none !important;
         }
 
-        /* Ajustes responsivos da escala */
         @media (max-height: 800px) {
             #player-modal.print-active .max-w-6xl { transform: scale(0.75); }
         }
@@ -139,14 +136,13 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.6) !important;
         }
 
-        /* Área de detalhes no print */
         #player-modal.print-active .flex-1 {
             background: transparent !important;
             border: none !important;
             padding: 0 !important;
             text-align: center !important;
             width: 100% !important;
-            max-width: 400px !important; /* Limita a largura dos stats */
+            max-width: 400px !important;
         }
 
         #player-modal.print-active #detail-name {
@@ -171,7 +167,6 @@
             margin-bottom: 0 !important;
         }
 
-        /* Grid de stats 2x2 mais bonito */
         #player-modal.print-active .grid-cols-4 {
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 1rem !important;
@@ -184,26 +179,23 @@
             backdrop-filter: blur(10px);
         }
 
-        /* Ocultar elementos desnecessários no print do jogador */
         #player-modal.print-active #player-evo-chart, 
         #player-modal.print-active .glass-panel:has(#player-evo-chart),
         #player-modal.print-active #detail-history-container { display: none !important; }
         
         #player-modal.print-active #detail-badges {
             justify-content: center !important;
-            transform: scale(1.2); /* Aumenta um pouco os badges */
+            transform: scale(1.2); 
         }
     </style>
 </head>
 <body class="flex h-screen font-sans text-gray-100 selection:bg-blue-500 selection:text-white">
 
-    <!-- LOADING -->
     <div id="loading" class="fixed inset-0 bg-[#0f172a] z-[10060] flex flex-col items-center justify-center">
         <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <h2 class="text-2xl font-bold font-fifa tracking-widest text-white animate-pulse">CARREGANDO...</h2>
+        <h2 class="text-2xl font-bold font-fifa tracking-widest text-white animate-pulse">CARREGANDO 2026...</h2>
     </div>
 
-    <!-- SIDEBAR -->
     <aside class="w-64 glass-sidebar flex-shrink-0 flex flex-col h-full z-30 hidden md:flex relative">
         <div class="p-6 flex items-center gap-3 mb-2">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-lg shadow-blue-900/50">
@@ -228,7 +220,6 @@
         </nav>
     </aside>
 
-    <!-- MOBILE HEADER -->
     <div class="md:hidden fixed top-0 left-0 right-0 h-16 glass-sidebar z-40 flex items-center justify-between px-4 border-b border-white/5 backdrop-blur-md bg-opacity-90">
         <div class="flex items-center gap-2">
             <i class="fas fa-futbol text-blue-500"></i>
@@ -237,7 +228,6 @@
         <button id="mobile-menu-btn" class="text-white p-2 focus:outline-none active:scale-95"><i class="fas fa-bars text-xl"></i></button>
     </div>
 
-    <!-- MOBILE MENU -->
     <div id="mobile-menu-overlay" class="fixed inset-0 z-[10070] bg-slate-900/95 backdrop-blur-xl hidden flex-col p-6 transition-opacity duration-300 md:hidden">
         <div class="flex justify-between items-center mb-8">
             <h2 class="text-2xl font-fifa font-bold text-white tracking-widest">MENU</h2>
@@ -257,27 +247,24 @@
         </nav>
     </div>
 
-    <!-- MAIN CONTENT -->
     <main class="flex-1 overflow-y-auto h-full relative pt-16 md:pt-0 custom-scrollbar bg-[#0f172a] w-full">
         <div class="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto pb-24 w-full">
 
-            <!-- FILTER BAR -->
             <div class="glass-panel p-3 md:p-4 rounded-xl mb-6 md:mb-8 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4 sticky top-0 md:top-2 z-20 backdrop-blur-xl border border-white/10 shadow-xl">
                 <div class="relative w-full md:w-80 group">
                     <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-400 transition-colors"></i>
                     <input type="text" id="player-search" placeholder="Buscar jogador..." class="w-full bg-black/40 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500/50 transition-all text-sm font-medium">
                 </div>
                 <div class="w-full md:w-auto">
-                    <div class="relative w-full md:w-48">
+                    <div class="relative w-full md:w-64">
                         <select id="month-filter" class="w-full bg-black/40 border border-white/10 rounded-lg py-2 px-4 text-white focus:outline-none cursor-pointer text-sm font-bold appearance-none hover:bg-white/5 transition-colors">
-                            <option value="Geral">Temporada Geral</option>
+                            <option value="2026-ALL">Temporada 2026 (Atual)</option>
                         </select>
                         <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-xs"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB: HUB -->
             <div id="hub" class="tab-content opacity-100 transition-opacity duration-300">
                 <div id="hero-section" class="mb-8 glass-panel rounded-2xl overflow-hidden border border-yellow-500/30 relative hidden">
                     <div class="absolute inset-0 bg-gradient-to-r from-purple-900/80 to-blue-900/80 z-0"></div>
@@ -327,7 +314,6 @@
                 <div id="rankings-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"></div>
             </div>
 
-            <!-- TAB: SELEÇÃO -->
             <div id="team" class="tab-content hidden">
                 <h2 class="text-2xl md:text-3xl font-bold text-white mb-4 md:mb-6 flex flex-col md:flex-row md:items-center gap-2 font-fifa">
                     <span><i class="fas fa-tshirt text-purple-500 mr-2"></i> SELEÇÃO</span> 
@@ -341,7 +327,6 @@
                 </div>
             </div>
 
-            <!-- TAB: DRAFT -->
             <div id="draft" class="tab-content hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
                     <div class="lg:col-span-4 glass-panel rounded-xl p-4 md:p-6 h-fit md:sticky md:top-24">
@@ -383,7 +368,6 @@
                 </div>
             </div>
 
-            <!-- TAB: ESTATÍSTICAS -->
             <div id="stats" class="tab-content hidden">
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     <div class="glass-panel p-4 rounded-xl h-72 border border-white/5"><canvas id="chart-gols"></canvas></div>
@@ -399,13 +383,11 @@
                 </div>
             </div>
 
-            <!-- TAB: HISTÓRICO -->
             <div id="history" class="tab-content hidden">
                 <h2 class="text-2xl md:text-3xl font-bold text-white mb-6 font-fifa">HISTÓRICO DE PARTIDAS</h2>
                 <div id="matches-list" class="space-y-3"></div>
             </div>
 
-            <!-- TAB: HALL -->
             <div id="hall" class="tab-content hidden">
                 <h2 class="text-2xl md:text-3xl font-bold text-white mb-6 flex items-center gap-3 font-fifa"><i class="fas fa-trophy text-yellow-500"></i> HALL DA FAMA</h2>
                 <div id="hall-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6"></div>
@@ -413,7 +395,6 @@
         </div>
     </main>
 
-    <!-- MODAL JOGADOR -->
     <div id="player-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[10050] hidden items-center justify-center p-4 transition-opacity duration-300 overflow-y-auto">
         <div class="absolute top-4 right-4 z-50 flex gap-2">
             <button id="print-player-btn" class="bg-blue-600 hover:bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all" title="Modo Instagram"><i class="fas fa-camera"></i></button>
@@ -425,7 +406,7 @@
                 <div id="modal-card-container" class="fut-card-container relative group">
                     <div class="fut-card-shine"></div>
                     <div class="absolute top-6 left-6 z-10 text-white drop-shadow-lg">
-                        <div class="text-5xl md:text-6xl font-bold font-fifa leading-none" id="card-ovr">99</div>
+                        <div class="text-5xl md:text-6xl font-bold font-fifa leading-none" id="card-ovr">60</div>
                         <div class="text-xl md:text-2xl font-bold uppercase tracking-wide opacity-90" id="card-pos">ATA</div>
                     </div>
                     <div class="absolute top-14 left-1/2 -translate-x-1/2 w-40 h-40 md:w-44 md:h-44 rounded-full border-4 border-black/20 overflow-hidden shadow-2xl z-10 bg-black/20">
@@ -484,7 +465,6 @@
         </div>
     </div>
 
-    <!-- MODAL PARTIDA COM MODO PRINT -->
     <div id="match-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[10000] hidden items-center justify-center p-0 md:p-4 overflow-hidden transition-all duration-300">
         <div class="absolute top-4 right-4 z-50 flex gap-2">
             <button id="print-btn" class="bg-blue-600 hover:bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all" title="Modo Print"><i class="fas fa-camera"></i></button>
@@ -541,7 +521,6 @@
         </div>
     </div>
 
-    <!-- MODAL COMPARADOR -->
     <div id="comparison-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[10000] hidden items-center justify-center p-4">
         <button id="close-comparison-modal" class="absolute top-4 right-4 text-white/50 hover:text-white text-3xl transition-colors z-50 bg-black/50 rounded-full w-10 h-10 flex items-center justify-center">&times;</button>
         <div class="glass-panel w-full max-w-5xl rounded-2xl p-4 md:p-8 flex flex-col h-[90vh] overflow-y-auto custom-scrollbar border border-white/10">
@@ -568,7 +547,6 @@
         </div>
     </div>
 
-    <!-- MODAL RANKING COMPLETO -->
     <div id="full-list-modal" class="fixed inset-0 bg-black/95 backdrop-blur-sm z-[9990] hidden items-center justify-center p-4">
         <div class="glass-panel w-full max-w-xl h-[80vh] rounded-xl flex flex-col border border-white/10">
             <div class="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
@@ -581,23 +559,18 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // === CONFIGURAÇÕES ===
     const apiKey = "AIzaSyCL19ds6YqVOv5vV-zygBjeC-byy-rDPfM";
     const spreadsheetId = "1TvrVT8ksYYMlpw8gkKIFvpnnCf02J8uYTkhHc5c0vdo";
     const rangePagina1 = "Página1!A2:H100";
     const rangePagina2 = "Página2!A2:L1000";
     
-    // Áudio de Click
-    const clickSoundUrl = "https://raw.githubusercontent.com/ittokki/Futebol/main/PES%202013%20Select%20Game%20Main%20Menu%20Sound%20Effect%20(mp3cut.net).mp3";
-    const clickAudio = new Audio(clickSoundUrl);
+    // Áudio
+    const clickAudio = new Audio("https://raw.githubusercontent.com/ittokki/Futebol/main/PES%202013%20Select%20Game%20Main%20Menu%20Sound%20Effect%20(mp3cut.net).mp3");
     clickAudio.volume = 0.5;
-
-    document.addEventListener('click', () => {
-        const sound = clickAudio.cloneNode();
-        sound.volume = 0.3; 
-        sound.play().catch(e => console.warn("Sound blocked", e));
-    });
+    document.addEventListener('click', () => { const s = clickAudio.cloneNode(); s.volume=0.3; s.play().catch(()=>{}); });
     
-    // Fotos dos Jogadores
+    // Fotos
     const playerPhotos = {
         "ADEMIR": "https://drive.google.com/thumbnail?id=19uLFnCc6T_EWK0Z2R1Nfw7Mi10a3LIdQ&sz=w500",
         "ALESSANDRO": "https://drive.google.com/thumbnail?id=1eGjTXt1wcG8aqEphPjZZMo2DGSAVTA2h&sz=w500",
@@ -631,22 +604,29 @@ document.addEventListener('DOMContentLoaded', () => {
     let allPlayersData = [];
     let allMatchesData = [];
     let chartInstances = {};
+    let currentLayoutIs2026 = true;
 
-    // Helper Functions
+    // === HELPER FUNCTIONS ===
     const parseNum = (val) => typeof val === "number" ? val : (Number(val?.toString().replace(',', '.').trim()) || 0);
     const normalizaNome = (nome) => nome ? nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").replace(/\(GOL\)/gi, "").trim().toUpperCase() : '';
+    
     const mapPosition = (pos) => {
         if (!pos) return 'N/A';
         const p = pos.toLowerCase();
-        if (p.includes('ata')) return 'ata'; if (p.includes('mei')) return 'mei'; if (p.includes('ala')) return 'ala'; if (p.includes('zag')) return 'zag'; if (p.includes('gol')) return 'gol';
+        if (p.includes('gol')) return 'gol';
+        if (p.includes('def')) return 'def';
+        if (p.includes('zag')) return 'zag';
+        if (p.includes('ala')) return 'ala';
+        if (p.includes('mei')) return 'mei';
+        if (p.includes('ata')) return 'ata';
         return 'N/A';
     };
     
-    // Função para siglas de 3 letras coloridas
     const getPos3Letters = (pos) => {
         if (!pos) return 'N/A';
         pos = pos.toLowerCase();
         if (pos.includes('gol')) return 'GOL';
+        if (pos.includes('def')) return 'DEF';
         if (pos.includes('zag')) return 'ZAG';
         if (pos.includes('ala')) return 'ALA';
         if (pos.includes('mei')) return 'MEI';
@@ -654,34 +634,48 @@ document.addEventListener('DOMContentLoaded', () => {
         return pos.substring(0,3).toUpperCase();
     };
 
-    // Cálculos FIFA
     function calculateFIFAStats(player) {
+        const is2026Season = player.partidas.length > 0 ? player.partidas[0].dataJogo.endsWith('2026') : true;
         let ovr;
-        if (player.notaGeral >= 6) { ovr = 70 + (player.notaGeral - 6) * 7; } else { ovr = 35 + (player.notaGeral * 5.8); }
-        if (player.jogos < 3) ovr = Math.min(ovr, 68);
+        if (is2026Season) {
+            if (player.jogos === 0) ovr = 60; 
+            else if (player.notaGeral >= 6) ovr = 60 + ((player.notaGeral - 6) * 9.5); 
+            else ovr = 60 - ((6 - player.notaGeral) * 5);
+        } else {
+            if (player.notaGeral >= 6) ovr = 70 + (player.notaGeral - 6) * 7; else ovr = 35 + (player.notaGeral * 5.8);
+        }
+        if (player.jogos < 3 && is2026Season) ovr = Math.min(ovr, 75);
         ovr = Math.round(ovr);
+
         const gpg = player.gols / (player.jogos || 1); 
         const apg = player.assistencias / (player.jogos || 1);
         const pos = player.posicaoPref;
         let base = ovr - 12; 
         let pac = base, sho = base, pas = base, def = base, phy = base;
+        const isDef = pos === 'zag' || pos === 'def';
+
         if (['ata', 'ala'].includes(pos)) pac = ovr - 3; else if (pos === 'mei') pac = ovr - 12; else pac = ovr - 15; 
         let shoBonus = (gpg * 25); 
         if (pos === 'ata') sho = (ovr - 6) + shoBonus; else if (pos === 'mei' || pos === 'ala') sho = (ovr - 15) + shoBonus; else sho = (ovr - 35) + shoBonus;
         let pasBonus = (apg * 30);
         if (['mei', 'ala'].includes(pos)) pas = (ovr - 5) + pasBonus; else if (pos === 'ata') pas = (ovr - 18) + pasBonus; else pas = (ovr - 22) + pasBonus;
-        if (['zag', 'gol'].includes(pos)) def = ovr - 3; else if (['ala', 'mei'].includes(pos)) def = ovr - 22; else def = ovr - 45;
+        if (isDef || pos === 'gol') def = ovr - 3; else if (['ala', 'mei'].includes(pos)) def = ovr - 22; else def = ovr - 45;
         let phyBonus = Math.min(8, player.jogos / 2);
-        if (['zag', 'gol'].includes(pos)) phy = (ovr - 5) + phyBonus; else phy = (ovr - 18) + phyBonus;
+        if (isDef || pos === 'gol') phy = (ovr - 5) + phyBonus; else phy = (ovr - 18) + phyBonus;
+
         const boost = (val, target) => Math.max(val, target);
-        if(pos === 'ata') { sho = boost(sho, ovr - 2); pac = boost(pac, ovr - 5); } else if (pos === 'ala') { pac = boost(pac, ovr - 2); pas = boost(pas, ovr - 6); } else if (pos === 'mei') { pas = boost(pas, ovr - 2); sho = boost(sho, ovr - 10); } else if (pos === 'zag') { def = boost(def, ovr - 2); phy = boost(phy, ovr - 4); } else if (pos === 'gol') { def = boost(def, ovr - 1); phy = boost(phy, ovr - 3); }
-        const clamp = (n) => Math.max(25, Math.min(99, Math.round(n)));
+        if(pos === 'ata') { sho = boost(sho, ovr - 2); pac = boost(pac, ovr - 5); } 
+        else if (pos === 'ala') { pac = boost(pac, ovr - 2); pas = boost(pas, ovr - 6); } 
+        else if (pos === 'mei') { pas = boost(pas, ovr - 2); sho = boost(sho, ovr - 10); } 
+        else if (isDef) { def = boost(def, ovr - 2); phy = boost(phy, ovr - 4); } 
+        else if (pos === 'gol') { def = boost(def, ovr - 1); phy = boost(phy, ovr - 3); }
+
+        const clamp = (n) => Math.max(is2026Season ? 40 : 25, Math.min(99, Math.round(n)));
         let type = 'card-silver', cssClass = 'silver';
         if (ovr >= 90) { type = 'card-mitico'; cssClass = 'special'; } else if (ovr >= 85) { type = 'card-special'; cssClass = 'special'; } else if (ovr >= 75) { type = 'card-gold'; cssClass = 'gold'; } else if (ovr >= 65) { type = 'card-silver'; cssClass = 'silver'; } else { type = 'card-bronze'; cssClass = 'silver'; }
         return { ovr: clamp(ovr), pac: clamp(pac), sho: clamp(sho), pas: clamp(pas), def: clamp(def), phy: clamp(phy), type: type, cssClass: cssClass };
     }
 
-    // Cálculos Conquistas
     function calculateConquistas(jogador, partidas) {
         const conquistas = [];
         partidas.forEach(p => {
@@ -695,20 +689,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return conquistas;
     }
 
-    // Cálculos Seleção
     function calculateSelectionCount(matches) {
         const dates = [...new Set(matches.filter(m => m.jogoAconteceu).map(m => m.dataJogo))];
         const counts = {};
         dates.forEach(date => {
             const dayMatches = matches.filter(m => m.dataJogo === date && m.jogoAconteceu);
-            const getBestOfPos = (pos, limit) => dayMatches.filter(p => p.posicao === pos).sort((a, b) => b.notaPartida - a.notaPartida).slice(0, limit);
-            const selectionOfDay = [...getBestOfPos('gol', 1), ...getBestOfPos('zag', 1), ...getBestOfPos('ala', 2), ...getBestOfPos('mei', 1), ...getBestOfPos('ata', 2)];
+            const getBestOfPos = (posArr, limit) => dayMatches.filter(p => posArr.includes(p.posicao)).sort((a, b) => b.notaPartida - a.notaPartida).slice(0, limit);
+            let selectionOfDay = [];
+            if(date.endsWith('2026')) {
+                 selectionOfDay = [...getBestOfPos(['gol'], 1), ...getBestOfPos(['def','zag'], 2), ...getBestOfPos(['mei','ala'], 3), ...getBestOfPos(['ata'], 1)];
+            } else {
+                 selectionOfDay = [...getBestOfPos(['gol'], 1), ...getBestOfPos(['zag'], 1), ...getBestOfPos(['ala'], 2), ...getBestOfPos(['mei'], 1), ...getBestOfPos(['ata'], 2)];
+            }
             selectionOfDay.forEach(p => { counts[p.nome] = (counts[p.nome] || 0) + 1; });
         });
         return counts;
     }
 
-    // Processamento de Dados
     function processDataForPeriod(matches, playersRaw) {
         const selectionCounts = calculateSelectionCount(matches);
         const periodPlayers = new Map();
@@ -735,7 +732,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 nome: p.nome, nomeOriginal: p.nomeOriginal,
                 jogos: p.stats.jogos, gols: p.stats.gols, assistencias: p.stats.ass, vitorias: p.stats.vitorias,
                 notaGeral: notaGeral, posicaoPref: primaryPos, partidas: p.partidas || [],
-                mediaGolsSofridos: p.stats.jogosGol > 0 ? (p.stats.golsTomados / p.stats.jogosGol) : null,
+                mediaGolsSofridos: p.stats.jogosGol > 0 ? (p.stats.golsTomados / p.stats.jogosGol) : 0,
                 jogosGoleiro: p.stats.jogosGol,
                 ga: p.stats.gols + p.stats.ass,
                 aproveitamento: p.stats.jogos > 0 ? (p.stats.vitorias / p.stats.jogos) * 100 : 0,
@@ -748,7 +745,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }).filter(p => p.jogos > 0);
     }
 
-    // Inicialização
+    function updatePitchLayout(is2026) { currentLayoutIs2026 = is2026; }
+    
+    function renderPlayerOnPitch(p, style) {
+        return `<div class="absolute flex flex-col items-center transition-all duration-300 hover:scale-110 cursor-pointer z-10 group" style="${style}" onclick="window.openPlayerModal('${p.nome}')"><div class="relative"><img src="${playerPhotos[p.nome]||''}" class="w-10 h-10 md:w-14 md:h-14 rounded-full border-2 border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.4)] object-cover bg-gray-900" onerror="this.src='https://ui-avatars.com/api/?name=${p.nome}'"><div class="absolute -bottom-1 -right-1 bg-black/80 text-yellow-400 text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded border border-yellow-400/30 font-mono">${p.notaGeral.toFixed(1)}</div></div><div class="bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded mt-1 text-[9px] md:text-[10px] text-white font-bold tracking-wider border border-white/10 shadow-lg truncate max-w-[70px] md:max-w-[80px] group-hover:bg-blue-600 transition-colors">${p.nomeOriginal.split(' ')[0]}</div></div>`;
+    }
+
+    // === INITIALIZATION ===
     async function initData() {
         try {
             const fetchSheet = async (rng) => {
@@ -771,32 +774,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
             allMatchesData.forEach(p => {
                 if(p.jogoAconteceu) {
-                    const base = 6.0 + (p.gols * 0.7) + (p.assistencias * 0.6) + (p.isGoleiro ? p.golsTomados * -0.15 : 0) + (p.golsContra * -0.7);
+                    // NOTA: GOL CONTRA AGORA TIRA -1.5 PONTOS
+                    const base = 6.0 + (p.gols * 0.7) + (p.assistencias * 0.6) + (p.isGoleiro ? p.golsTomados * -0.15 : 0) + (p.golsContra * -1.5);
                     let ponderada = (base + (p.notaADM * 5)) / 6;
                     p.notaPartida = Math.max(0, Math.min(10, ponderada + (p.vitoria === 1 ? 0.3 : p.vitoria === 0.5 ? 0.15 : 0)));
                 } else p.notaPartida = 0;
             });
 
-            const months = [...new Set(allMatchesData.map(m => m.dataJogo.substring(3)))];
             const filter = document.getElementById('month-filter');
-            months.sort((a,b) => new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-'))).forEach(m => {
-                const [mm, yyyy] = m.split('/');
-                const date = new Date(yyyy, mm-1);
-                const name = date.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
-                filter.innerHTML += `<option value="${m}">${name.charAt(0).toUpperCase() + name.slice(1)}</option>`;
+            filter.innerHTML = ''; 
+            const seasons = { '2026': [], '2025': [] };
+            const uniqueDates = [...new Set(allMatchesData.map(m => {
+                const parts = m.dataJogo.split('/');
+                return { month: m.dataJogo.substring(3), year: parts[2], full: m.dataJogo };
+            }))];
+            uniqueDates.forEach(d => { if(seasons[d.year]) { if(!seasons[d.year].includes(d.month)) seasons[d.year].push(d.month); } });
+
+            filter.innerHTML += `<option value="2026-ALL">Temporada 2026 (Atual)</option>`;
+            seasons['2026'].sort((a,b) => new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-'))).forEach(m => {
+                 const [mm, yyyy] = m.split('/'); const date = new Date(yyyy, mm-1); const name = date.toLocaleString('pt-BR', { month: 'long' });
+                 filter.innerHTML += `<option value="${m}">${name.charAt(0).toUpperCase() + name.slice(1)}/26</option>`;
+            });
+            filter.innerHTML += `<option value="2025-ALL">Temporada 2025 (Arquivo)</option>`;
+            seasons['2025'].sort((a,b) => new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-'))).forEach(m => {
+                 const [mm, yyyy] = m.split('/'); const date = new Date(yyyy, mm-1); const name = date.toLocaleString('pt-BR', { month: 'long' });
+                 filter.innerHTML += `<option value="${m}">${name.charAt(0).toUpperCase() + name.slice(1)}/25</option>`;
             });
 
-            allPlayersData = processDataForPeriod(allMatchesData, jogadoresRaw);
-            
             filter.addEventListener('change', () => {
                 const val = filter.value;
-                const filteredMatches = val === 'Geral' ? allMatchesData : allMatchesData.filter(m => m.dataJogo.substring(3) === val);
+                let filteredMatches = [];
+                if (val === '2026-ALL') { filteredMatches = allMatchesData.filter(m => m.dataJogo.endsWith('2026')); } 
+                else if (val === '2025-ALL') { filteredMatches = allMatchesData.filter(m => m.dataJogo.endsWith('2025')); } 
+                else { filteredMatches = allMatchesData.filter(m => m.dataJogo.substring(3) === val); }
+
+                // RECALCULAR JOGADORES COM OS DADOS FILTRADOS (RESET DE ANO)
                 const filteredPlayers = processDataForPeriod(filteredMatches, jogadoresRaw);
+                allPlayersData = filteredPlayers; // Atualiza globalmente para os Modais pegarem certo
+                
+                const is2026 = val.includes('2026') || val.endsWith('/2026');
+                updatePitchLayout(is2026);
                 updateDashboard(filteredPlayers, filteredMatches);
             });
 
+            // STARTUP: 2026
+            const initialMatches = allMatchesData.filter(m => m.dataJogo.endsWith('2026'));
+            allPlayersData = processDataForPeriod(initialMatches, jogadoresRaw);
+            updatePitchLayout(true);
+            
             setupEventListeners();
-            updateDashboard(allPlayersData, allMatchesData);
+            updateDashboard(allPlayersData, initialMatches);
             document.getElementById('loading').style.display = 'none';
 
         } catch (e) {
@@ -805,51 +832,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Event Listeners
+    // === UI RENDERING ===
     function setupEventListeners() {
         document.querySelectorAll('.nav-item').forEach(btn => {
             btn.addEventListener('click', () => {
-                if(btn.id === 'update-btn') { location.reload(); return; }
                 if(btn.id === 'btn-compare') {
-                    const modal = document.getElementById('comparison-modal');
-                    modal.classList.remove('hidden'); modal.classList.add('flex');
-                    setupComparisonTool();
-                    return;
+                    document.getElementById('comparison-modal').classList.remove('hidden'); 
+                    document.getElementById('comparison-modal').classList.add('flex');
+                    setupComparisonTool(); return;
                 }
                 if(btn.id === 'btn-update') { location.reload(); return; }
                 document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('opacity-100'));
+                document.querySelectorAll('.tab-content').forEach(c => { c.classList.add('hidden'); c.classList.remove('opacity-100'); });
                 btn.classList.add('active');
                 const target = document.getElementById(btn.dataset.tab);
                 target.classList.remove('hidden');
                 setTimeout(()=> target.classList.add('opacity-100'), 10);
             });
         });
-
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu-overlay');
         const closeMobileMenu = document.getElementById('close-mobile-menu');
         mobileMenuBtn.addEventListener('click', () => { mobileMenu.classList.remove('hidden'); mobileMenu.classList.add('flex'); });
         closeMobileMenu.addEventListener('click', () => { mobileMenu.classList.add('hidden'); mobileMenu.classList.remove('flex'); });
-
+        
         document.querySelectorAll('.mobile-nav-item').forEach(btn => {
             btn.addEventListener('click', () => {
                 mobileMenu.classList.add('hidden'); mobileMenu.classList.remove('flex');
                 if(btn.id === 'mob-btn-update') { location.reload(); return; }
-                if(btn.id === 'mob-btn-compare') {
-                    const modal = document.getElementById('comparison-modal');
-                    modal.classList.remove('hidden'); modal.classList.add('flex');
-                    setupComparisonTool();
-                    return;
-                }
+                if(btn.id === 'mob-btn-compare') { document.getElementById('comparison-modal').classList.remove('hidden'); document.getElementById('comparison-modal').classList.add('flex'); setupComparisonTool(); return; }
                 const tabId = btn.dataset.tab;
                 if(tabId) {
                     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
                     const desktopBtn = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
                     if(desktopBtn) desktopBtn.classList.add('active');
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('opacity-100'));
+                    document.querySelectorAll('.tab-content').forEach(c => { c.classList.add('hidden'); c.classList.remove('opacity-100'); });
                     const target = document.getElementById(tabId);
                     target.classList.remove('hidden');
                     setTimeout(()=> target.classList.add('opacity-100'), 10);
@@ -862,45 +879,21 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('close-match-modal').onclick = () => close('match-modal');
         document.getElementById('close-comparison-modal').onclick = () => close('comparison-modal');
         document.getElementById('close-full-list').onclick = () => close('full-list-modal');
-
         document.getElementById('player-search').addEventListener('input', () => { renderRankings(allPlayersData); });
-        document.getElementById('select-all').onclick = () => { document.querySelectorAll('.draft-chk').forEach(c => { c.checked = true; c.closest('div').classList.add('bg-blue-500/20'); }); };
-        document.getElementById('clear-all').onclick = () => { document.querySelectorAll('.draft-chk').forEach(c => { c.checked = false; c.closest('div').classList.remove('bg-blue-500/20'); }); };
+        document.getElementById('select-all').onclick = () => { document.querySelectorAll('.draft-chk').forEach(c => { c.checked = true; c.closest('div').classList.add('bg-blue-500/20'); }); document.getElementById('selected-count').innerText = `${document.querySelectorAll('.draft-chk:checked').length} JOG`; };
+        document.getElementById('clear-all').onclick = () => { document.querySelectorAll('.draft-chk').forEach(c => { c.checked = false; c.closest('div').classList.remove('bg-blue-500/20'); }); document.getElementById('selected-count').innerText = `0 JOG`; };
         document.getElementById('generate-teams').onclick = generateTeams;
         
-        // --- LÓGICA DO BOTÃO PRINT (SNAPSHOT - PARTIDA) ---
-        document.getElementById('print-btn').onclick = () => {
-            const modal = document.getElementById('match-modal');
+        const togglePrint = (id) => {
+            const modal = document.getElementById(id);
             modal.classList.toggle('print-active');
-            const btn = document.getElementById('print-btn');
+            const btn = document.getElementById(id === 'match-modal' ? 'print-btn' : 'print-player-btn');
             const icon = btn.querySelector('i');
-            if (modal.classList.contains('print-active')) {
-                btn.classList.remove('bg-blue-600'); 
-                btn.classList.add('bg-green-600'); 
-                icon.className = 'fas fa-check';
-            } else {
-                btn.classList.remove('bg-green-600'); 
-                btn.classList.add('bg-blue-600'); 
-                icon.className = 'fas fa-camera';
-            }
-        };
-
-        // --- LÓGICA DO BOTÃO PRINT (INSTAGRAM - JOGADOR) ---
-        document.getElementById('print-player-btn').onclick = () => {
-            const modal = document.getElementById('player-modal');
-            modal.classList.toggle('print-active');
-            const btn = document.getElementById('print-player-btn');
-            const icon = btn.querySelector('i');
-            if (modal.classList.contains('print-active')) {
-                btn.classList.remove('bg-blue-600'); 
-                btn.classList.add('bg-green-600'); 
-                icon.className = 'fas fa-check';
-            } else {
-                btn.classList.remove('bg-green-600'); 
-                btn.classList.add('bg-blue-600'); 
-                icon.className = 'fas fa-camera';
-            }
-        };
+            if (modal.classList.contains('print-active')) { btn.classList.remove('bg-blue-600'); btn.classList.add('bg-green-600'); icon.className = 'fas fa-check'; } 
+            else { btn.classList.remove('bg-green-600'); btn.classList.add('bg-blue-600'); icon.className = 'fas fa-camera'; }
+        }
+        document.getElementById('print-btn').onclick = () => togglePrint('match-modal');
+        document.getElementById('print-player-btn').onclick = () => togglePrint('player-modal');
     }
 
     function updateDashboard(players, matches) {
@@ -915,18 +908,37 @@ document.addEventListener('DOMContentLoaded', () => {
         renderFunFacts(players, matches);
     }
 
+    function renderHistory(matches) {
+        const div = document.getElementById('matches-list');
+        const dates = [...new Set(matches.map(m => m.dataJogo))].sort((a,b) => new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-')));
+        div.innerHTML = dates.map(d => {
+            const ms = matches.filter(m => m.dataJogo === d);
+            const happened = ms.some(x => x.jogoAconteceu);
+            
+            // CORREÇÃO: SOMAR GOLS CONTRA NO PLACAR DA LISTA
+            const golsBoca = ms.filter(x => x.time.toUpperCase().includes('BOCA')).reduce((a,b)=>a+b.gols,0);
+            const contraBoca = ms.filter(x => x.time.toUpperCase().includes('BOCA')).reduce((a,b)=>a+b.golsContra,0);
+            
+            const golsRiver = ms.filter(x => x.time.toUpperCase().includes('RIVER')).reduce((a,b)=>a+b.gols,0);
+            const contraRiver = ms.filter(x => x.time.toUpperCase().includes('RIVER')).reduce((a,b)=>a+b.golsContra,0);
+
+            const placarA = golsBoca + contraRiver; // Placar Boca (seus gols + contra do river)
+            const placarB = golsRiver + contraBoca; // Placar River (seus gols + contra do boca)
+
+            return `<div class="glass-panel p-4 rounded-xl flex justify-between items-center border border-white/5 hover:bg-white/5 transition cursor-pointer" onclick="window.openMatchModal('${d}')"><span class="text-gray-400 text-xs md:text-sm font-mono">${d}</span>${happened ? `<span class="font-bold text-white text-lg md:text-xl font-fifa"><span class="text-blue-400">BOCA ${placarA}</span> <span class="text-gray-600 text-xs md:text-sm mx-1 md:mx-2">VS</span> <span class="text-red-400">${placarB} RIVER</span></span>` : '<span class="text-[10px] md:text-xs bg-white/10 px-2 py-1 rounded text-gray-400">AGENDADO</span>'}</div>`;
+        }).join('');
+    }
+
+    // Resto das funções de renderização (Hero, Rankings, etc.)
     function renderHero(players) {
-        if(!players.length) return;
+        if(!players.length) { document.getElementById('hero-section').classList.add('hidden'); return; }
         const filterVal = document.getElementById('month-filter').value;
         let candidates = players;
-        if (filterVal !== 'Geral') {
-            const filtered = players.filter(p => p.jogos >= 2);
-            if (filtered.length > 0) candidates = filtered;
-        }
+        if (!filterVal.includes('ALL')) { const filtered = players.filter(p => p.jogos >= 2); if (filtered.length > 0) candidates = filtered; }
         const hero = candidates.sort((a,b) => b.notaGeral - a.notaGeral)[0];
-        const container = document.getElementById('hero-section');
-        container.classList.remove('hidden');
-        const label = filterVal === 'Geral' ? "MELHOR DA TEMPORADA" : `MELHOR DE ${document.getElementById('month-filter').options[document.getElementById('month-filter').selectedIndex].text.toUpperCase()}`;
+        if(!hero) { document.getElementById('hero-section').classList.add('hidden'); return; }
+        document.getElementById('hero-section').classList.remove('hidden');
+        const label = filterVal.includes('ALL') ? "MELHOR DA TEMPORADA" : `MELHOR DO MÊS`;
         document.getElementById('hero-label').innerText = label;
         document.getElementById('hero-name').innerText = hero.nomeOriginal.split(' ')[0];
         document.getElementById('hero-img').src = playerPhotos[hero.nome] || `https://ui-avatars.com/api/?name=${hero.nome}`;
@@ -936,26 +948,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderRankings(players) {
-        const grid = document.getElementById('rankings-grid');
-        grid.innerHTML = '';
+        const grid = document.getElementById('rankings-grid'); grid.innerHTML = '';
         const term = document.getElementById('player-search').value.toLowerCase();
         const filtered = players.filter(p => p.nomeOriginal.toLowerCase().includes(term));
         const createBox = (title, key, unit, reverse=false, sourceData=filtered) => {
             const sorted = [...sourceData].sort((a,b) => reverse ? a[key]-b[key] : b[key]-a[key]);
             const top5 = sorted.slice(0, 5);
-            let html = `<div class="glass-panel rounded-xl overflow-hidden flex flex-col h-full border border-white/5 hover:border-white/10 transition">
-                <div class="p-3 md:p-4 border-b border-white/5 bg-white/5 flex justify-between items-center"><h3 class="font-bold text-white text-[10px] uppercase tracking-wider">${title}</h3></div>
-                <div class="flex-1 p-2">`;
-            top5.forEach((p, i) => {
-                html += `<div class="rank-item rounded-lg" onclick="window.openPlayerModal('${p.nome}')">
-                    <span class="rank-pos ${i<3?'rank-'+(i+1):''} w-6 text-center text-sm md:text-base">${i+1}</span>
-                    <div class="flex items-center gap-3 ml-1 flex-1">
-                        <img src="${playerPhotos[p.nome]||''}" class="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${p.nome}'">
-                        <span class="text-xs md:text-sm text-white truncate w-24 md:w-32 font-medium">${p.nomeOriginal.split(' ')[0]}</span>
-                    </div>
-                    <span class="text-xs md:text-sm font-bold font-mono text-blue-400">${typeof p[key]==='number'?p[key].toFixed(key==='notaGeral'||key==='mediaGolsSofridos'?2:0):p[key]}${unit}</span>
-                </div>`;
-            });
+            let html = `<div class="glass-panel rounded-xl overflow-hidden flex flex-col h-full border border-white/5 hover:border-white/10 transition"><div class="p-3 md:p-4 border-b border-white/5 bg-white/5 flex justify-between items-center"><h3 class="font-bold text-white text-[10px] uppercase tracking-wider">${title}</h3></div><div class="flex-1 p-2">`;
+            top5.forEach((p, i) => { html += `<div class="rank-item rounded-lg" onclick="window.openPlayerModal('${p.nome}')"><span class="rank-pos ${i<3?'rank-'+(i+1):''} w-6 text-center text-sm md:text-base">${i+1}</span><div class="flex items-center gap-3 ml-1 flex-1"><img src="${playerPhotos[p.nome]||''}" class="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover border border-white/10" onerror="this.src='https://ui-avatars.com/api/?name=${p.nome}'"><span class="text-xs md:text-sm text-white truncate w-24 md:w-32 font-medium">${p.nomeOriginal.split(' ')[0]}</span></div><span class="text-xs md:text-sm font-bold font-mono text-blue-400">${typeof p[key]==='number'?p[key].toFixed(key==='notaGeral'||key==='mediaGolsSofridos'?2:0):p[key]}${unit}</span></div>`; });
             html += `</div><button onclick='window.openFullRanking("${title}", "${key}", ${reverse})' class="w-full py-2 md:py-3 text-[10px] font-bold text-gray-400 hover:text-white hover:bg-white/5 border-t border-white/5 transition uppercase tracking-wider">Ver Mais</button></div>`;
             return html;
         };
@@ -971,33 +971,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.openFullRanking = (title, key, reverse) => {
-        const players = allPlayersData; 
-        const sorted = [...players].sort((a,b) => reverse ? a[key]-b[key] : b[key]-a[key]);
+        const players = allPlayersData; const sorted = [...players].sort((a,b) => reverse ? a[key]-b[key] : b[key]-a[key]);
         let html = `<table class="w-full text-left text-sm text-gray-300"><thead class="text-xs uppercase bg-white/5 text-gray-400 sticky top-0 backdrop-blur-md"><tr><th class="p-4">#</th><th class="p-4">Jogador</th><th class="p-4 text-right">Valor</th></tr></thead><tbody>`;
-        sorted.forEach((p, i) => {
-            html += `<tr class="border-b border-white/5 hover:bg-white/5 cursor-pointer transition" onclick="window.openPlayerModal('${p.nome}')"><td class="p-4 font-bold font-mono ${i<3?'text-yellow-500':''}">${i+1}</td><td class="p-4 flex items-center gap-4"><img src="${playerPhotos[p.nome]||''}" class="w-8 h-8 rounded-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=${p.nome}'"><span class="font-medium text-white">${p.nomeOriginal}</span></td><td class="p-4 text-right font-mono font-bold text-blue-400">${typeof p[key]==='number'?p[key].toFixed(2):p[key]}</td></tr>`;
-        });
+        sorted.forEach((p, i) => { html += `<tr class="border-b border-white/5 hover:bg-white/5 cursor-pointer transition" onclick="window.openPlayerModal('${p.nome}')"><td class="p-4 font-bold font-mono ${i<3?'text-yellow-500':''}">${i+1}</td><td class="p-4 flex items-center gap-4"><img src="${playerPhotos[p.nome]||''}" class="w-8 h-8 rounded-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=${p.nome}'"><span class="font-medium text-white">${p.nomeOriginal}</span></td><td class="p-4 text-right font-mono font-bold text-blue-400">${typeof p[key]==='number'?p[key].toFixed(2):p[key]}</td></tr>`; });
         html += `</tbody></table>`;
-        document.getElementById('full-list-title').innerText = title;
-        document.getElementById('full-list-content').innerHTML = html;
-        const modal = document.getElementById('full-list-modal');
-        modal.classList.remove('hidden'); modal.classList.add('flex');
+        document.getElementById('full-list-title').innerText = title; document.getElementById('full-list-content').innerHTML = html;
+        document.getElementById('full-list-modal').classList.remove('hidden'); document.getElementById('full-list-modal').classList.add('flex');
     }
 
     function renderSelectionField(players) {
-        const getBest = (pos, count) => players.filter(p => p.posicaoPref === pos).sort((a,b) => b.notaGeral - a.notaGeral).slice(0, count);
-        const team = { ata: getBest('ata', 2), mei: getBest('mei', 1), ala: getBest('ala', 2), zag: getBest('zag', 1), gol: getBest('gol', 1) };
-        const posStyles = { gol: ['bottom: 5%; left: 50%; transform: translateX(-50%)'], zag: ['bottom: 22%; left: 50%; transform: translateX(-50%)'], ala: ['bottom: 40%; left: 10%', 'bottom: 40%; right: 10%'], mei: ['top: 48%; left: 50%; transform: translate(-50%, -50%)'], ata: ['top: 18%; left: 25%', 'top: 18%; right: 25%'] };
-        let html = '';
-        const renderP = (p, style) => `<div class="absolute flex flex-col items-center transition-all duration-300 hover:scale-110 cursor-pointer z-10 group" style="${style}" onclick="window.openPlayerModal('${p.nome}')"><div class="relative"><img src="${playerPhotos[p.nome]||''}" class="w-10 h-10 md:w-14 md:h-14 rounded-full border-2 border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.4)] object-cover bg-gray-900" onerror="this.src='https://ui-avatars.com/api/?name=${p.nome}'"><div class="absolute -bottom-1 -right-1 bg-black/80 text-yellow-400 text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded border border-yellow-400/30 font-mono">${p.notaGeral.toFixed(1)}</div></div><div class="bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded mt-1 text-[9px] md:text-[10px] text-white font-bold tracking-wider border border-white/10 shadow-lg truncate max-w-[70px] md:max-w-[80px] group-hover:bg-blue-600 transition-colors">${p.nomeOriginal.split(' ')[0]}</div></div>`;
-        if(team.gol[0]) html += renderP(team.gol[0], posStyles.gol[0]);
-        if(team.zag[0]) html += renderP(team.zag[0], posStyles.zag[0]);
-        team.ala.forEach((p, i) => html += renderP(p, posStyles.ala[i]));
-        team.mei.forEach((p, i) => html += renderP(p, posStyles.mei[i]));
-        team.ata.forEach((p, i) => html += renderP(p, posStyles.ata[i]));
+        let team = {}; let html = '';
+        if (currentLayoutIs2026) {
+            const getBest = (posArr, count) => players.filter(p => posArr.includes(p.posicaoPref)).sort((a,b) => b.notaGeral - a.notaGeral).slice(0, count);
+            team.gol = getBest(['gol'], 1); team.def = getBest(['def', 'zag'], 2); team.mei = getBest(['mei', 'ala'], 3); team.ata = getBest(['ata'], 1);
+            const posStyles = { gol: ['bottom: 5%; left: 50%; transform: translateX(-50%)'], def: ['bottom: 25%; left: 30%', 'bottom: 25%; right: 30%'], mei: ['top: 48%; left: 50%; transform: translate(-50%, -50%)', 'top: 50%; left: 15%', 'top: 50%; right: 15%'], ata: ['top: 15%; left: 50%; transform: translateX(-50%)'] };
+            if(team.gol[0]) html += renderPlayerOnPitch(team.gol[0], posStyles.gol[0]);
+            team.def.forEach((p, i) => { if(posStyles.def[i]) html += renderPlayerOnPitch(p, posStyles.def[i]); });
+            team.mei.forEach((p, i) => { if(posStyles.mei[i]) html += renderPlayerOnPitch(p, posStyles.mei[i]); });
+            if(team.ata[0]) html += renderPlayerOnPitch(team.ata[0], posStyles.ata[0]);
+        } else {
+            const getBest = (pos, count) => players.filter(p => p.posicaoPref === pos).sort((a,b) => b.notaGeral - a.notaGeral).slice(0, count);
+            team = { ata: getBest('ata', 2), mei: getBest('mei', 1), ala: getBest('ala', 2), zag: getBest('zag', 1), gol: getBest('gol', 1) };
+            const posStyles = { gol: ['bottom: 5%; left: 50%; transform: translateX(-50%)'], zag: ['bottom: 22%; left: 50%; transform: translateX(-50%)'], ala: ['bottom: 40%; left: 10%', 'bottom: 40%; right: 10%'], mei: ['top: 48%; left: 50%; transform: translate(-50%, -50%)'], ata: ['top: 18%; left: 25%', 'top: 18%; right: 25%'] };
+            if(team.gol[0]) html += renderPlayerOnPitch(team.gol[0], posStyles.gol[0]);
+            if(team.zag[0]) html += renderPlayerOnPitch(team.zag[0], posStyles.zag[0]);
+            team.ala.forEach((p, i) => html += renderPlayerOnPitch(p, posStyles.ala[i]));
+            team.mei.forEach((p, i) => html += renderPlayerOnPitch(p, posStyles.mei[i]));
+            team.ata.forEach((p, i) => html += renderPlayerOnPitch(p, posStyles.ata[i]));
+        }
         document.getElementById('pitch-players').innerHTML = html;
-        const sel = document.getElementById('month-filter');
-        document.getElementById('team-period-label').innerText = sel.options[sel.selectedIndex].text;
+        const sel = document.getElementById('month-filter'); document.getElementById('team-period-label').innerText = sel.options[sel.selectedIndex].text;
     }
 
     function renderSpecialRankings(players, matches) {
@@ -1016,26 +1019,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function renderFunFacts(players, matches) {
-        const container = document.getElementById('curiosities-grid');
-        if(!container) return;
-        container.innerHTML = '';
-        const facts = [];
+        const container = document.getElementById('curiosities-grid'); if(!container) return; container.innerHTML = ''; const facts = [];
         const bestMatch = matches.filter(m => m.jogoAconteceu).sort((a,b) => b.notaPartida - a.notaPartida)[0];
         if(bestMatch) facts.push({ icon: 'fa-star', color: 'text-yellow-400', title: 'Atuação de Gala', text: `Maior nota: <strong>${bestMatch.notaPartida.toFixed(1)}</strong> por <strong>${bestMatch.nomeRaw.split(' ')[0]}</strong> em ${bestMatch.dataJogo}.` });
-        const goalsByDate = {};
-        matches.filter(m=>m.jogoAconteceu).forEach(m => goalsByDate[m.dataJogo] = (goalsByDate[m.dataJogo] || 0) + m.gols);
+        const goalsByDate = {}; matches.filter(m=>m.jogoAconteceu).forEach(m => goalsByDate[m.dataJogo] = (goalsByDate[m.dataJogo] || 0) + m.gols);
         const topDate = Object.keys(goalsByDate).sort((a,b) => goalsByDate[b] - goalsByDate[a])[0];
         if(topDate) facts.push({ icon: 'fa-cloud-showers-heavy', color: 'text-blue-400', title: 'Chuva de Gols', text: `O dia <strong>${topDate}</strong> teve o recorde de <strong>${goalsByDate[topDate]}</strong> gols marcados.` });
         const lucky = players.filter(p => p.jogos >= 5).sort((a,b) => b.aproveitamento - a.aproveitamento)[0];
         if(lucky) facts.push({ icon: 'fa-gem', color: 'text-purple-400', title: 'Amuleto da Sorte', text: `<strong>${lucky.nomeOriginal.split(' ')[0]}</strong> tem o melhor aproveitamento (${lucky.aproveitamento.toFixed(0)}%) com min. 5 jogos.` });
-        const zagArtilheiro = players.filter(p => p.posicaoPref === 'zag').sort((a,b) => b.gols - a.gols)[0];
+        const zagArtilheiro = players.filter(p => (p.posicaoPref === 'zag' || p.posicaoPref === 'def')).sort((a,b) => b.gols - a.gols)[0];
         if(zagArtilheiro && zagArtilheiro.gols > 0) facts.push({ icon: 'fa-shield-alt', color: 'text-green-400', title: 'Zagueiro Artilheiro', text: `<strong>${zagArtilheiro.nomeOriginal.split(' ')[0]}</strong> é o defensor com mais gols (${zagArtilheiro.gols}).` });
         const machine = players.filter(p => p.jogos >= 3).sort((a,b) => (b.gols/b.jogos) - (a.gols/a.jogos))[0];
         if(machine) facts.push({ icon: 'fa-robot', color: 'text-red-500', title: 'Máquina de Gols', text: `<strong>${machine.nomeOriginal.split(' ')[0]}</strong> tem a melhor média: ${(machine.gols/machine.jogos).toFixed(2)} gols por jogo.` });
         const involved = players.filter(p => p.jogos >= 3).sort((a,b) => (b.ga/b.jogos) - (a.ga/a.jogos))[0];
         if(involved) facts.push({ icon: 'fa-handshake', color: 'text-teal-400', title: 'O Onipresente', text: `<strong>${involved.nomeOriginal.split(' ')[0]}</strong> participa de ${(involved.ga/involved.jogos).toFixed(1)} gols por jogo.` });
-        const oneDayKing = matches.filter(m=>m.jogoAconteceu).sort((a,b) => b.gols - a.gols)[0];
-        if(oneDayKing) facts.push({ icon: 'fa-crown', color: 'text-yellow-500', title: 'Artilheiro de Um Dia', text: `<strong>${oneDayKing.nomeRaw.split(' ')[0]}</strong> fez história com <strong>${oneDayKing.gols} gols</strong> em uma única partida.` });
         facts.forEach(f => { container.innerHTML += `<div class="glass-panel p-4 rounded-xl border border-white/5 flex items-start gap-4 hover:bg-white/5 transition"><div class="p-2 md:p-3 rounded-full bg-white/5 ${f.color} text-lg md:text-xl min-w-[3rem] text-center flex items-center justify-center"><i class="fas ${f.icon}"></i></div><div><h4 class="font-bold text-white text-xs md:text-sm uppercase mb-1">${f.title}</h4><p class="text-[10px] md:text-xs text-gray-400 leading-relaxed">${f.text}</p></div></div>`; });
     }
 
@@ -1052,29 +1049,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctxGroup = document.getElementById('chart-group-goals');
         if(ctxGroup) {
             if(chartInstances['group']) chartInstances['group'].destroy();
-            const months = {};
-            matches.filter(m=>m.jogoAconteceu).forEach(m => { const k = m.dataJogo.substring(3); months[k] = (months[k] || 0) + m.gols; });
+            const months = {}; matches.filter(m=>m.jogoAconteceu).forEach(m => { const k = m.dataJogo.substring(3); months[k] = (months[k] || 0) + m.gols; });
             const labels = Object.keys(months).sort((a,b) => new Date(a.split('/').reverse().join('-')) - new Date(b.split('/').reverse().join('-')));
             chartInstances['group'] = new Chart(ctxGroup, { type: 'line', data: { labels: labels, datasets: [{ label: 'Gols do Grupo', data: labels.map(l=>months[l]), borderColor:'#f472b6', backgroundColor:'rgba(244,114,182,0.1)', fill:true, tension:0.4 }] }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, title:{display:true, text:'Evolução de Gols (Mensal)', color:'#fff'}}, scales:{y:{grid:{color:'rgba(255,255,255,0.05)'}}, x:{ticks:{color:'#94a3b8'}}} } });
         }
     }
 
     window.openPlayerModal = (name) => {
-        const p = allPlayersData.find(pl => pl.nome === name);
-        if(!p) return;
-        const stats = p.fifa;
-        const container = document.getElementById('modal-card-container');
-        
-        // Reset player print mode
-        const modal = document.getElementById('player-modal');
-        modal.classList.remove('print-active');
+        const p = allPlayersData.find(pl => pl.nome === name); if(!p) return;
+        const stats = p.fifa; const container = document.getElementById('modal-card-container');
+        document.getElementById('player-modal').classList.remove('print-active');
         const btn = document.getElementById('print-player-btn');
         btn.classList.remove('bg-green-600'); btn.classList.add('bg-blue-600'); btn.querySelector('i').className = 'fas fa-camera';
 
-        container.className = 'fut-card-container relative group';
-        container.classList.add(stats.cssClass); 
+        container.className = 'fut-card-container relative group'; container.classList.add(stats.cssClass); 
         document.getElementById('card-ovr').innerText = stats.ovr;
-        document.getElementById('card-pos').innerText = p.posicaoPref.substring(0,3).toUpperCase();
+        document.getElementById('card-pos').innerText = getPos3Letters(p.posicaoPref);
         document.getElementById('card-img').src = playerPhotos[p.nome] || '';
         document.getElementById('card-name').innerText = p.nomeOriginal.split(' ')[0];
         document.getElementById('stat-pac').innerText = stats.pac; document.getElementById('stat-sho').innerText = stats.sho;
@@ -1095,26 +1085,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const matches = p.partidas.slice(-10);
             chartInstances['playerEvo'] = new Chart(ctx, { type: 'line', data: { labels: matches.map(m => m.dataJogo.substring(0, 5)), datasets: [{ label: 'Nota', data: matches.map(m => m.notaPartida), borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 2, pointRadius: 3, fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 4, max: 10, grid: { color: 'rgba(255,255,255,0.05)' }, ticks:{ color:'#aaa' } }, x: { display: false } } } });
         }
-        
-        modal.classList.remove('hidden'); modal.classList.add('flex');
+        document.getElementById('player-modal').classList.remove('hidden'); document.getElementById('player-modal').classList.add('flex');
     };
 
-    // --- NOVA FUNÇÃO DE PARTIDA (3 Colunas + Modo Print) ---
     window.openMatchModal = (date) => {
         const matches = allMatchesData.filter(m => m.dataJogo === date);
         if(!matches.length) return;
-        
-        // Reset print
-        const modal = document.getElementById('match-modal'); // Declared here only once
-        modal.classList.remove('print-active');
+        document.getElementById('match-modal').classList.remove('print-active');
         const btn = document.getElementById('print-btn');
         btn.classList.remove('bg-green-600'); btn.classList.add('bg-blue-600'); btn.querySelector('i').className = 'fas fa-camera';
 
         const happened = matches.some(m => m.jogoAconteceu);
-        let scoreA = 0, scoreB = 0;
         let boca = matches.filter(m => m.time.toUpperCase().includes('BOCA')).sort((a,b) => b.notaPartida - a.notaPartida);
         let river = matches.filter(m => m.time.toUpperCase().includes('RIVER')).sort((a,b) => b.notaPartida - a.notaPartida);
-        if (happened) { scoreA = boca.reduce((a,b) => a + b.gols, 0); scoreB = river.reduce((a,b) => a + b.gols, 0); }
+        
+        let scoreA = 0, scoreB = 0;
+        if (happened) { 
+            const golsBoca = boca.reduce((a,b) => a + b.gols, 0);
+            const contraBoca = boca.reduce((a,b) => a + b.golsContra, 0); 
+            const golsRiver = river.reduce((a,b) => a + b.gols, 0);
+            const contraRiver = river.reduce((a,b) => a + b.golsContra, 0);
+            scoreA = golsBoca + contraRiver; // Boca = gols feitos + gols contra do river
+            scoreB = golsRiver + contraBoca; // River = gols feitos + gols contra do boca
+        }
 
         document.getElementById('match-date').innerText = `RESUMO: ${date}`;
         document.getElementById('score-a').innerText = happened ? scoreA : '-';
@@ -1127,6 +1120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(posLabel === 'MEI') posColor = 'bg-green-500/20 text-green-300 border border-green-500/30';
             if(posLabel === 'ALA') posColor = 'bg-purple-500/20 text-purple-300 border border-purple-500/30';
             if(posLabel === 'ZAG') posColor = 'bg-orange-500/20 text-orange-300 border border-orange-500/30';
+            if(posLabel === 'DEF') posColor = 'bg-orange-500/20 text-orange-400 border border-orange-500/30'; 
             if(posLabel === 'GOL') posColor = 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30';
 
             return `<div class="flex justify-between items-center p-2 bg-white/5 rounded border border-white/5 hover:bg-white/10 transition cursor-pointer group" onclick="window.openPlayerModal('${p.nome}')">
@@ -1137,6 +1131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="flex gap-1 h-3 items-center">
                              ${happened && p.gols > 0 ? `<span class="text-[8px] bg-green-500/20 text-green-400 px-1 rounded border border-green-500/20 font-bold">${p.gols}G</span>` : ''}
                              ${happened && p.assistencias > 0 ? `<span class="text-[8px] bg-blue-500/20 text-blue-400 px-1 rounded border border-blue-500/20 font-bold">${p.assistencias}A</span>` : ''}
+                             ${happened && p.golsContra > 0 ? `<span class="text-[8px] bg-red-500/20 text-red-400 px-1 rounded border border-red-500/20 font-bold">GC</span>` : ''}
                         </div>
                     </div>
                 </div>
@@ -1147,34 +1142,31 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('list-boca').innerHTML = renderList(boca);
         document.getElementById('list-river').innerHTML = renderList(river);
 
-        let html = '';
+        let htmlInner = '';
         if (happened) {
-            const getPos = (pos, count, exclude) => matches.filter(p => p.posicao === pos && !exclude.includes(p)).sort((a,b) => b.notaPartida - a.notaPartida).slice(0, count);
-            let sel = [];
-            const team = { gol: getPos('gol',1,sel), zag: getPos('zag',1,sel), ala: getPos('ala',2,sel), mei: getPos('mei',1,sel), ata: getPos('ata',2,sel) };
-            const renderP = (p, style) => `<div class="absolute flex flex-col items-center transform -translate-x-1/2 z-10 hover:scale-110 transition cursor-pointer" style="${style}" onclick="window.openPlayerModal('${p.nome}')"><div class="relative"><img src="${playerPhotos[p.nome]||''}" class="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-yellow-400 shadow-lg bg-black object-cover" onerror="this.src='https://ui-avatars.com/api/?name=${p.nome}'"><div class="absolute -bottom-1 -right-1 bg-black/90 text-yellow-400 text-[8px] font-bold px-1 rounded border border-yellow-400/50">${p.notaPartida.toFixed(1)}</div></div><div class="bg-black/80 px-1.5 py-0.5 rounded mt-0.5 text-[8px] text-white font-bold truncate max-w-[70px] text-center border border-white/20 backdrop-blur-sm">${p.nomeRaw.split(' ')[0]}</div></div>`;
-            if(team.gol[0]) html += renderP(team.gol[0], 'bottom: 5%; left: 50%');
-            if(team.zag[0]) html += renderP(team.zag[0], 'bottom: 20%; left: 50%');
-            team.ala.forEach((p,i) => html += renderP(p, `bottom: 45%; ${i===0?'left: 12%':'right: 12%'}`));
-            team.mei.forEach((p,i) => html += renderP(p, 'top: 45%; left: 50%'));
-            team.ata.forEach((p,i) => html += renderP(p, `top: 15%; ${i===0?'left: 25%':'right: 25%'}`));
-        } else {
-            html = '<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-400 font-bold bg-black/50 px-4 py-2 rounded border border-white/10 text-center text-xs">AGUARDANDO</div>';
-        }
-        document.getElementById('match-team-display').innerHTML = html;
-        modal.classList.remove('hidden'); modal.classList.add('flex');
-    }
-
-    function renderHistory(matches) {
-        const div = document.getElementById('matches-list');
-        const dates = [...new Set(matches.map(m => m.dataJogo))].sort((a,b) => new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-')));
-        div.innerHTML = dates.map(d => {
-            const ms = matches.filter(m => m.dataJogo === d);
-            const happened = ms.some(x => x.jogoAconteceu);
-            const ga = ms.filter(x => x.time.toUpperCase().includes('BOCA')).reduce((a,b)=>a+b.gols,0);
-            const gb = ms.filter(x => x.time.toUpperCase().includes('RIVER')).reduce((a,b)=>a+b.gols,0);
-            return `<div class="glass-panel p-4 rounded-xl flex justify-between items-center border border-white/5 hover:bg-white/5 transition cursor-pointer" onclick="window.openMatchModal('${d}')"><span class="text-gray-400 text-xs md:text-sm font-mono">${d}</span>${happened ? `<span class="font-bold text-white text-lg md:text-xl font-fifa"><span class="text-blue-400">BOCA ${ga}</span> <span class="text-gray-600 text-xs md:text-sm mx-1 md:mx-2">VS</span> <span class="text-red-400">${gb} RIVER</span></span>` : '<span class="text-[10px] md:text-xs bg-white/10 px-2 py-1 rounded text-gray-400">AGENDADO</span>'}</div>`;
-        }).join('');
+            const is2026 = date.endsWith('2026'); let sel = [];
+            if (is2026) {
+                const getPos = (posArr, count) => matches.filter(p => posArr.includes(p.posicao) && !sel.includes(p)).sort((a,b) => b.notaPartida - a.notaPartida).slice(0, count);
+                const renderP = (p, style) => `<div class="absolute flex flex-col items-center transform -translate-x-1/2 z-10 hover:scale-110 transition cursor-pointer" style="${style}" onclick="window.openPlayerModal('${p.nome}')"><div class="relative"><img src="${playerPhotos[p.nome]||''}" class="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-yellow-400 shadow-lg bg-black object-cover" onerror="this.src='https://ui-avatars.com/api/?name=${p.nome}'"><div class="absolute -bottom-1 -right-1 bg-black/90 text-yellow-400 text-[8px] font-bold px-1 rounded border border-yellow-400/50">${p.notaPartida.toFixed(1)}</div></div><div class="bg-black/80 px-1.5 py-0.5 rounded mt-0.5 text-[8px] text-white font-bold truncate max-w-[70px] text-center border border-white/20 backdrop-blur-sm">${p.nomeRaw.split(' ')[0]}</div></div>`;
+                const gks = getPos(['gol'], 1); sel.push(...gks);
+                const defs = getPos(['def', 'zag'], 2); sel.push(...defs);
+                const meis = getPos(['mei', 'ala'], 3); sel.push(...meis);
+                const atas = getPos(['ata'], 1); sel.push(...atas);
+                if(gks[0]) htmlInner += renderP(gks[0], 'bottom: 5%; left: 50%');
+                if(defs[0]) htmlInner += renderP(defs[0], 'bottom: 25%; left: 25%'); if(defs[1]) htmlInner += renderP(defs[1], 'bottom: 25%; right: 25%');
+                if(meis[0]) htmlInner += renderP(meis[0], 'top: 50%; left: 50%'); if(meis[1]) htmlInner += renderP(meis[1], 'top: 50%; left: 15%'); if(meis[2]) htmlInner += renderP(meis[2], 'top: 50%; right: 15%');
+                if(atas[0]) htmlInner += renderP(atas[0], 'top: 15%; left: 50%');
+            } else {
+                const getPos = (pos, count) => matches.filter(p => p.posicao === pos && !sel.includes(p)).sort((a,b) => b.notaPartida - a.notaPartida).slice(0, count);
+                const team = { gol: getPos('gol',1), zag: getPos('zag',1), ala: getPos('ala',2), mei: getPos('mei',1), ata: getPos('ata',2) };
+                [...team.gol, ...team.zag, ...team.ala, ...team.mei, ...team.ata].forEach(p => sel.push(p));
+                const renderP = (p, style) => `<div class="absolute flex flex-col items-center transform -translate-x-1/2 z-10 hover:scale-110 transition cursor-pointer" style="${style}" onclick="window.openPlayerModal('${p.nome}')"><div class="relative"><img src="${playerPhotos[p.nome]||''}" class="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-yellow-400 shadow-lg bg-black object-cover" onerror="this.src='https://ui-avatars.com/api/?name=${p.nome}'"><div class="absolute -bottom-1 -right-1 bg-black/90 text-yellow-400 text-[8px] font-bold px-1 rounded border border-yellow-400/50">${p.notaPartida.toFixed(1)}</div></div><div class="bg-black/80 px-1.5 py-0.5 rounded mt-0.5 text-[8px] text-white font-bold truncate max-w-[70px] text-center border border-white/20 backdrop-blur-sm">${p.nomeRaw.split(' ')[0]}</div></div>`;
+                if(team.gol[0]) htmlInner += renderP(team.gol[0], 'bottom: 5%; left: 50%'); if(team.zag[0]) htmlInner += renderP(team.zag[0], 'bottom: 20%; left: 50%');
+                team.ala.forEach((p,i) => htmlInner += renderP(p, `bottom: 45%; ${i===0?'left: 12%':'right: 12%'}`)); team.mei.forEach((p,i) => htmlInner += renderP(p, 'top: 45%; left: 50%')); team.ata.forEach((p,i) => htmlInner += renderP(p, `top: 15%; ${i===0?'left: 25%':'right: 25%'}`));
+            }
+        } else { htmlInner = '<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-400 font-bold bg-black/50 px-4 py-2 rounded border border-white/10 text-center text-xs">AGUARDANDO</div>'; }
+        document.getElementById('match-team-display').innerHTML = htmlInner;
+        document.getElementById('match-modal').classList.remove('hidden'); document.getElementById('match-modal').classList.add('flex');
     }
 
     function renderDraftList(players) {
@@ -1189,8 +1181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function generateTeams() {
-        const selectedEl = Array.from(document.querySelectorAll('.draft-chk:checked'));
-        if(selectedEl.length < 2) return alert('Selecione ao menos 2 jogadores');
+        const selectedEl = Array.from(document.querySelectorAll('.draft-chk:checked')); if(selectedEl.length < 2) return alert('Selecione ao menos 2 jogadores');
         const selectedNames = selectedEl.map(c => c.value);
         const pool = allPlayersData.filter(p => selectedNames.includes(p.nome));
         const gks = pool.filter(p => p.posicaoPref === 'gol').sort((a,b) => b.fifa.ovr - a.fifa.ovr);
@@ -1211,8 +1202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupComparisonTool() {
-        const p1 = document.getElementById('p1-select'); const p2 = document.getElementById('p2-select');
-        if(p1.options.length > 0) return;
+        const p1 = document.getElementById('p1-select'); const p2 = document.getElementById('p2-select'); if(p1.options.length > 0) return;
         const opts = '<option value="">Selecione...</option>' + allPlayersData.sort((a,b)=>a.nomeOriginal.localeCompare(b.nomeOriginal)).map(p=>`<option value="${p.nome}">${p.nomeOriginal}</option>`).join('');
         p1.innerHTML = opts; p2.innerHTML = opts;
         const compare = () => {
