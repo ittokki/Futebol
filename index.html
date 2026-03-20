@@ -1349,6 +1349,8 @@ const GOLEIROS_FIXOS = new Set([
 
 // Helper centralizado — única fonte de verdade para detectar goleiro
 const isGoleiro = p => GOLEIROS_FIXOS.has(p.nome) || p.posicaoPref === 'gol' || p.jogosGoleiro > 0;
+
+let allPlayersData = [], allMatchesData = [], chartInstances = {}, currentLayoutIs2026 = true;
 let currentModalPlayer = null;
 let lastDraftTeams = null;
 
