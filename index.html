@@ -1347,8 +1347,8 @@ const GOLEIROS_FIXOS = new Set([
   'ALESSANDRO',
 ]);
 
-// Helper centralizado — única fonte de verdade para detectar goleiro
-const isGoleiro = p => GOLEIROS_FIXOS.has(p.nome) || p.posicaoPref === 'gol' || p.jogosGoleiro > 0;
+// Helper centralizado — APENAS lista fixa + nome com (GOL). Não usa jogosGoleiro pois dados do sheet podem estar errados.
+const isGoleiro = p => GOLEIROS_FIXOS.has(p.nome) || (p.nomeOriginal||'').toUpperCase().includes('(GOL)');
 
 let allPlayersData = [], allMatchesData = [], chartInstances = {}, currentLayoutIs2026 = true;
 let currentModalPlayer = null;
@@ -1550,7 +1550,7 @@ async function runComentarista() {
   const system = `${SYSTEM_BASE} ${estiloMap[estilo]} Máximo 150 palavras.`;
   const user = isGk
     ? `Faça um comentário sobre este goleiro:\n${buildGkContext(p)}`
-    : `Faça um comentário sobre ${p.nomeOriginal} com os seguintes dados da temporada: ${p.jogos} jogos, ${p.gols} gols, ${p.assistencias} assistências, nota média ${p.notaGeral.toFixed(2)}, ${p.vitorias} vitórias, ${p.selectionCount} vezes na seleção da rodada, OVR FIFA ${p.fifa.ovr}, nível: ${p.nivel}.`;
+    : `Faça um comentário sobre ${p.nomeOriginal} — JOGADOR DE LINHA, NÃO É GOLEIRO. Dados: ${p.jogos} jogos, ${p.gols} gols, ${p.assistencias} assistências, nota média ${p.notaGeral.toFixed(2)}, ${p.vitorias} vitórias, ${p.selectionCount} vezes na seleção da rodada, OVR FIFA ${p.fifa.ovr}, nível: ${p.nivel}.`;
   await askGroq(system, user, document.getElementById('out-comentarista'), document.getElementById('text-comentarista'));
   btn.disabled = false;
 }
@@ -1569,7 +1569,7 @@ async function generateModalComment() {
   const system = `${SYSTEM_BASE} Seja engraçado e use no máximo 80 palavras. Estilo irônico e zoador.`;
   const user = isGkM
     ? `Comentário curto e engraçado sobre este goleiro:\n${buildGkContext(p)}`
-    : `Faça um comentário curto e engraçado sobre ${p.nomeOriginal}: ${p.jogos} jogos, ${p.gols} gols, ${p.assistencias} assists, nota ${p.notaGeral.toFixed(2)}, ${p.vitorias} vitórias. OVR ${p.fifa.ovr}.`;
+    : `Faça um comentário curto e engraçado sobre ${p.nomeOriginal} — JOGADOR DE LINHA, NÃO É GOLEIRO: ${p.jogos} jogos, ${p.gols} gols, ${p.assistencias} assists, nota ${p.notaGeral.toFixed(2)}, ${p.vitorias} vitórias. OVR ${p.fifa.ovr}.`;
   const keyM = cacheKey('modal', p.nome, p.notaGeral.toFixed(2));
   if (aiCache.has(keyM)) {
     document.getElementById('modal-ai-text').textContent = aiCache.get(keyM) + ' (cache)';
@@ -1613,13 +1613,16 @@ async function runTribunal() {
   document.getElementById('trib-provas').textContent = '';
   document.getElementById('trib-defesa').textContent = '';
   document.getElementById('trib-pena').textContent = '';
+  // Limpa cache do tribunal para sempre gerar resposta fresca
+  [...aiCache.keys()].filter(k=>k.includes(p.nomeOriginal)).forEach(k=>aiCache.delete(k));
   const isGkT = isGoleiro(p);
   const system = `${SYSTEM_BASE} Você é um juiz severo e dramático do Tribunal da Pelada. Responda EXATAMENTE neste formato JSON sem markdown:
 {"crime":"descrição do crime principal baseado nos dados","provas":"3 provas com os números reais","defesa":"um argumento ridículo de defesa que o jogador poderia dar","pena":"pena criativa e engraçada"}`;
   const gpj = (p.gols / (p.jogos||1)).toFixed(2);
+  const gcTotal = p.partidas.reduce((a,m)=>a+m.golsContra,0);
   const user = isGkT
     ? `Julgue este goleiro no Tribunal da Pelada:\n${buildGkContext(p)}\nSe a média dele for boa entre os goleiros do grupo, os crimes precisam ser outros (arrogância, gritar com a zaga, sair do gol na hora errada, fingir que a culpa é da defesa, etc). Seja criativo e engraçado!`
-    : `Julgue ${p.nomeOriginal}: ${p.jogos} jogos, ${p.gols} gols (${gpj}/jogo), ${p.assistencias} assists, nota ${p.notaGeral.toFixed(2)}, ${p.vitorias} vitórias, aproveitamento ${p.aproveitamento.toFixed(0)}%, ${p.selectionCount} seleções, ${p.partidas.reduce((a,m)=>a+m.golsContra,0)} gols contra. Seja criativo, engraçado e cruel (com bom humor).`;
+    : `ATENÇÃO: ${p.nomeOriginal} É JOGADOR DE LINHA, NÃO É GOLEIRO. Julgue-o pelos gols e assistências, NUNCA mencione goleiro ou defesa de gols. Dados: ${p.jogos} jogos, ${p.gols} gols (${gpj}/jogo), ${p.assistencias} assists, nota ${p.notaGeral.toFixed(2)}, ${p.vitorias} vitórias, aproveitamento ${p.aproveitamento.toFixed(0)}%, ${p.selectionCount} vezes na seleção da rodada${gcTotal>0?`, ${gcTotal} gols contra`:''}.`;
   try {
     const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method:'POST',
@@ -2426,7 +2429,7 @@ window.openPlayerModal = nome => {
   document.getElementById('detail-media').innerText=p.notaGeral.toFixed(2);
   document.getElementById('detail-gols').innerText=p.gols;
   // Para goleiros: mostrar gols sofridos no lugar de assistências
-  if(isGk && p.jogosGoleiro>0) {
+  if(isGk && p.mediaGolsSofridos!=null) {
     document.getElementById('detail-assist').innerText = p.mediaGolsSofridos!=null ? p.mediaGolsSofridos.toFixed(1) : '0';
     document.querySelector('[data-stat-detail="assist-label"]').innerText = 'GLS/JG';
   } else {
