@@ -1292,7 +1292,7 @@ button, .btn-icon, .nav-item, .rank-row, .history-item, .hall-card, .stat-card, 
 // ==============================
 // CONFIG
 // ==============================
-const GROQ_KEY = "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";
+const GROQ_KEY = "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";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 const apiKey = "AIzaSyCL19ds6YqVOv5vV-zygBjeC-byy-rDPfM";
 const spreadsheetId = "1TvrVT8ksYYMlpw8gkKIFvpnnCf02J8uYTkhHc5c0vdo";
@@ -1344,10 +1344,28 @@ let currentModalPlayer = null;
 let lastDraftTeams = null;
 
 // ==============================
+// CACHE DE SESSÃO — evita chamadas repetidas à API
+// ==============================
+const aiCache = new Map();
+
+function cacheKey(...args) {
+  return args.join('||');
+}
+
+// ==============================
 // GROQ AI HELPER
 // ==============================
 async function askGroq(systemPrompt, userPrompt, outputEl, textEl) {
+  const key = cacheKey(systemPrompt.slice(0,80), userPrompt.slice(0,120));
   if (outputEl) { outputEl.classList.add('visible'); }
+
+  // Verifica cache primeiro
+  if (aiCache.has(key)) {
+    const cached = aiCache.get(key);
+    if (textEl) textEl.innerHTML = cached.replace(/\n/g, '<br>') + ' <span style="font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:1px">· cache</span>';
+    return cached;
+  }
+
   if (textEl) { textEl.innerHTML = '<span class="ai-typing">Analisando</span>'; }
   try {
     const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -1359,12 +1377,20 @@ async function askGroq(systemPrompt, userPrompt, outputEl, textEl) {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_tokens: 600,
+        max_tokens: 350,
         temperature: 0.9
       })
     });
     const data = await resp.json();
+    if (data.error) {
+      const msg = data.error.code === 'rate_limit_exceeded'
+        ? '⏳ Limite de chamadas atingido. Aguarde alguns minutos e tente novamente.'
+        : '⚠️ Erro ao gerar resposta. Tente novamente.';
+      if (textEl) textEl.innerHTML = msg;
+      return null;
+    }
     const text = data.choices?.[0]?.message?.content || 'Erro ao gerar resposta.';
+    aiCache.set(key, text); // salva no cache
     if (textEl) textEl.innerHTML = text.replace(/\n/g, '<br>');
     return text;
   } catch(e) {
@@ -1533,13 +1559,29 @@ async function generateModalComment() {
   const user = isGkM
     ? `Comentário curto e engraçado sobre este goleiro:\n${buildGkContext(p)}`
     : `Faça um comentário curto e engraçado sobre ${p.nomeOriginal}: ${p.jogos} jogos, ${p.gols} gols, ${p.assistencias} assists, nota ${p.notaGeral.toFixed(2)}, ${p.vitorias} vitórias. OVR ${p.fifa.ovr}.`;
+  const keyM = cacheKey('modal', p.nome, p.notaGeral.toFixed(2));
+  if (aiCache.has(keyM)) {
+    document.getElementById('modal-ai-text').textContent = aiCache.get(keyM) + ' (cache)';
+    document.getElementById('modal-ai-comment').classList.add('visible');
+    btn.innerHTML = '<i class="fas fa-rotate-right"></i> GERAR NOVO COMENTÁRIO';
+    modalCommentLoading = false;
+    return;
+  }
   const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${GROQ_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role:'system', content:system }, { role:'user', content:user }], max_tokens: 200, temperature: 0.95 })
+    body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role:'system', content:system }, { role:'user', content:user }], max_tokens: 120, temperature: 0.95 })
   });
   const data = await resp.json();
+  if (data.error) {
+    btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> GERAR COMENTÁRIO DA IA';
+    modalCommentLoading = false;
+    document.getElementById('modal-ai-text').textContent = '⏳ Limite atingido. Aguarde alguns minutos.';
+    document.getElementById('modal-ai-comment').classList.add('visible');
+    return;
+  }
   const text = data.choices?.[0]?.message?.content || '...';
+  aiCache.set(keyM, text);
   document.getElementById('modal-ai-text').textContent = text;
   document.getElementById('modal-ai-comment').classList.add('visible');
   btn.innerHTML = '<i class="fas fa-rotate-right"></i> GERAR NOVO COMENTÁRIO';
@@ -1571,7 +1613,7 @@ async function runTribunal() {
     const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method:'POST',
       headers:{'Authorization':`Bearer ${GROQ_KEY}`,'Content-Type':'application/json'},
-      body: JSON.stringify({ model:GROQ_MODEL, messages:[{role:'system',content:system},{role:'user',content:user}], max_tokens:400, temperature:0.95 })
+      body: JSON.stringify({ model:GROQ_MODEL, messages:[{role:'system',content:system},{role:'user',content:user}], max_tokens:280, temperature:0.95 })
     });
     const data = await resp.json();
     let text = data.choices?.[0]?.message?.content || '{}';
@@ -1682,9 +1724,16 @@ async function sendChat() {
     const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
       method:'POST',
       headers:{'Authorization':`Bearer ${GROQ_KEY}`,'Content-Type':'application/json'},
-      body:JSON.stringify({model:GROQ_MODEL,messages:chatHistory,max_tokens:200,temperature:0.9})
+      body:JSON.stringify({model:GROQ_MODEL,messages:chatHistory,max_tokens:150,temperature:0.9})
     });
     const data=await resp.json();
+    if (data.error) {
+      chatHistory.pop(); // remove a msg do user pra não poluir o histórico
+      thinkingDiv.querySelector('.chat-bubble').textContent='⏳ Limite de chamadas atingido. Aguarda alguns minutos e tenta de novo!';
+      document.getElementById('chat-send-btn').disabled=false;
+      document.getElementById('chat-messages').scrollTop=99999;
+      return;
+    }
     const reply=data.choices?.[0]?.message?.content||'Não consegui responder isso.';
     chatHistory.push({role:'assistant',content:reply});
     thinkingDiv.querySelector('.chat-bubble').innerHTML=reply.replace(/\n/g,'<br>');
