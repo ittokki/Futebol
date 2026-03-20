@@ -1339,7 +1339,16 @@ const playerPhotos = {
   "ZECA": "https://drive.google.com/thumbnail?id=1nijIMeVwsl9ApSSeu47QnK612JJXGYSL&sz=w500"
 };
 
-let allPlayersData = [], allMatchesData = [], chartInstances = {}, currentLayoutIs2026 = true;
+// Lista fixa dos goleiros conhecidos do grupo — fonte da verdade
+const GOLEIROS_FIXOS = new Set([
+  'BRUNO GUIMARAES',
+  'LUCAS HENRIQUE',
+  'VITOR',        // VITOR (GOL) após norm()
+  'ALESSANDRO',
+]);
+
+// Helper centralizado — única fonte de verdade para detectar goleiro
+const isGoleiro = p => GOLEIROS_FIXOS.has(p.nome) || isGoleiro(p);
 let currentModalPlayer = null;
 let lastDraftTeams = null;
 
@@ -1403,7 +1412,7 @@ function buildStatsContext() {
   if (!allPlayersData.length) return 'Sem dados disponíveis.';
   const sorted = [...allPlayersData].sort((a,b) => b.notaGeral - a.notaGeral);
   const lines = sorted.map(p => {
-    const isGk = p.posicaoPref === 'gol' || p.jogosGoleiro > 0;
+    const isGk = isGoleiro(p);
     if (isGk) {
       const mgls = p.mediaGolsSofridos != null ? p.mediaGolsSofridos.toFixed(2) : 'N/A';
       const qualidade = p.mediaGolsSofridos != null
@@ -1456,7 +1465,7 @@ function buildGkContext(p) {
   const MIN_JOGOS_RANKING = 3; // mínimo pra entrar no ranking oficial
 
   const gksComDados = allPlayersData
-    .filter(x => (x.posicaoPref === 'gol' || x.jogosGoleiro > 0) && x.mediaGolsSofridos != null);
+    .filter(x => (isGoleiro(x)) && x.mediaGolsSofridos != null);
 
   // Ranking ponderado: só entram quem tem mínimo de jogos
   const gksRanking = gksComDados
@@ -1535,7 +1544,7 @@ async function runComentarista() {
     tecnico: 'Estilo analista técnico frio e detalhado. Use jargões táticos, seja objetivo mas ligeiramente cruel.',
     torcedor: 'Estilo torcedor apaixonado e exagerado. Defenda o jogador mesmo quando ele errar, culpe os outros.'
   };
-  const isGk = p.posicaoPref === 'gol' || p.jogosGoleiro > 0;
+  const isGk = isGoleiro(p);
   const system = `${SYSTEM_BASE} ${estiloMap[estilo]} Máximo 150 palavras.`;
   const user = isGk
     ? `Faça um comentário sobre este goleiro:\n${buildGkContext(p)}`
@@ -1554,7 +1563,7 @@ async function generateModalComment() {
   const p = currentModalPlayer;
   const btn = document.getElementById('modal-ai-gen-btn');
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GERANDO...';
-  const isGkM = p.posicaoPref === 'gol' || p.jogosGoleiro > 0;
+  const isGkM = isGoleiro(p);
   const system = `${SYSTEM_BASE} Seja engraçado e use no máximo 80 palavras. Estilo irônico e zoador.`;
   const user = isGkM
     ? `Comentário curto e engraçado sobre este goleiro:\n${buildGkContext(p)}`
@@ -1602,7 +1611,7 @@ async function runTribunal() {
   document.getElementById('trib-provas').textContent = '';
   document.getElementById('trib-defesa').textContent = '';
   document.getElementById('trib-pena').textContent = '';
-  const isGkT = p.posicaoPref === 'gol' || p.jogosGoleiro > 0;
+  const isGkT = isGoleiro(p);
   const system = `${SYSTEM_BASE} Você é um juiz severo e dramático do Tribunal da Pelada. Responda EXATAMENTE neste formato JSON sem markdown:
 {"crime":"descrição do crime principal baseado nos dados","provas":"3 provas com os números reais","defesa":"um argumento ridículo de defesa que o jogador poderia dar","pena":"pena criativa e engraçada"}`;
   const gpj = (p.gols / (p.jogos||1)).toFixed(2);
@@ -1658,7 +1667,7 @@ async function runH2H() {
   veredito.classList.add('visible');
   document.getElementById('text-h2h').innerHTML='<span class="ai-typing">Analisando o duelo</span>';
   const fmtP = p => {
-    const isGk = p.posicaoPref==='gol'||p.jogosGoleiro>0;
+    const isGk = isGoleiro(p);
     if(isGk) return `${p.nomeOriginal} [GOLEIRO] (${p.jogos}j no gol, média ${p.mediaGolsSofridos!=null?p.mediaGolsSofridos.toFixed(2):'N/A'} gols sofridos/jogo, nota ${p.notaGeral.toFixed(2)}, OVR ${p.fifa.ovr}, aproveitamento ${p.aproveitamento.toFixed(0)}%)`;
     return `${p.nomeOriginal} [${pos3(p.posicaoPref)}] (${p.jogos}j, ${p.gols}g, ${p.assistencias}a, nota ${p.notaGeral.toFixed(2)}, OVR ${p.fifa.ovr}, aproveitamento ${p.aproveitamento.toFixed(0)}%)`;
   };
@@ -1756,14 +1765,14 @@ function renderSecretStats(players, matches) {
   const grid=document.getElementById('secret-grid');
 
   // 1. AZARADO — pior aproveitamento do time quando ele joga (excluindo goleiros)
-  const jinxData = players.filter(p=>p.jogos>=4&&p.posicaoPref!=='gol'&&p.jogosGoleiro===0).map(p=>{
+  const jinxData = players.filter(p=>p.jogos>=4&&!isGoleiro(p)).map(p=>{
     const wins=p.partidas.filter(m=>m.jogoAconteceu&&m.vitoria===1).length;
     const played=p.partidas.filter(m=>m.jogoAconteceu).length;
     return {...p, jinxRate: played>0?((played-wins)/played)*100:0};
   }).sort((a,b)=>b.jinxRate-a.jinxRate);
 
   // 2. SECO — mais jogos consecutivos sem gol (excluindo goleiros)
-  const secoData = players.filter(p=>p.posicaoPref!=='gol'&&p.jogosGoleiro===0).map(p=>{
+  const secoData = players.filter(p=>!isGoleiro(p)).map(p=>{
     let maxSeco=0, curr=0;
     p.partidas.filter(m=>m.jogoAconteceu&&!m.isGoleiro).forEach(m=>{
       if(m.gols===0) { curr++; maxSeco=Math.max(maxSeco,curr); } else curr=0;
@@ -1772,7 +1781,7 @@ function renderSecretStats(players, matches) {
   }).sort((a,b)=>b.maxSeco-a.maxSeco);
 
   // 3. ENCOSTADO — mais jogos sem participação (excluindo goleiros)
-  const encostadoData = players.filter(p=>p.posicaoPref!=='gol'&&p.jogosGoleiro===0).map(p=>{
+  const encostadoData = players.filter(p=>!isGoleiro(p)).map(p=>{
     const semParticip=p.partidas.filter(m=>m.jogoAconteceu&&!m.isGoleiro&&m.gols===0&&m.assistencias===0).length;
     const total=p.partidas.filter(m=>m.jogoAconteceu&&!m.isGoleiro).length;
     return {...p, pctEncostado: total>0?(semParticip/total)*100:0, semParticip};
@@ -1785,7 +1794,7 @@ function renderSecretStats(players, matches) {
   }).filter(p=>p.gcs>0).sort((a,b)=>b.gcs-a.gcs);
 
   // 5. CONSTANTE — menor desvio padrão de notas (excluindo goleiros)
-  const constData = players.filter(p=>p.jogos>=4&&p.posicaoPref!=='gol'&&p.jogosGoleiro===0).map(p=>{
+  const constData = players.filter(p=>p.jogos>=4&&!isGoleiro(p)).map(p=>{
     const ns=p.partidas.filter(m=>m.jogoAconteceu).map(m=>m.notaPartida);
     const avg=ns.reduce((a,b)=>a+b,0)/ns.length;
     const std=Math.sqrt(ns.reduce((a,b)=>a+(b-avg)**2,0)/ns.length);
@@ -1841,6 +1850,11 @@ function renderSecretStats(players, matches) {
 // HELPERS (same as original)
 // ==============================
 const parseNum = v => typeof v === "number" ? v : (Number((v||'').toString().replace(',', '.').trim()) || 0);
+// Lista fixa dos goleiros conhecidos do grupo (nome normalizado)
+const GOLEIROS_FIXOS = new Set([
+  'BRUNO GUIMARAES', 'LUCAS HENRIQUE', 'VITOR', 'ALESSANDRO'
+]);
+
 const norm = n => n ? n.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").replace(/\(GOL\)/gi,"").trim().toUpperCase() : '';
 const mapPos = p => { if(!p) return 'N/A'; p=p.toLowerCase(); if(p.includes('gol')) return 'gol'; if(p.includes('def')) return 'def'; if(p.includes('zag')) return 'zag'; if(p.includes('ala')) return 'ala'; if(p.includes('mei')) return 'mei'; if(p.includes('ata')) return 'ata'; return 'N/A'; };
 const pos3 = p => { if(!p) return 'N/A'; p=p.toLowerCase(); if(p.includes('gol')) return 'GOL'; if(p.includes('def')) return 'DEF'; if(p.includes('zag')) return 'ZAG'; if(p.includes('ala')) return 'ALA'; if(p.includes('mei')) return 'MEI'; if(p.includes('ata')) return 'ATA'; return p.substring(0,3).toUpperCase(); };
@@ -1925,6 +1939,8 @@ function processDataForPeriod(matches, playersRaw) {
     const ng=p.stats.notas.length?p.stats.notas.reduce((a,b)=>a+b,0)/p.stats.notas.length:0;
     const pc=p.stats.posicoes.reduce((a,pos)=>{a[pos]=(a[pos]||0)+1;return a;},{});
     const pp=Object.keys(pc).sort((a,b)=>pc[b]-pc[a])[0]||'N/A';
+    // Força goleiro para quem está na whitelist, independente da coluna do sheet
+    const posicaoPref = GOLEIROS_FIXOS.has(p.nome) ? 'gol' : pp;
     const obj={
       nome:p.nome,nomeOriginal:p.nomeOriginal,
       jogos:p.stats.jogos,gols:p.stats.gols,assistencias:p.stats.ass,vitorias:p.stats.vitorias,
@@ -1961,7 +1977,7 @@ async function initData() {
       vitoria:(row[7]||"").toLowerCase().trim()==='sim'?1:(row[7]||"").toLowerCase().trim()==='empate'?0.5:0,
       time:row[8]||'N/A',
       jogoAconteceu:(row[10]||"").toLowerCase()==='sim',
-      isGoleiro:(row[0]||"").toUpperCase().includes('(GOL)')||(row[11]||'').toLowerCase().includes('gol'),
+      isGoleiro:(row[0]||"").toUpperCase().includes('(GOL)')||GOLEIROS_FIXOS.has(norm(row[0])),
       posicao:mapPos(row[11])
     })).filter(p=>p.nome&&/^\d{2}\/\d{2}\/\d{4}$/.test(p.dataJogo));
 
@@ -2128,10 +2144,10 @@ function renderHero(players) {
 function renderSpotlights(players) {
   const garcom = [...players].sort((a,b)=>b.assistencias-a.assistencias)[0];
   const topS = [...players].sort((a,b)=>b.gols-a.gols)[0];
-  const gks = players.filter(p=>p.jogosGoleiro>=3).sort((a,b)=>a.mediaGolsSofridos-b.mediaGolsSofridos);
+  const gks = players.filter(p=>isGoleiro(p)).sort((a,b)=>a.mediaGolsSofridos-b.mediaGolsSofridos);
   const gk = gks[0];
   // Bagre geral: pior nota média (mín 3 jogos, excluindo goleiros)
-  const bagreGeral = [...players].filter(p=>p.jogos>=3&&p.posicaoPref!=='gol').sort((a,b)=>a.notaGeral-b.notaGeral)[0];
+  const bagreGeral = [...players].filter(p=>p.jogos>=3&&!isGoleiro(p)).sort((a,b)=>a.notaGeral-b.notaGeral)[0];
   const mkCard = (label, player, val, color, icon='', extraStyle='') => player ? `
     <div class="stat-card" onclick="openPlayerModal('${player.nome}')" style="${extraStyle}">
       <div class="stat-card-accent" style="background:${color}"></div>
@@ -2180,7 +2196,7 @@ function renderRankings(players) {
   grid.innerHTML += makeRankCard('ASSISTÊNCIAS','🎯','assistencias','');
   grid.innerHTML += makeRankCard('G+A','💎','ga','');
   grid.innerHTML += makeRankCard('VITÓRIAS','🥇','vitorias','V');
-  const gks = filtered.filter(p=>p.jogosGoleiro>=3);
+  const gks = filtered.filter(p=>isGoleiro(p));
   if(gks.length>0) grid.innerHTML += makeRankCard('GOLEIROS (MÉDIA)','🧤','mediaGolsSofridos','',true,gks,2,0,'gks');
   grid.innerHTML += makeRankCard('APROVEITAMENTO','📈','aproveitamento','%',false,filtered,1,3);
 }
@@ -2188,7 +2204,7 @@ function renderRankings(players) {
 window.openFullRanking = (title, key, reverse, decimals=0, datasetId='all') => {
   // datasetId='gks' usa só goleiros, default usa todos
   let base = datasetId==='gks'
-    ? allPlayersData.filter(p=>p.jogosGoleiro>=3&&p.mediaGolsSofridos!=null)
+    ? allPlayersData.filter(p=>isGoleiro(p)&&p.mediaGolsSofridos!=null)
     : allPlayersData;
   const sorted = [...base].filter(p=>p[key]!=null).sort((a,b)=>reverse?a[key]-b[key]:b[key]-a[key]);
   let html='';
@@ -2269,8 +2285,8 @@ function generateTeams() {
   const selected = Array.from(document.querySelectorAll('.draft-chk:checked'));
   if(selected.length<2) return;
   const pool = allPlayersData.filter(p=>selected.some(s=>s.value===p.nome));
-  const gks=pool.filter(p=>p.posicaoPref==='gol').sort((a,b)=>b.fifa.ovr-a.fifa.ovr);
-  const out=pool.filter(p=>p.posicaoPref!=='gol').sort((a,b)=>b.fifa.ovr-a.fifa.ovr);
+  const gks=pool.filter(p=>isGoleiro(p)).sort((a,b)=>b.fifa.ovr-a.fifa.ovr);
+  const out=pool.filter(p=>!isGoleiro(p)).sort((a,b)=>b.fifa.ovr-a.fifa.ovr);
   const tA=[],tB=[];
   if(gks[0]) tA.push(gks[0]); if(gks[1]) tB.push(gks[1]); if(gks.length>2) out.push(...gks.slice(2));
   out.forEach((p,i)=>{ if(i%4===0||i%4===3) tB.push(p); else tA.push(p); });
@@ -2395,7 +2411,7 @@ window.openPlayerModal = nome => {
   document.getElementById('card-pos').innerText=pos3(p.posicaoPref);
   document.getElementById('card-img').src=getPhoto(p.nome);
   document.getElementById('card-name').innerText=p.nomeOriginal.split(' ')[0];
-  const isGk = p.posicaoPref==='gol';
+  const isGk = isGoleiro(p);
   document.getElementById('stat-pac').innerText=s.pac;
   // Para goleiros: trocar SHO por média de gols sofridos
   if(isGk) {
