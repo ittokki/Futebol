@@ -1348,7 +1348,7 @@ const GOLEIROS_FIXOS = new Set([
 ]);
 
 // Helper centralizado — única fonte de verdade para detectar goleiro
-const isGoleiro = p => GOLEIROS_FIXOS.has(p.nome) || isGoleiro(p);
+const isGoleiro = p => GOLEIROS_FIXOS.has(p.nome) || p.posicaoPref === 'gol' || p.jogosGoleiro > 0;
 let currentModalPlayer = null;
 let lastDraftTeams = null;
 
@@ -1851,10 +1851,6 @@ function renderSecretStats(players, matches) {
 // ==============================
 const parseNum = v => typeof v === "number" ? v : (Number((v||'').toString().replace(',', '.').trim()) || 0);
 // Lista fixa dos goleiros conhecidos do grupo (nome normalizado)
-const GOLEIROS_FIXOS = new Set([
-  'BRUNO GUIMARAES', 'LUCAS HENRIQUE', 'VITOR', 'ALESSANDRO'
-]);
-
 const norm = n => n ? n.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").replace(/\(GOL\)/gi,"").trim().toUpperCase() : '';
 const mapPos = p => { if(!p) return 'N/A'; p=p.toLowerCase(); if(p.includes('gol')) return 'gol'; if(p.includes('def')) return 'def'; if(p.includes('zag')) return 'zag'; if(p.includes('ala')) return 'ala'; if(p.includes('mei')) return 'mei'; if(p.includes('ata')) return 'ata'; return 'N/A'; };
 const pos3 = p => { if(!p) return 'N/A'; p=p.toLowerCase(); if(p.includes('gol')) return 'GOL'; if(p.includes('def')) return 'DEF'; if(p.includes('zag')) return 'ZAG'; if(p.includes('ala')) return 'ALA'; if(p.includes('mei')) return 'MEI'; if(p.includes('ata')) return 'ATA'; return p.substring(0,3).toUpperCase(); };
