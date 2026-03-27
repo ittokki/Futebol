@@ -1292,7 +1292,7 @@ button, .btn-icon, .nav-item, .rank-row, .history-item, .hall-card, .stat-card, 
 // ==============================
 // CONFIG
 // ==============================
-const GROQ_KEY = "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";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxATWJAzHcdkJaR-09L_JBcSGp3M0NvRQ7gkFbqwlSjzFdpc9gKm9_uKbeEa61h1emYLQ/exec";
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 const apiKey = "AIzaSyCL19ds6YqVOv5vV-zygBjeC-byy-rDPfM";
 const spreadsheetId = "1TvrVT8ksYYMlpw8gkKIFvpnnCf02J8uYTkhHc5c0vdo";
@@ -1322,6 +1322,7 @@ const playerPhotos = {
   "HENRIQUE AMARAL": "https://drive.google.com/thumbnail?id=1V7_e555JZ9DlUtJXl-Q94_TxnRpyRS26&sz=w500",
   "HENRIQUE SILVA": "https://drive.google.com/thumbnail?id=1YMVMfLNkMG0hg1YjfmmFIa-4OvJuGIzk&sz=w500",
   "IAGO NUNES": "https://drive.google.com/thumbnail?id=19BAt94_apJXVWI1rnpNPfLnXG_dzr2IZ&sz=w500",
+  "JOAO LUCIO": "https://drive.google.com/thumbnail?id=1_zB-qFUpJX1BdhQT_cpe8RNzIkLxtZ5E&sz=w500",
   "JUAREZ CARDOSO": "https://drive.google.com/thumbnail?id=1ylBwDdDDa6ZVXNS_gjNW0U5Hu2bDErHk&sz=w500",
   "KAUE": "https://drive.google.com/thumbnail?id=10PTzb7BfKjAEJoQjIX_zsz6thyAx06NC&sz=w500",
   "LUCAS HENRIQUE": "https://drive.google.com/thumbnail?id=1RFSypiSjWo01lSXNh4YWsLUHMi0QhXz4&sz=w500",
@@ -1364,13 +1365,30 @@ function cacheKey(...args) {
 }
 
 // ==============================
-// GROQ AI HELPER
+// APPS SCRIPT AI HELPER
 // ==============================
+async function callAIOnAppsScript(payload) {
+  const resp = await fetch(WEB_APP_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await resp.json();
+
+  if (!resp.ok || data.error) {
+    throw new Error(data.error || 'Erro ao chamar o Apps Script.');
+  }
+
+  return data;
+}
+
 async function askGroq(systemPrompt, userPrompt, outputEl, textEl) {
   const key = cacheKey(systemPrompt.slice(0,80), userPrompt.slice(0,120));
   if (outputEl) { outputEl.classList.add('visible'); }
 
-  // Verifica cache primeiro
   if (aiCache.has(key)) {
     const cached = aiCache.get(key);
     if (textEl) textEl.innerHTML = cached.replace(/\n/g, '<br>') + ' <span style="font-family:var(--font-mono);font-size:8px;color:var(--text3);letter-spacing:1px">· cache</span>';
@@ -1378,30 +1396,17 @@ async function askGroq(systemPrompt, userPrompt, outputEl, textEl) {
   }
 
   if (textEl) { textEl.innerHTML = '<span class="ai-typing">Analisando</span>'; }
+
   try {
-    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${GROQ_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: 350,
-        temperature: 0.9
-      })
+    const data = await callAIOnAppsScript({
+      action: 'chat',
+      model: GROQ_MODEL,
+      systemPrompt,
+      userPrompt
     });
-    const data = await resp.json();
-    if (data.error) {
-      const msg = data.error.code === 'rate_limit_exceeded'
-        ? '⏳ Limite de chamadas atingido. Aguarde alguns minutos e tente novamente.'
-        : '⚠️ Erro ao gerar resposta. Tente novamente.';
-      if (textEl) textEl.innerHTML = msg;
-      return null;
-    }
-    const text = data.choices?.[0]?.message?.content || 'Erro ao gerar resposta.';
-    aiCache.set(key, text); // salva no cache
+
+    const text = data.reply || 'Erro ao gerar resposta.';
+    aiCache.set(key, text);
     if (textEl) textEl.innerHTML = text.replace(/\n/g, '<br>');
     return text;
   } catch(e) {
@@ -1428,6 +1433,97 @@ function buildStatsContext() {
     return `${p.nomeOriginal} [${pos3(p.posicaoPref)}]: ${p.jogos} jogos, ${p.gols} gols, ${p.assistencias} assists, nota média ${p.notaGeral.toFixed(2)}, ${p.vitorias} vitórias, aproveitamento ${p.aproveitamento.toFixed(0)}%, OVR FIFA ${p.fifa.ovr}`;
   });
   return lines.join('\n');
+}
+
+function parseDatesFromText(text) {
+  if (!text) return [];
+  const matches = text.match(/\b\d{2}\/\d{2}\/\d{4}\b/g) || [];
+  return [...new Set(matches)];
+}
+
+function getLatestPlayedMatchDate() {
+  const playedDates = [...new Set(allMatchesData.filter(m => m.jogoAconteceu).map(m => m.dataJogo))];
+  playedDates.sort((a,b) => new Date(b.split('/').reverse().join('-')) - new Date(a.split('/').reverse().join('-')));
+  return playedDates[0] || null;
+}
+
+function resolveRequestedMatchDates(text) {
+  const explicitDates = parseDatesFromText(text);
+  if (explicitDates.length) return explicitDates;
+
+  const t = (text || '').toLowerCase();
+  if (/ultima partida|última partida|ultimo jogo|último jogo|ultima rodada|última rodada|jogo mais recente|partida mais recente/.test(t)) {
+    const latest = getLatestPlayedMatchDate();
+    return latest ? [latest] : [];
+  }
+  return [];
+}
+
+function buildMatchContext(dateStr) {
+  const matches = allMatchesData.filter(m => m.dataJogo === dateStr);
+  if (!matches.length) return `PARTIDA ${dateStr}: sem dados encontrados.`;
+
+  const happened = matches.some(m => m.jogoAconteceu);
+  const boca = matches.filter(m => (m.time || '').toUpperCase().includes('BOCA'));
+  const river = matches.filter(m => (m.time || '').toUpperCase().includes('RIVER'));
+  const scoreBoca = happened ? boca.reduce((a,b) => a + b.gols, 0) + river.reduce((a,b) => a + b.golsContra, 0) : 0;
+  const scoreRiver = happened ? river.reduce((a,b) => a + b.gols, 0) + boca.reduce((a,b) => a + b.golsContra, 0) : 0;
+  const played = matches.filter(m => m.jogoAconteceu);
+
+  if (!happened || !played.length) {
+    return `PARTIDA ${dateStr}: rodada cadastrada, mas marcada como não realizada.`;
+  }
+
+  const sortedByRatingDesc = [...played].sort((a,b) => b.notaPartida - a.notaPartida);
+  const craque = sortedByRatingDesc[0] || null;
+  const bagre = [...played].filter(p => !p.isGoleiro).sort((a,b) => a.notaPartida - b.notaPartida)[0] || [...played].sort((a,b) => a.notaPartida - b.notaPartida)[0] || null;
+  const artilheiros = [...played].filter(p => p.gols > 0).sort((a,b) => b.gols - a.gols || b.assistencias - a.assistencias || b.notaPartida - a.notaPartida).slice(0,5);
+  const garçons = [...played].filter(p => p.assistencias > 0).sort((a,b) => b.assistencias - a.assistencias || b.gols - a.gols || b.notaPartida - a.notaPartida).slice(0,5);
+  const golsContra = played.filter(p => p.golsContra > 0);
+  const goleiros = played.filter(p => p.isGoleiro);
+  const piores = [...played].sort((a,b) => a.notaPartida - b.notaPartida).slice(0,4);
+  const melhores = [...played].sort((a,b) => b.notaPartida - a.notaPartida).slice(0,4);
+
+  const teamSummary = (name, teamPlayers, placar, rivalPlacar) => {
+    const mediaNota = teamPlayers.length ? (teamPlayers.reduce((a,b) => a + b.notaPartida, 0) / teamPlayers.length).toFixed(2) : '0.00';
+    const golsMarcados = teamPlayers.reduce((a,b) => a + b.gols, 0);
+    const assistencias = teamPlayers.reduce((a,b) => a + b.assistencias, 0);
+    const golsContraTime = teamPlayers.reduce((a,b) => a + b.golsContra, 0);
+    return `${name}: placar ${placar}, sofreu ${rivalPlacar}, média de nota ${mediaNota}, gols marcados diretamente ${golsMarcados}, assistências ${assistencias}, gols contra a favor do rival ${golsContraTime}.`;
+  };
+
+  const playerLine = p => {
+    const extras = [];
+    if (p.gols) extras.push(`${p.gols}G`);
+    if (p.assistencias) extras.push(`${p.assistencias}A`);
+    if (p.golsContra) extras.push(`${p.golsContra} GC`);
+    if (p.isGoleiro) extras.push(`${p.golsTomados} sofridos`);
+    return `${p.nomeRaw} [${(p.time || 'SEM TIME').toUpperCase()} | ${pos3(p.posicao)}]: nota ${p.notaPartida.toFixed(1)}${extras.length ? ` | ${extras.join(' · ')}` : ''}`;
+  };
+
+  const lines = [
+    `PARTIDA ${dateStr}`,
+    `PLACAR FINAL: BOCA ${scoreBoca} x ${scoreRiver} RIVER.`,
+    teamSummary('BOCA', boca, scoreBoca, scoreRiver),
+    teamSummary('RIVER', river, scoreRiver, scoreBoca),
+    craque ? `CRAQUE DA RODADA: ${playerLine(craque)}` : '',
+    bagre ? `BAGRE DA RODADA: ${playerLine(bagre)}` : '',
+    artilheiros.length ? `ARTILHEIROS: ${artilheiros.map(playerLine).join(' || ')}` : 'ARTILHEIROS: ninguém marcou.',
+    garçons.length ? `GARÇONS: ${garçons.map(playerLine).join(' || ')}` : 'GARÇONS: ninguém deu assistência.',
+    goleiros.length ? `GOLEIROS: ${goleiros.map(playerLine).join(' || ')}` : '',
+    golsContra.length ? `GOLS CONTRA: ${golsContra.map(playerLine).join(' || ')}` : 'GOLS CONTRA: nenhum.',
+    `MELHORES NOTAS: ${melhores.map(playerLine).join(' || ')}`,
+    `PIORES NOTAS: ${piores.map(playerLine).join(' || ')}`,
+    `TODOS OS JOGADORES DA PARTIDA: ${sortedByRatingDesc.map(playerLine).join(' || ')}`
+  ].filter(Boolean);
+
+  return lines.join('\n');
+}
+
+function buildRelevantContextForChat(text) {
+  const dates = resolveRequestedMatchDates(text);
+  if (!dates.length) return '';
+  return dates.map(buildMatchContext).join('\n\n');
 }
 
 const BAGRE_MSGS = [
@@ -1561,16 +1657,21 @@ async function runComentarista() {
 let modalCommentLoading = false;
 async function generateModalComment() {
   if (!currentModalPlayer || modalCommentLoading) return;
+
   modalCommentLoading = true;
   const p = currentModalPlayer;
   const btn = document.getElementById('modal-ai-gen-btn');
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GERANDO...';
+
   const isGkM = isGoleiro(p);
   const system = `${SYSTEM_BASE} Seja engraçado e use no máximo 80 palavras. Estilo irônico e zoador.`;
   const user = isGkM
-    ? `Comentário curto e engraçado sobre este goleiro:\n${buildGkContext(p)}`
+    ? `Comentário curto e engraçado sobre este goleiro:
+${buildGkContext(p)}`
     : `Faça um comentário curto e engraçado sobre ${p.nomeOriginal} — JOGADOR DE LINHA, NÃO É GOLEIRO: ${p.jogos} jogos, ${p.gols} gols, ${p.assistencias} assists, nota ${p.notaGeral.toFixed(2)}, ${p.vitorias} vitórias. OVR ${p.fifa.ovr}.`;
+
   const keyM = cacheKey('modal', p.nome, p.notaGeral.toFixed(2));
+
   if (aiCache.has(keyM)) {
     document.getElementById('modal-ai-text').textContent = aiCache.get(keyM) + ' (cache)';
     document.getElementById('modal-ai-comment').classList.add('visible');
@@ -1578,24 +1679,27 @@ async function generateModalComment() {
     modalCommentLoading = false;
     return;
   }
-  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${GROQ_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role:'system', content:system }, { role:'user', content:user }], max_tokens: 120, temperature: 0.95 })
-  });
-  const data = await resp.json();
-  if (data.error) {
-    btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> GERAR COMENTÁRIO DA IA';
-    modalCommentLoading = false;
-    document.getElementById('modal-ai-text').textContent = '⏳ Limite atingido. Aguarde alguns minutos.';
+
+  try {
+    const data = await callAIOnAppsScript({
+      action: 'chat',
+      model: GROQ_MODEL,
+      systemPrompt: system,
+      userPrompt: user
+    });
+
+    const text = data.reply || '...';
+    aiCache.set(keyM, text);
+
+    document.getElementById('modal-ai-text').textContent = text;
     document.getElementById('modal-ai-comment').classList.add('visible');
-    return;
+    btn.innerHTML = '<i class="fas fa-rotate-right"></i> GERAR NOVO COMENTÁRIO';
+  } catch (e) {
+    document.getElementById('modal-ai-text').textContent = '⚠️ Erro ao gerar comentário.';
+    document.getElementById('modal-ai-comment').classList.add('visible');
+    btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> GERAR COMENTÁRIO DA IA';
   }
-  const text = data.choices?.[0]?.message?.content || '...';
-  aiCache.set(keyM, text);
-  document.getElementById('modal-ai-text').textContent = text;
-  document.getElementById('modal-ai-comment').classList.add('visible');
-  btn.innerHTML = '<i class="fas fa-rotate-right"></i> GERAR NOVO COMENTÁRIO';
+
   modalCommentLoading = false;
 }
 
@@ -1605,34 +1709,45 @@ async function generateModalComment() {
 async function runTribunal() {
   const nome = document.getElementById('tribunal-select').value;
   if (!nome) { alert('Escolhe o réu!'); return; }
+
   const p = allPlayersData.find(pl => pl.nome === nome);
   if (!p) return;
+
   document.getElementById('tribunal-output').classList.add('visible');
   document.getElementById('trib-reu').textContent = p.nomeOriginal.toUpperCase();
   document.getElementById('trib-crime').textContent = '⏳ Analisando crimes...';
   document.getElementById('trib-provas').textContent = '';
   document.getElementById('trib-defesa').textContent = '';
   document.getElementById('trib-pena').textContent = '';
-  // Limpa cache do tribunal para sempre gerar resposta fresca
+
   [...aiCache.keys()].filter(k=>k.includes(p.nomeOriginal)).forEach(k=>aiCache.delete(k));
+
   const isGkT = isGoleiro(p);
   const system = `${SYSTEM_BASE} Você é um juiz severo e dramático do Tribunal da Pelada. Responda EXATAMENTE neste formato JSON sem markdown:
 {"crime":"descrição do crime principal baseado nos dados","provas":"3 provas com os números reais","defesa":"um argumento ridículo de defesa que o jogador poderia dar","pena":"pena criativa e engraçada"}`;
+
   const gpj = (p.gols / (p.jogos||1)).toFixed(2);
   const gcTotal = p.partidas.reduce((a,m)=>a+m.golsContra,0);
+
   const user = isGkT
-    ? `Julgue este goleiro no Tribunal da Pelada:\n${buildGkContext(p)}\nSe a média dele for boa entre os goleiros do grupo, os crimes precisam ser outros (arrogância, gritar com a zaga, sair do gol na hora errada, fingir que a culpa é da defesa, etc). Seja criativo e engraçado!`
+    ? `Julgue este goleiro no Tribunal da Pelada:
+${buildGkContext(p)}
+Se a média dele for boa entre os goleiros do grupo, os crimes precisam ser outros (arrogância, gritar com a zaga, sair do gol na hora errada, fingir que a culpa é da defesa, etc). Seja criativo e engraçado!`
     : `ATENÇÃO: ${p.nomeOriginal} É JOGADOR DE LINHA, NÃO É GOLEIRO. Julgue-o pelos gols e assistências, NUNCA mencione goleiro ou defesa de gols. Dados: ${p.jogos} jogos, ${p.gols} gols (${gpj}/jogo), ${p.assistencias} assists, nota ${p.notaGeral.toFixed(2)}, ${p.vitorias} vitórias, aproveitamento ${p.aproveitamento.toFixed(0)}%, ${p.selectionCount} vezes na seleção da rodada${gcTotal>0?`, ${gcTotal} gols contra`:''}.`;
+
   try {
-    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method:'POST',
-      headers:{'Authorization':`Bearer ${GROQ_KEY}`,'Content-Type':'application/json'},
-      body: JSON.stringify({ model:GROQ_MODEL, messages:[{role:'system',content:system},{role:'user',content:user}], max_tokens:280, temperature:0.95 })
+    const data = await callAIOnAppsScript({
+      action: 'chat',
+      model: GROQ_MODEL,
+      systemPrompt: system,
+      userPrompt: user
     });
-    const data = await resp.json();
-    let text = data.choices?.[0]?.message?.content || '{}';
+
+    let text = data.reply || '{}';
     text = text.replace(/```json|```/g,'').trim();
+
     const j = JSON.parse(text);
+
     document.getElementById('trib-crime').textContent = j.crime || '-';
     document.getElementById('trib-provas').textContent = j.provas || '-';
     document.getElementById('trib-defesa').textContent = j.defesa || '-';
@@ -1734,26 +1849,41 @@ async function sendChat() {
   addChatMsg('user', text);
   chatHistory.push({role:'user',content:text});
   const thinkingDiv = addChatMsg('ai','<span class="ai-typing">Pensando</span>');
+
   try {
-    const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Authorization':`Bearer ${GROQ_KEY}`,'Content-Type':'application/json'},
-      body:JSON.stringify({model:GROQ_MODEL,messages:chatHistory,max_tokens:150,temperature:0.9})
-    });
-    const data=await resp.json();
-    if (data.error) {
-      chatHistory.pop(); // remove a msg do user pra não poluir o histórico
-      thinkingDiv.querySelector('.chat-bubble').textContent='⏳ Limite de chamadas atingido. Aguarda alguns minutos e tenta de novo!';
-      document.getElementById('chat-send-btn').disabled=false;
-      document.getElementById('chat-messages').scrollTop=99999;
-      return;
+    const baseSystemPrompt = chatHistory[0]?.content || `${SYSTEM_BASE} Você responde como analista oficial da pelada.`;
+    const matchContext = buildRelevantContextForChat(text);
+    const extraInstructions = matchContext
+      ? `
+
+Se o usuário pedir análise de uma partida específica e houver contexto abaixo, você DEVE usar os dados da partida. Fale de placar, destaques, bagres, craque, equilíbrio dos times e faça críticas específicas com base nas notas e números. Nunca diga que não tem acesso, que não tem dados em tempo real, ou que precisa de mais informações quando o contexto da partida estiver presente. Trate o contexto abaixo como a fonte oficial da partida.`
+      : '';
+    const systemPrompt = `${baseSystemPrompt}${extraInstructions}`;
+
+    const historyWithoutSystem = chatHistory.slice(1);
+    let userPrompt = historyWithoutSystem.map(m => `${m.role === 'assistant' ? 'Assistente' : 'Usuário'}: ${m.content}`).join('\n\n');
+    if (matchContext) {
+      userPrompt += `
+
+DADOS DETALHADOS DA PARTIDA SOLICITADA:
+${matchContext}`;
     }
-    const reply=data.choices?.[0]?.message?.content||'Não consegui responder isso.';
+
+    const data = await callAIOnAppsScript({
+      action: 'chat',
+      model: GROQ_MODEL,
+      systemPrompt,
+      userPrompt
+    });
+
+    const reply=data.reply || 'Não consegui responder isso.';
     chatHistory.push({role:'assistant',content:reply});
     thinkingDiv.querySelector('.chat-bubble').innerHTML=reply.replace(/\n/g,'<br>');
   } catch(e) {
+    chatHistory.pop();
     thinkingDiv.querySelector('.chat-bubble').textContent='⚠️ Erro ao conectar com a IA.';
   }
+
   document.getElementById('chat-send-btn').disabled=false;
   document.getElementById('chat-messages').scrollTop=99999;
 }
